@@ -1,0 +1,14 @@
+{
+  "id": "alarmzentrale",
+  "name": "Alarmzentrale",
+  "version": "1.0.0",
+  "description": "Zentrale Alarmanlage: beliebige Bewegungs-/Tür-/Fensterkontakte und Sirenen auswählen, Zuhause- und Abwesend-Modus, Ein- und Ausgangsverzögerung, Sirenendauer, optionaler PIN, Benachrichtigung, Ereignisprotokoll und Sirenentest.",
+  "author": "HomeLite",
+  "icon": "🚨",
+  "api": 1,
+  "minCore": "1.20.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "Alarm", "icon": "🚨" },
+  "config": []
+}

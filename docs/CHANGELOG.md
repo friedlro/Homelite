@@ -1,5 +1,8 @@
 # Änderungen
 
+## Plugins
+- **Neu: Plugin „Alarmzentrale“ 1.0.0** (`plugins-example/alarmzentrale`) – zentrale Alarmanlage mit frei wählbaren Sensoren und Sirenen, Zuhause-/Abwesend-Modus, Verzögerungen, PIN, Benachrichtigung und Protokoll.
+
 ## 1.24.0
 - **Neues Logo und Symbol:** Seitenleiste, Anmeldeseite, Favicon, iPhone-Home-Bildschirm-Symbol und `manifest.webmanifest` (Installation als App). Logos liegen in `assets/`. Auf GitHub: Spenden-Button am Repository (`.github/FUNDING.yml`) und Badge im README.
 
