@@ -28,6 +28,11 @@ except Exception as exc:  # noqa: BLE001
 
 URL = USER = PASSWORD = ""
 POLL = 60
+SAVER = True      # Sparmodus: Browser nur waehrend der Abfrage offen (ab 120 s Abfrageintervall)
+pw = browser = ctx = None
+BROWSER_ARGS = ["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage", "--disable-extensions", "--disable-background-networking",
+                "--disable-sync", "--no-first-run", "--mute-audio", "--disable-features=Translate,BackForwardCache,MediaRouter",
+                "--js-flags=--max-old-space-size=96"]
 
 
 def emit(obj):
@@ -181,6 +186,33 @@ def publish():
     emit({"event": "state", "state": state})
 
 
+async def ensure():
+    """Browser bei Bedarf starten und anmelden. True, wenn er neu gestartet wurde."""
+    global browser, ctx, page
+    if page is not None:
+        return False
+    browser = await pw.chromium.launch(args=BROWSER_ARGS)
+    ctx = await browser.new_context(viewport={"width": 731, "height": 698}, locale="de-AT")
+    await ctx.route("**/*", lambda r: r.abort() if r.request.resource_type in ("media", "font") else r.continue_())
+    page = await ctx.new_page()
+    await login()
+    return True
+
+
+async def release(force=False):
+    """Im Sparmodus den Browser schliessen, damit zwischen den Abfragen kein Speicher belegt ist."""
+    global browser, ctx, page
+    if not force and not (SAVER and POLL >= 120):
+        return
+    page = None
+    try:
+        if browser is not None:
+            await browser.close()
+    except Exception:  # noqa: BLE001
+        pass
+    browser = ctx = None
+
+
 async def login():
     await page.goto(URL, wait_until="load")
     await asyncio.sleep(3)  # Wt-JavaScript muss erst Handler anhaengen, sonst geht der Klick ins Leere
@@ -282,6 +314,8 @@ async def poller():
     while True:
         async with lock:
             try:
+                if await ensure():
+                    last_reload = time.time()
                 if time.time() - last_reload > 1800:
                     await login()
                     last_reload = time.time()
@@ -309,6 +343,8 @@ async def poller():
                     last_reload = time.time()
                 except Exception as exc2:  # noqa: BLE001
                     print("login fehler:", exc2, flush=True)
+                    await release(force=True)  # naechste Runde startet den Browser frisch
+            await release()
         try:
             await asyncio.wait_for(kick.wait(), POLL)
         except asyncio.TimeoutError:
@@ -402,6 +438,7 @@ async def applier():
             async with lock:
                 for attempt in range(3):
                     try:
+                        await ensure()
                         await poll_once()  # markiert die Bedienelemente neu (Wt baut sie um)
                         if key == "mode":
                             await set_mode(value)
@@ -424,11 +461,14 @@ async def applier():
                     await poll_once()
                 except Exception as exc:  # noqa: BLE001
                     print("poll nach setzen:", exc, flush=True)
+                await release()
 
 
 
 
 async def debug_info():
+    if page is None:
+        return {"error": "Browser im Sparmodus gerade geschlossen - spaeter erneut versuchen"}
     try:
         text = await page.evaluate("() => document.body.innerText.slice(0, 1500)")
         return {"url": page.url, "title": await page.title(), "text": text}
@@ -465,7 +505,7 @@ async def handle(msg):
 
 
 async def main():
-    global page, wake, kick, URL, USER, PASSWORD, POLL
+    global pw, wake, kick, URL, USER, PASSWORD, POLL, SAVER
     wake = asyncio.Event()
     kick = asyncio.Event()
     loop = asyncio.get_running_loop()
@@ -477,10 +517,8 @@ async def main():
     USER = str(cfg.get("username", ""))
     PASSWORD = str(cfg.get("password", ""))
     POLL = max(30, min(3600, int(cfg.get("poll", 60) or 60)))
+    SAVER = cfg.get("saver", True) is not False
     pw = await async_playwright().start()
-    browser = await pw.chromium.launch(args=["--no-sandbox"])
-    ctx = await browser.new_context(viewport={"width": 731, "height": 698}, locale="de-AT")
-    page = await ctx.new_page()
     asyncio.create_task(poller())
     asyncio.create_task(applier())
     while True:
@@ -491,7 +529,7 @@ async def main():
             await handle(json.loads(line))
         except Exception as exc:  # noqa: BLE001
             print("befehl fehlgeschlagen:", exc, flush=True)
-    await browser.close()
+    await release(force=True)
 
 
 try:

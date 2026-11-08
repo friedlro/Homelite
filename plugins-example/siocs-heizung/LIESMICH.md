@@ -49,3 +49,6 @@ Das Passwort liegt in den Plugin-Einstellungen von HomeLite und wird per stdin a
 ## Raumsolltemperatur (ab 1.1.0)
 
 Das Plugin öffnet den Reiter HEIZUNG, trägt die Raumsolltemperatur im Zahlen-Dialog ein, liest sie zur Kontrolle zurück und kehrt zur Stationsseite zurück (dauert 15–30 s). Nach dem Setzen steht in den Protokollen „setzen fehlgeschlagen“, falls das Portal anders reagiert; der Wert wird nur als gesetzt angezeigt, wenn das Zurücklesen stimmt. Die Korrektur der Stationsseite bleibt zusätzlich einstellbar. Bei der ersten Benutzung kurz prüfen, ob der Wert im Portal ankommt.
+
+## Arbeitsspeicher (Sparmodus)
+Chromium belegt dauerhaft etwa 400–500 MB. Mit **Sparmodus** (Standard, Plugin-Einstellungen) und einem Abfrageintervall ab 120 s – empfohlen 300 s – wird der Browser nur für die Abfrage gestartet und danach geschlossen; jede Abfrage dauert dann ca. 10 s länger (erneute Anmeldung). Beim Ändern von Betriebsart, Sollwert oder Korrektur startet er ebenfalls kurz.

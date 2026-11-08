@@ -53,7 +53,7 @@ module.exports = (api) => {
     p.on('error', (e) => { if (proc === p) dead(e.code === 'ENOENT' ? `${bin} nicht gefunden` : e.message); });
     p.on('exit', (code) => { if (proc === p) dead(error || (stderr.slice(-2).join(' | ') || 'Brücke beendet') + ` [Python: ${bin}, Exit ${code}]`); });
     const c = api.config();
-    p.stdin.write(JSON.stringify({ cmd: 'config', url: c.url, username: c.username, password: c.password, poll: Number(c.poll) || 60 }) + '\n');
+    p.stdin.write(JSON.stringify({ cmd: 'config', url: c.url, username: c.username, password: c.password, poll: Number(c.poll) || 60, saver: c.saver !== false }) + '\n');
   }
   function dead(msg) {
     proc = null; error = msg; st = { ...st, ok: false };

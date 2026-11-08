@@ -1,4 +1,6 @@
 'use strict';
+// Arbeitsspeicher: Heap von HomeLite begrenzen (V8 räumt dann früher auf). Eigene Vorgabe per NODE_OPTIONS hat Vorrang.
+if (!/max-old-space-size/.test(process.env.NODE_OPTIONS || '')) require('v8').setFlagsFromString('--max-old-space-size=256');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');

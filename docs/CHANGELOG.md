@@ -1,5 +1,9 @@
 # Änderungen
 
+## 1.25.2
+- **Weniger Arbeitsspeicher:** Der Heap von HomeLite ist auf 256 MB begrenzt (eigene Vorgabe über `NODE_OPTIONS=--max-old-space-size=…` hat Vorrang), die Matter-Brücke auf 160 MB.
+- Plugin `siocs-heizung` 1.2.0: **Sparmodus** – der Browser (Chromium, ca. 400–500 MB) wird nur noch für die Abfrage gestartet und danach geschlossen. Wirkt ab 120 s Abfrageintervall (empfohlen 300 s), abschaltbar in den Plugin-Einstellungen.
+
 ## 1.25.1
 - **Regeln lösen beim Start nicht mehr fälschlich aus:** Der erste gemeldete Zustand eines Geräts nach Programmstart oder Verbindung (z. B. Schalter „aus“, Tuya noch nicht verbunden) zählt nicht mehr als Änderung. Echte Änderungen und Ereignisse (Taster) lösen wie bisher aus; für Aktionen beim Start gibt es den Auslöser „Systemstart“.
 
