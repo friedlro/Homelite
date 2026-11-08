@@ -1,7 +1,7 @@
 # Änderungen
 
 ## Plugins
-- **Neu: Plugin „SIOCS Heizung“ 1.0.0** (`plugins-example/siocs-heizung`) – Portierung der Home-Assistant-App `friedlro/ha-siocs-heizung`: Messwerte, Betriebsart, Korrektur und Heizzeiten der Fernwärme-Station über das SIOCS-Webportal. Benötigt Python-Paket `playwright` mit Chromium.
+- **Neu: Plugin „SIOCS Heizung“ 1.0.1** (1.0.1: verständliche Meldung, wenn Chromium fehlt) (`plugins-example/siocs-heizung`) – Portierung der Home-Assistant-App `friedlro/ha-siocs-heizung`: Messwerte, Betriebsart, Korrektur und Heizzeiten der Fernwärme-Station über das SIOCS-Webportal. Benötigt Python-Paket `playwright` mit Chromium.
 
 ## 1.22.0
 - **Tägliche Update-Prüfung:** HomeLite fragt einmal am Tag das GitHub-Repository ab (Standard-Quelle `friedlro/Homelite`), zeigt oben den Chip „⬆ Update x.y.z“ und sendet eine Benachrichtigung. Ein Klick zeigt die Neuerungen aus dem Changelog; beim Installieren erscheinen sie ebenfalls. Abschaltbar unter Software-Update, dort auch „Jetzt prüfen“.

@@ -409,5 +409,8 @@ async def main():
 try:
     asyncio.run(main())
 except Exception as exc:  # noqa: BLE001
-    emit({"event": "fatal", "error": str(exc)[:300]})
+    msg = str(exc).split("\n")[0][:200]
+    if "Executable doesn't exist" in str(exc):
+        msg = "Chromium fehlt für den HomeLite-Benutzer: als root 'playwright install --with-deps chromium' ausführen (siehe LIESMICH)"
+    emit({"event": "fatal", "error": msg})
     sys.exit(1)

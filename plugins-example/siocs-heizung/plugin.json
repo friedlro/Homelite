@@ -1,7 +1,7 @@
 {
   "id": "siocs-heizung",
   "name": "SIOCS Heizung",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Fernwärme-Übergabestation mit SIOCS-Webportal (SCHNEID, Regler MR-12): Raumtemperatur, Leistung, Wärmemenge u. a. als Sensoren, Betriebsart und Korrektur steuern, Heizzeiten anzeigen. Das Portal wird per Chromium (Playwright) wie von Hand bedient.",
   "author": "HomeLite (nach friedlro/ha-siocs-heizung)",
   "icon": "🔥",

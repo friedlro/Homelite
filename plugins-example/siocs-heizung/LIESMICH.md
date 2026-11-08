@@ -11,6 +11,8 @@ Bindet eine Fernwärme-Übergabestation mit **SIOCS-Webportal** (SCHNEID, Regler
 /opt/homelite/.venv/bin/playwright install --with-deps chromium   # ca. 300 MB Arbeitsspeicher beim Betrieb
 ```
 
+Der Browser muss für den Benutzer installiert werden, unter dem HomeLite läuft (meist root, Dienst `homelite`): `sudo /opt/homelite/.venv/bin/playwright install --with-deps chromium`, danach im Plugin „Neu verbinden“.
+
 (ohne `.venv`: `pip install --break-system-packages playwright`). Dann Plugin installieren, einschalten, unter *Einstellungen → Erweiterungen → Plugins → SIOCS Heizung* Adresse, Benutzer und Passwort eintragen. Auf einem Raspberry Pi mit wenig RAM ist Chromium knapp; empfohlen ab 2 GB.
 
 ## Geräte
