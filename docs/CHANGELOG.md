@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.25.4
+- **Zigbee-Werte beim Start laden:** Nach jeder (Wieder-)Verbindung mit dem MQTT-Broker fragt HomeLite die aktuellen Werte aller Zigbee2MQTT-Geräte an (`<Gerät>/get`, nur für Eigenschaften, die das Gerät auslesen kann, z. B. Lichter, Steckdosen, Thermostate, Helligkeit mancher Sensoren). Zusammen mit den gespeicherten Werten aus 1.25.3 haben Präsenz-, Helligkeits- und Kontaktsensoren sofort einen Wert.
+
 ## 1.25.3
 - **Zigbee-/MQTT-Sensoren behalten ihren letzten Wert über einen Neustart:** Präsenz-, Helligkeits-, Kontakt- und Temperatursensoren, die nur bei Änderungen senden (Zigbee2MQTT), zeigten nach dem Start „leer“, bis sie sich wieder meldeten – Regeln mit Präsenz/Helligkeit griffen deshalb nicht. Der letzte Wert wird jetzt gespeichert und beim Start wiederhergestellt; die nächste echte Meldung ersetzt ihn.
 
