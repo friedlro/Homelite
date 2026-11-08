@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Wo ist?">
+<meta name="theme-color" content="#0f141c">
+<title>Wo ist? – HomeLite</title>
+<link rel="stylesheet" href="where.css">
+</head>
+<body>
+<main>
+  <h1>📍 Wo ist?</h1>
+  <p id="who" class="hint"></p>
+  <button id="go" class="big">Standort senden starten</button>
+  <div id="state" class="state">Bereit.</div>
+  <div class="hint small">Die Seite sendet nur, solange sie geöffnet und der Bildschirm an ist. Für dauerhaftes Tracking: iCloud „Wo ist?“ in HomeLite oder OwnTracks.</div>
+  <details><summary>Einstellungen</summary>
+    <label>Person<input id="person"></label>
+    <label>Schlüssel<input id="key"></label>
+    <button id="save">Speichern</button>
+  </details>
+</main>
+<script src="where.js"></script>
+</body>
+</html>

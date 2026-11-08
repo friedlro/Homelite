@@ -1,0 +1,68 @@
+{
+  "id": "claude",
+  "name": "Claude-Assistent",
+  "version": "1.1.0",
+  "description": "Chat mit Claude direkt in HomeLite über dein Claude-Abo (Claude Code, kein API-Schlüssel): Fragen zum System, Systemcheck (optional täglich), Automationen anlegen lassen. Neue Automationen bleiben immer ausgeschaltet, bis du sie aktivierst.",
+  "author": "HomeLite",
+  "icon": "🤖",
+  "api": 1,
+  "minCore": "1.19.9",
+  "permissions": [
+    "core"
+  ],
+  "main": "index.js",
+  "client": "client.js",
+  "page": {
+    "label": "Claude",
+    "icon": "🤖"
+  },
+  "config": [
+    {
+      "key": "oauthToken",
+      "label": "Abo-Token (optional)",
+      "type": "password",
+      "help": "Erzeugen mit „claude setup-token“ (Claude Pro/Max). Leer: Anmeldung des Dienstbenutzers per „claude login“ wird verwendet."
+    },
+    {
+      "key": "model",
+      "label": "Modell (optional)",
+      "type": "text",
+      "placeholder": "sonnet",
+      "help": "Leer = Standard des Abos. Z. B. sonnet, opus oder haiku."
+    },
+    {
+      "key": "allowAutomations",
+      "label": "Automationen anlegen/ändern erlauben",
+      "type": "bool",
+      "default": true,
+      "help": "Neue Automationen werden immer ausgeschaltet angelegt, Claude kann sie nicht aktivieren. Zusätzlich muss in Einstellungen → KI-Zugriff „Automationen“ erlaubt sein."
+    },
+    {
+      "key": "allowControl",
+      "label": "Geräte steuern erlauben",
+      "type": "bool",
+      "default": false,
+      "help": "Claude darf Geräte schalten und Automationen ausführen. Zusätzlich muss in Einstellungen → KI-Zugriff „Steuern“ erlaubt sein."
+    },
+    {
+      "key": "dailyHour",
+      "label": "Täglicher Systemcheck um … Uhr (0 = aus)",
+      "type": "number",
+      "default": 0,
+      "help": "Verbraucht Nutzungskontingent deines Abos."
+    },
+    {
+      "key": "cli",
+      "label": "Pfad zu Claude Code",
+      "type": "text",
+      "default": "claude",
+      "help": "Muss auf dem Server installiert sein: npm install -g @anthropic-ai/claude-code"
+    },
+    {
+      "key": "extra",
+      "label": "Zusätzlicher Hinweis an Claude (optional)",
+      "type": "text",
+      "placeholder": "z. B. Wohnzimmerlicht heißt bei uns „Stehlampe“"
+    }
+  ]
+}

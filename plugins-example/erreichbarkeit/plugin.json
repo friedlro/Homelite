@@ -1,0 +1,43 @@
+{
+  "id": "erreichbarkeit",
+  "name": "Erreichbarkeit",
+  "version": "1.1.0",
+  "description": "Prüft, ob Geräte im Netzwerk erreichbar sind (Router, HomeLite-Geräte per Dropdown oder eigene Adressen) und legt für jedes einen Sensor „… erreichbar“ an – nutzbar in Automationen.",
+  "author": "HomeLite",
+  "icon": "📶",
+  "api": 1,
+  "minCore": "1.19.3",
+  "main": "index.js",
+  "client": "client.js",
+  "page": {
+    "label": "Erreichbarkeit",
+    "icon": "📶"
+  },
+  "config": [
+    {
+      "key": "hosts",
+      "label": "Weitere Ziele als Text (eines pro Zeile: Name=Adresse:Port) – optional",
+      "type": "textarea",
+      "placeholder": "Apple TV=192.168.1.20:7000\nRouter=192.168.1.1:80",
+      "help": "Normalerweise Geräte auf der Seite „Erreichbarkeit“ per Dropdown hinzufügen."
+    },
+    {
+      "key": "interval",
+      "label": "Prüfen alle … Sekunden",
+      "type": "number",
+      "default": 60
+    },
+    {
+      "key": "timeout",
+      "label": "Zeitlimit pro Prüfung (Sekunden)",
+      "type": "number",
+      "default": 2
+    },
+    {
+      "key": "room",
+      "label": "Raum für die Sensoren (optional)",
+      "type": "text",
+      "default": ""
+    }
+  ]
+}

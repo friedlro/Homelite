@@ -1,0 +1,3 @@
+.ssh-out { background: #0f1419; color: #d7dde4; font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; padding: 10px; border-radius: 8px; min-height: 140px; max-height: 420px; overflow: auto; white-space: pre-wrap; word-break: break-all; margin: 0; }
+.ssh-out .cmd { color: #7fd1ff; }
+.ssh-out .err { color: #ff9e9e; }

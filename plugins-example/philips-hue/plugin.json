@@ -1,0 +1,19 @@
+{
+  "id": "philips-hue",
+  "name": "Philips Hue",
+  "version": "1.0.0",
+  "description": "Bindet die Philips-Hue-Bridge an: Lampen, Steckdosen, Bewegungs-/Temperatur-/Helligkeitssensoren und Dimmer-Schalter als Geräte, optional Räume/Gruppen, dazu Szenen per Knopfdruck.",
+  "author": "HomeLite",
+  "icon": "💡",
+  "api": 1,
+  "minCore": "1.19.3",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "Hue", "icon": "💡" },
+  "config": [
+    { "key": "interval", "label": "Abfrage alle … Sekunden", "type": "number", "default": 4, "help": "Die Bridge meldet nichts von selbst; HomeLite fragt sie regelmäßig ab (mindestens 2 Sekunden)." },
+    { "key": "sensors", "label": "Sensoren und Dimmer-Schalter als Geräte anlegen", "type": "bool", "default": true },
+    { "key": "groups", "label": "Räume/Gruppen als Geräte anlegen", "type": "bool", "default": false },
+    { "key": "room", "label": "Raum für neue Geräte (optional)", "type": "text", "default": "" }
+  ]
+}

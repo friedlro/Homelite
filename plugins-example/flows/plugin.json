@@ -1,0 +1,29 @@
+{
+  "id": "flows",
+  "name": "Flows (Node-RED & n8n Stil)",
+  "version": "1.0.0",
+  "description": "Visueller Flow-Editor für komplexe Automationen: Knoten per Maus verbinden, Ausdrücke {{ }}, Verzweigungen, Schleifen, Warten auf Geräte, Fehlerbehandlung mit Wiederholung, Unterflows, Webhooks, MQTT, HTTP und Ausführungsverlauf. Erweiterbar durch eigene Knoten.",
+  "author": "HomeLite",
+  "icon": "🕸",
+  "api": 1,
+  "minCore": "1.21.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": {
+    "label": "Flows",
+    "icon": "🕸"
+  },
+  "permissions": [
+    "core"
+  ],
+  "config": [
+    {
+      "key": "mcpCreate",
+      "label": "KI darf Flows anlegen/ändern",
+      "type": "bool",
+      "default": true,
+      "help": "Neue Flows der KI sind immer ausgeschaltet – du schaltest sie selbst ein. Knoten mit Code oder Werkzeug-Zugriff legt die KI nie an."
+    }
+  ],
+  "style": "client.css"
+}

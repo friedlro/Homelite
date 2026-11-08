@@ -1,0 +1,14 @@
+{
+  "id": "tuya",
+  "name": "Tuya / Smart Life",
+  "version": "1.0.0",
+  "description": "Tuya- und Smart-Life-Geräte: Anmeldung per QR-Code (ohne Entwicklerkonto), Zustände live, Schalten lokal im Heimnetz (mit Cloud als Ersatz).",
+  "author": "HomeLite",
+  "icon": "☁",
+  "api": 1,
+  "minCore": "1.20.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "Tuya", "icon": "☁" },
+  "config": []
+}

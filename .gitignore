@@ -1,0 +1,8 @@
+node_modules/
+data/
+.venv/
+__pycache__/
+*.log
+import/ha-migration.json
+.DS_Store
+lib/leapmotor/certs/*.pem

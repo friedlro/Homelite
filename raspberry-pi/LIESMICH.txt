@@ -1,0 +1,21 @@
+HomeLite für Raspberry Pi
+=========================
+1. Archiv auf den Pi kopieren und entpacken:
+     tar xzf homelite-pi.tar.gz && cd homelite-pi
+2. Installieren (Internet nötig):   ./install.sh
+   (Port ändern: PORT=8080 ./install.sh)
+3. Im Browser öffnen: http://<pi-ip>:3100  – Start-Passwort:
+     sudo journalctl -u homelite | grep -i passwort
+4. Einstellungen -> Erweiterungen -> Plugins: Die mitgelieferten Plugins
+   (Erreichbarkeit, DuckDNS, SSH, Philips Hue, Müllkalender) liegen schon
+   in data/plugins und können dort aktiviert werden.
+
+Altes System übernehmen: in HomeLite (alt) ein Backup erstellen und im neuen
+unter Einstellungen -> Backup wiederherstellen.
+Updates später: Einstellungen -> Software-Update mit der normalen homelite.tar.gz.
+Geeignet ab Raspberry Pi 2 (ARMv7, 32-bit) – auch Pi 3/4/5, 32- oder 64-bit.
+Nicht möglich: Pi Zero / Pi 1 (ARMv6, kein Node 22).
+Auf kleinen Pis (unter 1,5 GB RAM) legt der Installer 1 GB Swap an und lässt
+Matter weg (nachrüsten: WITH_MATTER=1 ./install.sh). Ohne Apple TV:
+WITH_APPLETV=0 ./install.sh. Die Installation dauert auf dem Pi 2 einige Minuten.
+Empfohlen: Raspberry Pi OS Bookworm oder neuer, SD-Karte mit guter Qualität.

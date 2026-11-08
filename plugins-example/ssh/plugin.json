@@ -1,0 +1,69 @@
+{
+  "id": "ssh",
+  "name": "SSH-Zugriff für KI",
+  "version": "1.3.0",
+  "description": "Erweitert den KI-Zugriff (MCP) um SSH: Claude kann Befehle auf den Servern ausführen, die du auf der Seite „SSH“ einträgst (Server, Benutzer, Passwort oder Schlüssel). Nur eingetragene Hosts, alle Befehle im Verlauf.",
+  "author": "HomeLite",
+  "icon": "🖥",
+  "api": 1,
+  "minCore": "1.19.2",
+  "main": "index.js",
+  "client": "client.js",
+  "page": {
+    "label": "SSH",
+    "icon": "🖥"
+  },
+  "config": [
+    {
+      "key": "name",
+      "label": "Name des Hosts",
+      "type": "text",
+      "default": "server",
+      "help": "Mit diesem Namen spricht Claude den Server an (ssh_exec host=…)."
+    },
+    {
+      "key": "server",
+      "label": "Server (IP oder Name)",
+      "type": "text",
+      "placeholder": "192.168.1.10"
+    },
+    {
+      "key": "port",
+      "label": "Port",
+      "type": "number",
+      "default": 22
+    },
+    {
+      "key": "user",
+      "label": "Benutzer",
+      "type": "text",
+      "placeholder": "roland"
+    },
+    {
+      "key": "password",
+      "label": "Passwort",
+      "type": "password",
+      "help": "Leer lassen = Anmeldung mit dem HomeLite-Schlüssel (siehe Seite „SSH“). Weitere Hosts lassen sich auf der Seite „SSH“ hinzufügen."
+    },
+    {
+      "key": "timeout",
+      "label": "Zeitlimit pro Befehl (Sekunden)",
+      "type": "number",
+      "default": 30
+    },
+    {
+      "key": "readonly",
+      "label": "Nur Hosts auflisten und testen, keine Befehle von der KI erlauben",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "terminal",
+      "label": "Terminal auf der Seite „SSH“ erlauben",
+      "type": "bool",
+      "default": true,
+      "help": "Befehlszeile für dich (nach Anmeldung in HomeLite). Unabhängig von den KI-Werkzeugen."
+    }
+  ],
+  "style": "style.css"
+}

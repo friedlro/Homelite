@@ -1,0 +1,22 @@
+{
+  "id": "duckdns",
+  "name": "DuckDNS",
+  "version": "1.0.0",
+  "description": "Hält deine DuckDNS-Adresse(n) auf dem aktuellen Stand der öffentlichen IP (IPv4/IPv6). Zeigt Status, IP und letzte Änderung; meldet IP-Wechsel.",
+  "author": "HomeLite",
+  "icon": "🦆",
+  "api": 1,
+  "minCore": "1.18.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "DuckDNS", "icon": "🦆" },
+  "config": [
+    { "key": "domains", "label": "Domains (kommagetrennt, ohne .duckdns.org)", "type": "text", "placeholder": "meinhaus,meinhaus2" },
+    { "key": "token", "label": "Token (von duckdns.org)", "type": "password" },
+    { "key": "interval", "label": "Aktualisieren alle … Minuten", "type": "number", "default": 5 },
+    { "key": "ipv6", "label": "IPv6 mitsenden", "type": "bool", "default": false, "help": "DuckDNS übernimmt die IPv6-Adresse, über die HomeLite die Anfrage sendet (nur wenn der Server IPv6 hat)." },
+    { "key": "ip", "label": "Feste IP statt Automatik (optional)", "type": "text", "help": "Leer lassen: DuckDNS erkennt die öffentliche IP selbst." },
+    { "key": "notify", "label": "Bei IP-Wechsel benachrichtigen", "type": "bool", "default": true },
+    { "key": "endpoint", "label": "Update-Adresse (nur für Tests ändern)", "type": "text", "default": "https://www.duckdns.org/update" }
+  ]
+}
