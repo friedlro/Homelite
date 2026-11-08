@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.25.5
+- **App-Symbol repariert:** Die PNG-Symbole (Startbildschirm/Web-App, Favicon) waren durch einen Fehler beim Erzeugen weiß; sie zeigen jetzt wieder das HomeLite-Logo. Neu: eigenes Symbol für Android („maskable“). Falls das alte weiße Symbol bleibt: Web-App vom Startbildschirm entfernen und neu hinzufügen.
+
 ## 1.25.4
 - **Zigbee-Werte beim Start laden:** Nach jeder (Wieder-)Verbindung mit dem MQTT-Broker fragt HomeLite die aktuellen Werte aller Zigbee2MQTT-Geräte an (`<Gerät>/get`, nur für Eigenschaften, die das Gerät auslesen kann, z. B. Lichter, Steckdosen, Thermostate, Helligkeit mancher Sensoren). Zusammen mit den gespeicherten Werten aus 1.25.3 haben Präsenz-, Helligkeits- und Kontaktsensoren sofort einen Wert.
 
