@@ -1,6 +1,6 @@
 # HomeLite
 
-Leichte, eigenständige Hausautomatisierung in **Node.js** – gedacht als schlanker Ersatz für Home Assistant auf einem
+Leichte, eigenständige Hausautomatisierung in **Node.js** – gedacht als schlanke alternative zu Home Assistant auf einem
 Heimserver oder Raspberry Pi (ab Pi 2). Keine Cloud-Pflicht, keine Build-Schritte, Daten in einer SQLite-Datei.
 
 ## Funktionen
