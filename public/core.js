@@ -134,7 +134,7 @@ function loadPluginAssets() {
 
 function renderNav() {
   $('#nav').replaceChildren(
-    h('div', { class: 'brand-side' }, h('span', { class: 'logo' }, '⌂'), 'HomeLite'),
+    h('div', { class: 'brand-side' }, h('img', { class: 'logo', src: 'icon.svg', alt: '' }), 'HomeLite'),
     ...Object.entries(PAGES).filter(([k]) => navVisible(k) || k === page).map(([k, p]) => h('button', { class: k === page ? 'act' : '', onclick: () => go(k), title: p.label },
       h('span', { class: 'ni' }, p.icon || '•'), h('span', { class: 'nl' }, p.short || p.label))));
 }
@@ -218,7 +218,7 @@ function showLogin() {
     try { await api('POST', '/api/login', { password: pw.value }); await boot(); } catch (e) { fail(e); }
   };
   pw.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
-  $('#main').replaceChildren(h('div', { class: 'card login' }, h('div', { class: 'logo big-logo' }, '⌂'), h('h3', {}, 'HomeLite'), h('p', { class: 'hint', style: 'margin:0 0 12px' }, 'Bitte anmelden'), pw, h('div', { class: 'row', style: 'margin-top:12px' }, h('button', { class: 'primary', style: 'width:100%', onclick: go }, 'Anmelden'))));
+  $('#main').replaceChildren(h('div', { class: 'card login' }, h('img', { class: 'logo big-logo', src: 'icon.svg', alt: '' }), h('h3', {}, 'HomeLite'), h('p', { class: 'hint', style: 'margin:0 0 12px' }, 'Bitte anmelden'), pw, h('div', { class: 'row', style: 'margin-top:12px' }, h('button', { class: 'primary', style: 'width:100%', onclick: go }, 'Anmelden'))));
   pw.focus();
 }
 

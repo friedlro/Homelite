@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.24.0
+- **Neues Logo und Symbol:** Seitenleiste, Anmeldeseite, Favicon, iPhone-Home-Bildschirm-Symbol und `manifest.webmanifest` (Installation als App). Logos liegen in `assets/`. Auf GitHub: Spenden-Button am Repository (`.github/FUNDING.yml`) und Badge im README.
+
 ## 1.23.0
 - **Einstellungen → Allgemein:** Abschnitt „HomeLite unterstützen“ mit Spenden-Button (PayPal, freiwillig). Dazu `siocs-heizung` 1.1.0 (Raumsolltemperatur) und `siocs-heizung` 1.0.0 (neues Plugin).
 

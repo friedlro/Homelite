@@ -1,4 +1,10 @@
-# HomeLite
+<p align="center">
+  <img src="assets/homelite-logo.svg" alt="HomeLite" width="520">
+</p>
+
+<p align="center">
+  <a href="https://paypal.me/RolandFriedl"><img alt="Spenden via PayPal" src="https://img.shields.io/badge/Spenden-PayPal-0070ba?logo=paypal&logoColor=white"></a>
+</p>
 
 Leichte, eigenständige Hausautomatisierung in **Node.js** – gedacht als schlanke alternative zu Home Assistant auf einem
 Heimserver oder Raspberry Pi (ab Pi 2). Keine Cloud-Pflicht, keine Build-Schritte, Daten in einer SQLite-Datei.
@@ -57,3 +63,7 @@ Persönliche Daten (`data/`, `import/ha-migration.json`) sind per `.gitignore` a
 
 ## Lizenz
 MIT (siehe `package.json`).
+
+## Unterstützen
+
+HomeLite ist kostenlos und ohne Werbung. Wenn es dir gefällt, freut sich der Entwickler über eine freiwillige Spende: [paypal.me/RolandFriedl](https://paypal.me/RolandFriedl) (auch in HomeLite unter Einstellungen → Allgemein).
