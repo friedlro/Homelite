@@ -73,7 +73,7 @@ const createHistory = require('./lib/history');
 const history = createHistory({ store, devices, sse });
 devices.history = history;
 const importer = require('./lib/importer')({ store, devices, log });
-const updater = require('./lib/updater')({ store, log });
+const updater = require('./lib/updater')({ store, log, notify: (t, m) => notify(t, m) });
 const plugins = require('./lib/plugins')({ store, devices, engine, sse, log, notify, coreVersion: () => updater.version(), getMcp: () => mcp });
 devices.plugins = plugins;
 const createEnergy = require('./lib/energy');
@@ -283,7 +283,7 @@ function model() {
       config: { enabled: !!c.car.enabled, name: c.car.name, username: c.car.username, hasPassword: !!c.car.password, hasPin: !!c.car.pin, certPath: c.car.certPath, keyPath: c.car.keyPath, vin: c.car.vin, pollMinutes: c.car.pollMinutes },
       commands: Car.COMMANDS,
     },
-    version: updater.version(),
+    version: updater.version(), updateInfo: updater.status(),
     dash: c.dash.blocks,
     energyCfg: { ...c.energy, victron: { ...c.energy.victron, pass: undefined, hasPass: !!c.energy.victron.pass } }, energy: energy.live(), victron: victron.status(),
     mcp: { token: c.mcp.token, allowControl: c.mcp.allowControl, allowUnlock: c.mcp.allowUnlock, allowAutomations: c.mcp.allowAutomations },
@@ -805,16 +805,18 @@ route('POST', '/api/backup/restore-upload', async ({ body }) => backup.restoreUp
 route('POST', '/api/backup/delete', ({ body }) => { backup.remove(str(body.file, 120)); return { ok: true }; });
 
 // Software-Update
-const updInfo = () => ({ version: updater.version(), url: cfg().update.url || '', backups: updater.backups(), systemd: updater.underSystemd() });
+const updInfo = () => ({ version: updater.version(), url: cfg().update.url || '', check: updater.status(), backups: updater.backups(), systemd: updater.underSystemd() });
 route('GET', '/api/update', () => updInfo());
 route('PUT', '/api/update', ({ body }) => {
   const u = str(body.url, 500).trim();
   if (u && !/^https?:\/\//i.test(u)) throw bad('Update-Quelle muss mit http(s):// beginnen');
   cfg().update.url = u;
+  if (body.auto !== undefined) cfg().update.auto = !!body.auto;
   store.save();
   return updInfo();
 });
-route('POST', '/api/update/check', async () => updater.fromUrl(cfg().update.url));
+route('POST', '/api/update/check', async () => updater.fromUrl(updater.source()));
+route('POST', '/api/update/check-now', async () => updater.check());
 route('POST', '/api/update/upload', async ({ body }) => {
   const buf = Buffer.from(String(body.data || ''), 'base64');
   return updater.stage(buf);

@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.22.0
+- **Tägliche Update-Prüfung:** HomeLite fragt einmal am Tag das GitHub-Repository ab (Standard-Quelle `friedlro/Homelite`), zeigt oben den Chip „⬆ Update x.y.z“ und sendet eine Benachrichtigung. Ein Klick zeigt die Neuerungen aus dem Changelog; beim Installieren erscheinen sie ebenfalls. Abschaltbar unter Software-Update, dort auch „Jetzt prüfen“.
+
 ## 1.21.1
 - Plugin-Installation „Von Adresse“ (GitHub): akzeptiert jetzt auch Ordner-Adressen wie `https://github.com/friedlro/Homelite/tree/main/plugins-example/philips-hue`; bei einem Repository mit mehreren Plugins erscheint eine Liste statt eines Fehlers, Nicht-Archive werden verständlich gemeldet.
 

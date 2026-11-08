@@ -564,6 +564,7 @@ function waitForRestart(res) {
 function confirmUpdate(r) {
   modal(r.newer ? 'Update gefunden' : r.same ? 'Gleiche Version' : 'Ältere Version', h('div', {},
     h('p', { style: 'margin-top:0' }, `Installiert: ${r.current} · Paket: ${r.version}`),
+    r.notes && r.notes.length ? h('div', {}, h('b', {}, 'Neuerungen'), h('ul', { style: 'padding-left:18px;margin:6px 0 12px' }, r.notes.map((n) => h('li', {}, h('b', {}, n.version + ' – '), n.text)))) : null,
     h('p', { class: 'hint' }, 'Vor dem Austausch wird automatisch eine Sicherung angelegt (unter „Zurücksetzen“ erreichbar). Konfiguration und Geräte bleiben unverändert.')),
   [{ label: 'Abbrechen' }, {
     label: r.newer ? 'Jetzt installieren' : 'Trotzdem installieren', primary: true,
@@ -588,8 +589,12 @@ function updateSection(el) {
       },
     });
     fill(box,
-      h('div', { class: 'row sb' }, h('b', {}, 'Installierte Version: ' + u.version)),
-      h('p', { class: 'hint' }, 'Entweder die Update-Datei (homelite.tar.gz) hier auswählen – oder eine Update-Quelle eintragen (Link zu einer .tar.gz oder ein GitHub-Repository) und „Nach Update suchen“ klicken.'),
+      h('div', { class: 'row sb' }, h('b', {}, 'Installierte Version: ' + u.version),
+        h('button', { class: 'sm', onclick: async () => { try { toast('Prüfe …'); await api('POST', '/api/update/check-now', {}); await draw(); S.updateInfo = (await api('GET', '/api/update')).check; renderStatus(); } catch (e) { fail(e); } } }, 'Jetzt prüfen')),
+      h('p', { class: 'hint' }, u.check.error ? `Letzte Prüfung fehlgeschlagen: ${u.check.error}` : u.check.checked ? `Zuletzt geprüft ${fmtTime(u.check.checked)} · neueste Version ${u.check.latest || '?'}${u.check.newer ? ' – Update verfügbar!' : ' – aktuell'}` : 'Noch nicht geprüft.'),
+      u.check.newer && u.check.notes.length ? h('ul', { style: 'padding-left:18px' }, u.check.notes.map((n) => h('li', {}, h('b', {}, n.version + ' – '), n.text))) : null,
+      chk('Täglich automatisch nach Updates suchen und hinweisen (GitHub-Quelle)', u.check.auto, (v) => api('PUT', '/api/update', { url: u.url, auto: v }).then(() => toast(v ? 'Tägliche Prüfung an' : 'Tägliche Prüfung aus')).catch(fail)),
+      h('p', { class: 'hint' }, 'Standard-Quelle ist das GitHub-Repository friedlro/Homelite (leer lassen). Entweder die Update-Datei (homelite.tar.gz) hier auswählen – oder eine eigene Update-Quelle eintragen (Link zu einer .tar.gz oder ein GitHub-Repository) und „Nach Update suchen“ klicken.'),
       h('div', { class: 'form' }, fld('Update-Quelle (optional)', url)),
       h('div', { class: 'row', style: 'margin-top:12px' },
         h('button', { class: 'primary', onclick: async () => { try { await api('PUT', '/api/update', { url: url.value.trim() }); toast('Prüfe Quelle …'); confirmUpdate(await api('POST', '/api/update/check', {})); } catch (e) { fail(e); } } }, '⟳ Nach Update suchen'),

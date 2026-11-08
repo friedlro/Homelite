@@ -77,6 +77,15 @@ async function reload() {
   renderAll();
 }
 
+function showUpdateNews() {
+  const ui = S.updateInfo; if (!ui) return;
+  modal(`HomeLite ${ui.latest} ist verfügbar`, h('div', {},
+    h('p', { class: 'hint', style: 'margin-top:0' }, `Installiert: ${S.version}`),
+    ui.notes.length ? h('ul', { style: 'padding-left:18px' }, ui.notes.map((n) => h('li', {}, h('b', {}, n.version + ' – '), n.text))) : h('p', {}, 'Neuerungen: siehe Software-Update.'),
+    h('p', { class: 'hint' }, 'Installieren: Einstellungen → System & Wartung → Software-Update → „Nach Update suchen“. Vorher wird automatisch gesichert.')),
+  [{ label: 'Später' }, { label: 'Zum Update', primary: true, onClick: () => { go('set'); } }]);
+}
+
 function renderStatus() {
   if (!S) return;
   const chips = [];
@@ -85,6 +94,8 @@ function renderStatus() {
   for (const p of S.presence) chips.push(h('span', { class: 'chip ' + (p.home ? 'ok' : '') }, `${p.home ? '🏠' : '🚶'} ${p.name}`));
   const modes = { auto: 'Heizung Auto', comfort: 'Heizung Komfort', eco: 'Heizung Absenkung', off: 'Heizung Aus' };
   if (S.heating.rooms.length) chips.push(h('span', { class: 'chip' }, '🌡 ' + (modes[S.heating.mode] || S.heating.mode)));
+  const ui = S.updateInfo;
+  if (ui && ui.newer) chips.unshift(h('span', { class: 'chip ok', style: 'cursor:pointer', title: 'Neue Version verfügbar', onclick: showUpdateNews }, '⬆ Update ' + ui.latest));
   $('#status').replaceChildren(...chips);
 }
 
