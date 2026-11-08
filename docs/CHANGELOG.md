@@ -1,6 +1,7 @@
 # Änderungen
 
 ## Plugins
+- `siocs-heizung` 1.1.0: Raumsolltemperatur (Reiter HEIZUNG → Regelungsparameter) lesen und direkt setzen; Thermostat-Soll und Seite nutzen sie.
 - **Neu: Plugin „SIOCS Heizung“ 1.0.1** (1.0.1: verständliche Meldung, wenn Chromium fehlt) (`plugins-example/siocs-heizung`) – Portierung der Home-Assistant-App `friedlro/ha-siocs-heizung`: Messwerte, Betriebsart, Korrektur und Heizzeiten der Fernwärme-Station über das SIOCS-Webportal. Benötigt Python-Paket `playwright` mit Chromium.
 
 ## 1.22.0

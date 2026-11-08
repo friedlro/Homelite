@@ -19,15 +19,16 @@ Der Browser muss für den Benutzer installiert werden, unter dem HomeLite läuft
 
 | Gerät | Typ | Inhalt |
 |---|---|---|
-| Heizung Raumtemperatur / Raumsoll / Korrektur | Sensor | °C / °C / K |
+| Heizung Raumtemperatur / Raumsoll / Korrektur | Sensor | °C / °C (wirksamer Soll laut Station) / K |
+| Heizung Raumsolltemperatur | Sensor | eingestellter Sollwert (Reiter HEIZUNG → Regelungsparameter), alle 6 h und nach dem Setzen gelesen |
 | Heizung Außentemperatur (Regelung) | Sensor | gemittelt, °C |
 | Heizung Leistung / Spreizung | Sensor | kW / K |
 | Heizung Wärmemenge / Volumen | Sensor | kWh / m³ |
 | Heizung Status / Betriebsart | Sensor (Text) | Anzeige im Portal / gewählte Betriebsart |
-| Heizung | Thermostat | Ist = Raumtemperatur, Soll = Raumsoll; „Soll setzen“ verschiebt die **Korrektur** (−5…+5 K) |
+| Heizung | Thermostat | Ist = Raumtemperatur, Soll = Raumsoll; „Soll setzen“ stellt die **Raumsolltemperatur** (10–30 °C) im Reiter HEIZUNG ein |
 | Heizung Absenkbetrieb, Heizung Partymodus | Schalter | an = Betriebsart setzen, aus = zurück auf Automatik |
 
-Seite *Heizung (SIOCS)*: Messwerte, Betriebsart wählen, Korrektur setzen, Wochenplan (Heizzeiten, nur Anzeige, alle 6 h gelesen). KI-Werkzeug `heizung_betriebsart` (nur mit erlaubtem „Steuern“).
+Seite *Heizung (SIOCS)*: Messwerte, Betriebsart wählen, Raumsolltemperatur setzen, Korrektur setzen, Wochenplan (Heizzeiten, nur Anzeige, alle 6 h gelesen). KI-Werkzeug `heizung_betriebsart` (nur mit erlaubtem „Steuern“).
 
 ## Betriebsarten
 
@@ -44,3 +45,7 @@ Protokoll des Plugins ansehen; `GET /api/plugins/siocs-heizung/x/debug` zeigt Se
 ## Sicherheit
 
 Das Passwort liegt in den Plugin-Einstellungen von HomeLite und wird per stdin an die Brücke übergeben (nicht in Argumenten/Protokoll). Lizenz der Vorlage: MIT, © Roland Friedl.
+
+## Raumsolltemperatur (ab 1.1.0)
+
+Das Plugin öffnet den Reiter HEIZUNG, trägt die Raumsolltemperatur im Zahlen-Dialog ein, liest sie zur Kontrolle zurück und kehrt zur Stationsseite zurück (dauert 15–30 s). Nach dem Setzen steht in den Protokollen „setzen fehlgeschlagen“, falls das Portal anders reagiert; der Wert wird nur als gesetzt angezeigt, wenn das Zurücklesen stimmt. Die Korrektur der Stationsseite bleibt zusätzlich einstellbar. Bei der ersten Benutzung kurz prüfen, ob der Wert im Portal ankommt.

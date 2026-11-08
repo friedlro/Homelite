@@ -137,6 +137,38 @@ SCHEDULE_JS = """
 }
 """
 
+# Seite HEIZUNG (Regelungsparameter): Werte stehen in derselben Zeile wie ihre Beschriftung.
+PARAM_LABELS = {
+    "Raumsolltemperatur": "setpoint",
+    "Offset Raumtemperatur": "room_offset",
+    "Korrektur Absenkbetrieb": "corr_setback",
+    "Korrektur Tagbetrieb": "corr_day",
+}
+
+PARAM_READY_JS = """
+() => [...document.querySelectorAll('body *')].some(e => e.children.length === 0
+  && e.textContent.trim() === 'Regelungsparameter' && e.getBoundingClientRect().width > 0)
+"""
+
+PARAM_JS = """
+(labels) => {
+  document.querySelectorAll('[data-ha]').forEach(e => e.removeAttribute('data-ha'));
+  const parse = t => { const m = t.match(/^(-?\\d+(?:[.,]\\d+)?)\\s*(°C|s|%|K)?$/); return m ? parseFloat(m[1].replace(',', '.')) : null; };
+  const leaves = [...document.querySelectorAll('body *')]
+    .filter(e => e.children.length === 0 && e.textContent.trim() && e.getBoundingClientRect().width > 0)
+    .map(e => { const r = e.getBoundingClientRect(); return {e, t: e.textContent.trim(), x: r.x, y: r.y, n: parse(e.textContent.trim())}; });
+  const out = {};
+  for (const [label, key] of Object.entries(labels)) {
+    const lab = leaves.find(l => l.t === label);
+    if (!lab) continue;
+    const cand = leaves.filter(l => l.n !== null && Math.abs(l.y - lab.y) < 12 && l.x > lab.x)
+                       .sort((a, b) => a.x - b.x)[0];
+    if (cand) { cand.e.setAttribute('data-ha', 'param-' + key); out[key] = cand.n; }
+  }
+  return out;
+}
+"""
+
 state = {"mode_selected": None, "updated": None, "ok": False, "error": ""}
 pending = {}
 wake = None
@@ -263,6 +295,10 @@ async def poller():
                         await read_schedule()
                     except Exception as exc:  # noqa: BLE001
                         print("heizzeiten lesen fehlgeschlagen:", exc, flush=True)
+                    try:
+                        await read_params()
+                    except Exception as exc:  # noqa: BLE001
+                        print("parameter lesen fehlgeschlagen:", exc, flush=True)
             except Exception as exc:  # noqa: BLE001
                 state["ok"] = False
                 state["error"] = str(exc).split("\n")[0][:200]
@@ -289,6 +325,50 @@ async def set_mode(mode):
     await page.locator("select:visible").last.wait_for(state="hidden", timeout=10000)
     state["mode_selected"] = mode
     publish()
+
+
+async def go_params():
+    """Wechselt auf den Reiter HEIZUNG (Regelungsparameter) und markiert die Felder."""
+    btn = page.locator("button:visible", has_text=re.compile(r"^\s*HEIZUNG\s*$", re.I))
+    await btn.first.click(timeout=15000)
+    await page.wait_for_function(PARAM_READY_JS, timeout=30000)
+    await asyncio.sleep(2)
+    data = await page.evaluate(PARAM_JS, PARAM_LABELS)
+    if "setpoint" not in data:
+        raise RuntimeError("Raumsolltemperatur auf der Seite HEIZUNG nicht gefunden")
+    return data
+
+
+async def read_params():
+    try:
+        data = await go_params()
+        state["params"] = data
+        state["setpoint_param"] = data["setpoint"]
+        state["params_updated"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+        publish()
+    finally:
+        await login()  # zurueck zur Stationsseite
+
+
+async def set_setpoint(value):
+    try:
+        await go_params()
+        await page.locator("[data-ha=param-setpoint]").click(position={"x": 27, "y": 13})
+        box = page.locator("input.Wt-spinbox:visible").last
+        await box.wait_for(state="visible", timeout=10000)
+        await box.fill(f"{value:.1f}")
+        await box.press("Tab")
+        await click_btn("ok")
+        await page.locator("input.Wt-spinbox:visible").last.wait_for(state="hidden", timeout=10000)
+        await asyncio.sleep(2)
+        data = await page.evaluate(PARAM_JS, PARAM_LABELS)
+        if abs(data.get("setpoint", -99) - value) > 0.05:
+            raise RuntimeError(f"Raumsolltemperatur steht auf {data.get('setpoint')} statt {value}")
+        state["params"] = data
+        state["setpoint_param"] = data["setpoint"]
+        publish()
+    finally:
+        await login()
 
 
 async def set_offset(value):
@@ -325,6 +405,8 @@ async def applier():
                         await poll_once()  # markiert die Bedienelemente neu (Wt baut sie um)
                         if key == "mode":
                             await set_mode(value)
+                        elif key == "setpoint":
+                            await set_setpoint(value)
                         else:
                             await set_offset(value)
                         break
@@ -368,6 +450,12 @@ async def handle(msg):
         state["offset"] = value
         publish()
         pending["offset"] = value
+        wake.set()
+    elif cmd == "setpoint":
+        value = round(max(10.0, min(30.0, float(msg["value"]))), 1)
+        state["setpoint_param"] = value
+        publish()
+        pending["setpoint"] = value
         wake.set()
     elif cmd == "refresh":
         kick.set()

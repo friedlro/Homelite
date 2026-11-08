@@ -19,6 +19,7 @@ const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samsta
 const SENSORS = [
   { k: 'room_temp', key: 'raumtemperatur', name: 'Heizung Raumtemperatur', unit: '°C' },
   { k: 'room_setpoint', key: 'raumsoll', name: 'Heizung Raumsoll', unit: '°C' },
+  { k: 'setpoint_param', key: 'raumsolltemperatur', name: 'Heizung Raumsolltemperatur', unit: '°C' },
   { k: 'offset', key: 'korrektur', name: 'Heizung Korrektur', unit: 'K' },
   { k: 'outdoor_avg_control', key: 'aussen', name: 'Heizung Außentemperatur (Regelung)', unit: '°C' },
   { k: 'power_kw', key: 'leistung', name: 'Heizung Leistung', unit: 'kW' },
@@ -86,7 +87,8 @@ module.exports = (api) => {
       }
       const t = {};
       if (typeof st.room_temp === 'number') t.current = st.room_temp;
-      if (typeof st.room_setpoint === 'number') t.setpoint = st.room_setpoint;
+      const sp = typeof st.setpoint_param === 'number' ? st.setpoint_param : st.room_setpoint;
+      if (typeof sp === 'number') t.setpoint = sp;
       if (Object.keys(t).length) api.devices.setState(K('heizung'), { ...t, online: st.ok !== false });
       if (st.mode_selected) {
         api.devices.setState(K('absenkung'), { on: st.mode_selected === 'setback', online: st.ok !== false });
@@ -110,6 +112,15 @@ module.exports = (api) => {
     return v;
   }
 
+  function setSetpoint(v) {
+    v = Number(v);
+    if (!isFinite(v)) throw new Error('Zahl erwartet');
+    v = Math.round(Math.max(10, Math.min(30, v)) * 10) / 10;
+    write({ cmd: 'setpoint', value: v });
+    st.setpoint_param = v; apply();
+    return v;
+  }
+
   api.devices.onCommand((dev, action, value) => {
     if (!proc || st.ok === false && !st.updated) throw new Error('Portal nicht verbunden' + (error ? ': ' + error : ''));
     if (dev.key === K('absenkung') || dev.key === K('party')) {
@@ -119,13 +130,7 @@ module.exports = (api) => {
       setMode(on ? mode : 'auto');
       return { on };
     }
-    if (dev.key === K('heizung') && action === 'setpoint') {
-      // Der Raumsoll wird über die Korrektur verschoben: Basis = Soll − aktuelle Korrektur
-      if (typeof st.room_setpoint !== 'number') throw new Error('Raumsoll noch nicht bekannt');
-      const base = st.room_setpoint - (Number(st.offset) || 0);
-      const off = setOffset(Number(value) - base);
-      return { setpoint: Math.round((base + off) * 10) / 10 };
-    }
+    if (dev.key === K('heizung') && action === 'setpoint') return { setpoint: setSetpoint(value) };
     throw new Error('Aktion nicht unterstützt: ' + action);
   });
 
@@ -139,6 +144,7 @@ module.exports = (api) => {
 
   api.route('GET', 'model', () => model());
   api.route('POST', 'mode', ({ body }) => { setMode(body && body.mode); return model(); });
+  api.route('POST', 'setpoint', ({ body }) => { setSetpoint(body && body.value); return model(); });
   api.route('POST', 'offset', ({ body }) => { setOffset(body && body.value); return model(); });
   api.route('POST', 'refresh', () => { write({ cmd: 'refresh' }); return { ok: true }; });
   api.route('POST', 'restart', () => { start(); return model(); });
