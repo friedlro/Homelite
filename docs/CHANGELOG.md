@@ -7,6 +7,7 @@
 - **Plugin-Schnittstelle:** `HL.settings(id, {title, render})` – Plugins können eigene Einstellungsdialoge (Einstellungen → Erweiterungen → Plugins → ⚙) mitbringen.
 
 ## Plugins
+- **Neu: Plugin „Zigbee (Zigbee2MQTT)“ 1.0.0** (`plugins-example/zigbee2mqtt`) – Zigbee-Geräte über Zigbee2MQTT: automatische Geräteanlage, Anlernen/Umbenennen/Entfernen in HomeLite, Einrichtungs-Assistent für Sonoff ZBDongle-E/-P und ConBee II. Nur gegen einen Nachbau getestet.
 - **Neu: Plugin „Z-Wave“ 1.0.0** (`plugins-example/zwave`) – Z-Wave-Geräte über zwave-js-server / Z-Wave JS UI, ohne Zusatzpakete. Noch nicht an echter Hardware getestet.
 - `alarmzentrale` 1.1.0: **Tastenfeld** mit PIN (Sperre nach 5 Fehlversuchen) auf der Seite „Alarm"; Sensoren, Sirenen, Zeiten und PIN jetzt in den Plugin-Einstellungen.
 - **Neu: Plugin „Alarmzentrale“ 1.0.0** (`plugins-example/alarmzentrale`) – zentrale Alarmanlage mit frei wählbaren Sensoren und Sirenen, Zuhause-/Abwesend-Modus, Verzögerungen, PIN, Benachrichtigung und Protokoll.

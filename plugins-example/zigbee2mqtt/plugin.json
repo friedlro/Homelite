@@ -1,0 +1,20 @@
+{
+  "id": "zigbee2mqtt",
+  "name": "Zigbee (Zigbee2MQTT)",
+  "version": "1.0.0",
+  "description": "Zigbee über Zigbee2MQTT: Geräte werden automatisch als HomeLite-Geräte angelegt, Anlernen/Umbenennen/Entfernen direkt in HomeLite. Mit Einrichtungs-Assistent für Sonoff ZBDongle-E/-P, ConBee II und weitere Dongles (erzeugt die Zigbee2MQTT-Konfiguration).",
+  "author": "HomeLite",
+  "icon": "🐝",
+  "api": 1,
+  "minCore": "1.20.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "Zigbee", "icon": "🐝" },
+  "config": [
+    { "key": "base", "label": "Base-Topic von Zigbee2MQTT", "type": "text", "default": "zigbee2mqtt", "help": "Muss mit „mqtt.base_topic“ in der Zigbee2MQTT-Konfiguration übereinstimmen (Standard zigbee2mqtt)." },
+    { "key": "room", "label": "Standard-Raum für neue Geräte (optional)", "type": "text", "default": "" },
+    { "key": "batteries", "label": "Batteriestand als Sensor anlegen", "type": "bool", "default": true },
+    { "key": "linkquality", "label": "Verbindungsqualität (LQI) als Sensor anlegen", "type": "bool", "default": false },
+    { "key": "frontend", "label": "Adresse der Zigbee2MQTT-Oberfläche (optional)", "type": "text", "default": "", "placeholder": "http://192.168.50.10:8080", "help": "Wird als Link auf der Zigbee-Seite angezeigt." }
+  ]
+}

@@ -36,6 +36,7 @@ Dauerbetrieb (systemd), Raspberry Pi und Updates: [docs/INSTALLATION.md](docs/IN
 | `flows` | Visueller Flow-Editor (Node-RED/n8n-Stil), Webhooks, MQTT, Unterflows, Verlauf, eigene Knoten |
 | `tuya` | Tuya / Smart Life, lokal (LAN) mit Cloud-Fallback |
 | `alarmzentrale` | Alarmanlage: Sensoren und Sirenen frei wählbar, Zuhause/Abwesend, Verzögerungen, PIN, Protokoll |
+| `zigbee2mqtt` | Zigbee über Zigbee2MQTT (Sonoff ZBDongle-E/-P, ConBee II …): Geräte automatisch anlegen, anlernen/umbenennen/entfernen, Einrichtungs-Assistent |
 | `zwave` | Z-Wave über zwave-js-server (Z-Wave JS UI): Schalter, Dimmer, Schlösser, Thermostate, Sensoren, Taster; Geräte anlernen/entfernen |
 | `siocs-heizung` | Fernwärme-Heizung über das SIOCS-Webportal (Sensoren, Betriebsart, Korrektur, Heizzeiten) |
 | `claude` | Claude-Assistent im Chat (über Claude-Abo via Claude Code CLI), kann Automationen anlegen |
