@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.25.1
+- **Regeln lösen beim Start nicht mehr fälschlich aus:** Der erste gemeldete Zustand eines Geräts nach Programmstart oder Verbindung (z. B. Schalter „aus“, Tuya noch nicht verbunden) zählt nicht mehr als Änderung. Echte Änderungen und Ereignisse (Taster) lösen wie bisher aus; für Aktionen beim Start gibt es den Auslöser „Systemstart“.
+
 ## 1.25.0
 - **Plugin-Schnittstelle:** `HL.settings(id, {title, render})` – Plugins können eigene Einstellungsdialoge (Einstellungen → Erweiterungen → Plugins → ⚙) mitbringen.
 
