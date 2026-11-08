@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.25.3
+- **Zigbee-/MQTT-Sensoren behalten ihren letzten Wert über einen Neustart:** Präsenz-, Helligkeits-, Kontakt- und Temperatursensoren, die nur bei Änderungen senden (Zigbee2MQTT), zeigten nach dem Start „leer“, bis sie sich wieder meldeten – Regeln mit Präsenz/Helligkeit griffen deshalb nicht. Der letzte Wert wird jetzt gespeichert und beim Start wiederhergestellt; die nächste echte Meldung ersetzt ihn.
+
 ## 1.25.2
 - **Weniger Arbeitsspeicher:** Der Heap von HomeLite ist auf 256 MB begrenzt (eigene Vorgabe über `NODE_OPTIONS=--max-old-space-size=…` hat Vorrang), die Matter-Brücke auf 160 MB.
 - Plugin `siocs-heizung` 1.2.0: **Sparmodus** – der Browser (Chromium, ca. 400–500 MB) wird nur noch für die Abfrage gestartet und danach geschlossen. Wirkt ab 120 s Abfrageintervall (empfohlen 300 s), abschaltbar in den Plugin-Einstellungen.
