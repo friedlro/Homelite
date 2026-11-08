@@ -24,6 +24,7 @@ module.exports = (api) => {
   let events = api.kv.get('events') || [];
   let last = api.kv.get('last') || {}; // Sensor-ID -> letzte Auslösung (ms)
   const stopped = { v: false };
+  let fails = 0, lockUntil = 0;
 
   const save = () => api.kv.set('cfg', cfg);
   const persist = () => api.kv.set('state', { mode: S.mode, since: S.since, by: S.by, trigger: S.trigger });
@@ -183,7 +184,14 @@ module.exports = (api) => {
   api.route('GET', 'model', () => ({ ...model(), candidates: candidates(), actors: actors() }));
   api.route('POST', 'arm', ({ body }) => { const open = arm(body && body.mode, 'Oberfläche'); return { ...model(), open }; });
   api.route('POST', 'disarm', async ({ body }) => {
-    if (!pinOk(body && body.pin)) { log('Unscharf-Versuch mit falschem PIN', 'warn'); throw new Error('PIN falsch'); }
+    if (Date.now() < lockUntil) throw new Error(`Gesperrt – bitte ${Math.ceil((lockUntil - Date.now()) / 1000)} s warten`);
+    if (!pinOk(body && body.pin)) {
+      fails += 1;
+      log('Unscharf-Versuch mit falschem PIN', 'warn');
+      if (fails >= 5) { fails = 0; lockUntil = Date.now() + 60000; say('Alarmzentrale', '5× falscher PIN am Tastenfeld – 60 s gesperrt'); log('Tastenfeld 60 s gesperrt', 'alarm'); throw new Error('5× falsch – 60 s gesperrt'); }
+      throw new Error('PIN falsch');
+    }
+    fails = 0;
     await disarm('Oberfläche'); return model();
   });
   api.route('POST', 'config', ({ body }) => {

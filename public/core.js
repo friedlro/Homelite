@@ -117,6 +117,9 @@ const HL = {
     if (set) { delete PAGES.set; PAGES.set = set; }
     if (S) renderNav();
   },
+  // Eigene Einstellungen eines Plugins (Einstellungen → Erweiterungen → Plugins → ⚙): HL.settings('id', { title, render(el) })
+  _settings: new Map(),
+  settings(pluginId, def) { this._settings.set(pluginId, def); if (typeof pluginsDraw === 'function') pluginsDraw(); },
   on(pluginId, cb) { (this._on.get(pluginId) || this._on.set(pluginId, []).get(pluginId)).push(cb); },
   api: (pluginId, method, sub, body) => api(method, `/api/plugins/${pluginId}/x/${sub}`, body),
   h, fill, toast, fail, rawApi: api, fmtTime, fmtNum, dev, st, modal, fld, sel, get S() { return S; },

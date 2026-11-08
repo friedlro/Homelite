@@ -527,6 +527,12 @@ function pluginConfigDialog(p) {
     onClick: async () => { await api('PUT', `/api/plugins/${p.id}`, { config: vals }); toast('Gespeichert'); await reload(); },
   }]);
 }
+function pluginCustomSettings(p) {
+  const def = HL._settings.get(p.id);
+  const body = h('div', { class: 'form' });
+  modal(`${p.icon} ${def.title || p.name + ' – Einstellungen'}`, body, [{ label: 'Schließen' }]);
+  Promise.resolve(def.render(body)).catch(fail);
+}
 function pluginsDraw(boxEl) {
   const box = boxEl || document.getElementById('pluginbox');
   if (!box) return false;
@@ -550,7 +556,7 @@ function pluginsDraw(boxEl) {
       h('div', { class: 'row', style: 'flex:none' },
         p.page && p.running ? h('label', { class: 'hint', style: 'display:flex;align-items:center;gap:6px' }, 'Im Menü', toggle(p.menu !== false, async (v) => { try { await api('PUT', `/api/plugins/${p.id}`, { menu: v }); await reload(); } catch (e) { fail(e); } })) : null,
         p.page && p.running && p.menu === false ? h('button', { class: 'sm', onclick: () => go('p_' + p.id) }, 'Öffnen') : null,
-        p.config.length ? h('button', { class: 'sm', onclick: () => pluginConfigDialog(p) }, '⚙ Einstellungen') : null,
+        p.config.length || (window.HL && HL._settings.has(p.id)) ? h('button', { class: 'sm', onclick: () => (window.HL && HL._settings.has(p.id) ? pluginCustomSettings(p) : pluginConfigDialog(p)) }, '⚙ Einstellungen') : null,
         h('button', { class: 'sm danger', onclick: () => { if (confirm(`Plugin „${p.name}“ entfernen?${p.devices ? ` Seine ${p.devices} Geräte werden ebenfalls gelöscht.` : ''}`)) api('DELETE', `/api/plugins/${p.id}`).then(reload).catch(fail); } }, 'Entfernen'),
         toggle(p.enabled, async (v) => { try { await api('PUT', `/api/plugins/${p.id}`, { enabled: v }); await reload(); } catch (e) { fail(e); } })))) : h('div', { class: 'hint' }, 'Noch keine Plugins installiert.'),
     h('div', { class: 'row', style: 'margin-top:12px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px' },

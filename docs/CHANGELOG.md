@@ -1,6 +1,10 @@
 # Änderungen
 
+## 1.25.0
+- **Plugin-Schnittstelle:** `HL.settings(id, {title, render})` – Plugins können eigene Einstellungsdialoge (Einstellungen → Erweiterungen → Plugins → ⚙) mitbringen.
+
 ## Plugins
+- `alarmzentrale` 1.1.0: **Tastenfeld** mit PIN (Sperre nach 5 Fehlversuchen) auf der Seite „Alarm"; Sensoren, Sirenen, Zeiten und PIN jetzt in den Plugin-Einstellungen.
 - **Neu: Plugin „Alarmzentrale“ 1.0.0** (`plugins-example/alarmzentrale`) – zentrale Alarmanlage mit frei wählbaren Sensoren und Sirenen, Zuhause-/Abwesend-Modus, Verzögerungen, PIN, Benachrichtigung und Protokoll.
 
 ## 1.24.0
