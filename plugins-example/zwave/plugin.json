@@ -1,0 +1,18 @@
+{
+  "id": "zwave",
+  "name": "Z-Wave",
+  "version": "1.0.0",
+  "description": "Z-Wave-Geräte über zwave-js-server (Z-Wave JS UI oder eigenständig): Schalter, Dimmer, Türschlösser, Thermostate, Sensoren, Zähler, Batterien und Taster werden automatisch als Geräte angelegt. Geräte hinzufügen/entfernen direkt in HomeLite.",
+  "author": "HomeLite",
+  "icon": "📡",
+  "api": 1,
+  "minCore": "1.20.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "Z-Wave", "icon": "📡" },
+  "config": [
+    { "key": "url", "label": "Adresse des Z-Wave-JS-Servers", "type": "text", "default": "ws://localhost:3000", "placeholder": "ws://localhost:3000", "help": "WebSocket-Server von Z-Wave JS UI (Einstellungen → Z-Wave → „WS Server“ aktivieren, Port 3000) oder zwave-js-server." },
+    { "key": "room", "label": "Standard-Raum für neue Geräte (optional)", "type": "text", "default": "" },
+    { "key": "batteries", "label": "Batteriestände als Sensoren anlegen", "type": "bool", "default": true }
+  ]
+}
