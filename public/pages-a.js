@@ -669,6 +669,10 @@ PAGES.set = {
         h('button', { class: 'primary', onclick: () => api('PUT', '/api/password', { current: cur.value, password: nw.value }).then(() => { toast('Passwort geändert'); showLogin(); }).catch(fail) }, 'Ändern'),
         h('button', { onclick: () => api('POST', '/api/logout', {}).then(showLogin) }, 'Abmelden'))));
 
+    el.append(h('h2', {}, 'HomeLite unterstützen'), h('div', { class: 'card' },
+      h('p', { class: 'hint', style: 'margin-top:0' }, 'HomeLite ist kostenlos und ohne Werbung. Wenn es dir gefällt, freut sich der Entwickler über eine kleine Spende – freiwillig.'),
+      h('a', { class: 'btn primary', href: 'https://paypal.me/RolandFriedl', target: '_blank', rel: 'noopener noreferrer', style: 'display:inline-block;text-decoration:none' }, '☕ Spenden via PayPal')));
+
     el = grp('log', 'Protokoll', '📜');
     el.append(h('h2', {}, 'Protokoll'), h('div', { class: 'card' }, h('div', { class: 'loglist', id: 'loglist' }, [...logs].reverse().map(logLine))));
 

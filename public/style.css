@@ -97,8 +97,8 @@ button, .btn {
 }
 button:hover { border-color: var(--accent); }
 button:active { filter: brightness(.92); }
-button.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); border-color: transparent; color: #fff; }
-button.primary:hover { filter: brightness(1.08); }
+button.primary, a.btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); border-color: transparent; color: #fff; }
+button.primary:hover, a.btn.primary:hover { filter: brightness(1.08); }
 button.danger { color: var(--bad); }
 button.sm { padding: 4px 10px; font-size: 13px; border-radius: 9px; }
 button.seg.act { background: var(--accent); border-color: var(--accent); color: #fff; }
