@@ -33,6 +33,10 @@ sudo ./raspberry-pi/install.sh
 ```
 Der Installer richtet Node.js (passend zur Architektur), Swap, Dienst und alle Plugins aus `plugins-example/` ein. Details: `raspberry-pi/LIESMICH.txt`.
 
+## Plugins von GitHub installieren
+Einstellungen → Erweiterungen → Plugins → „Von Adresse installieren“, z. B.
+`https://github.com/friedlro/Homelite/tree/main/plugins-example/philips-hue` (Ordner eines Plugins) oder die Adresse eines Repositorys, das genau ein Plugin im Hauptordner enthält.
+
 ## Erster Start
 Das Start-Passwort steht im Log. Danach: Einstellungen → Passwort ändern, Räume und Geräte anlegen, ggf. Übernahme aus Home Assistant (Handbuch).
 
