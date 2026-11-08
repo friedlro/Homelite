@@ -1,0 +1,19 @@
+{
+  "id": "tapo-kamera",
+  "name": "TP-Link Tapo Kameras",
+  "version": "1.0.0",
+  "description": "Tapo-Kameras (C100, C200, C210, C310, C500 …) lokal über ONVIF und RTSP: Bewegung, Person, Fahrzeug, Tier und Sabotage als Geräte (für Regeln und Alarmzentrale), Schwenken/Neigen und Positionen, Standbild und Live-Ansicht. Ohne Cloud.",
+  "author": "HomeLite",
+  "icon": "📹",
+  "api": 1,
+  "minCore": "1.20.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "Kameras", "icon": "📹" },
+  "config": [
+    { "key": "ffmpeg", "label": "Pfad zu ffmpeg", "type": "text", "default": "ffmpeg", "help": "Für Standbild und Live-Ansicht nötig (Ubuntu: sudo apt install ffmpeg). Bewegungserkennung und Schwenken funktionieren auch ohne." },
+    { "key": "snapOnEvent", "label": "Standbild bei Ereignissen aufnehmen", "type": "bool", "default": true, "help": "Nimmt bei Bewegung/Person ein Bild auf (höchstens alle 20 s je Kamera), damit du siehst, was passiert ist." },
+    { "key": "notifyPerson", "label": "Benachrichtigung bei erkannter Person", "type": "bool", "default": false },
+    { "key": "quality", "label": "Live-Ansicht Breite (Pixel)", "type": "number", "default": 640, "help": "Kleiner = weniger Rechenlast und Arbeitsspeicher (320–1280)." }
+  ]
+}
