@@ -25,5 +25,8 @@
       "help": "Neue Flows der KI sind immer ausgeschaltet – du schaltest sie selbst ein. Knoten mit Code oder Werkzeug-Zugriff legt die KI nie an."
     }
   ],
-  "style": "client.css"
+  "style": "client.css",
+  "changelog": {
+    "1.0.0": "Erste Version: visueller Flow-Editor."
+  }
 }

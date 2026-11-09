@@ -65,5 +65,8 @@
       "help": "Befehlszeile für dich (nach Anmeldung in HomeLite). Unabhängig von den KI-Werkzeugen."
     }
   ],
-  "style": "style.css"
+  "style": "style.css",
+  "changelog": {
+    "1.3.0": "Aktueller Stand."
+  }
 }

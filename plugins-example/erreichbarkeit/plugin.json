@@ -39,5 +39,8 @@
       "type": "text",
       "default": ""
     }
-  ]
+  ],
+  "changelog": {
+    "1.1.0": "Aktueller Stand."
+  }
 }

@@ -64,5 +64,8 @@
       "type": "text",
       "placeholder": "z. B. Wohnzimmerlicht heißt bei uns „Stehlampe“"
     }
-  ]
+  ],
+  "changelog": {
+    "1.1.0": "Aktueller Stand."
+  }
 }

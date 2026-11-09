@@ -9,6 +9,12 @@
   "minCore": "1.25.0",
   "main": "index.js",
   "client": "client.js",
-  "page": { "label": "Alarm", "icon": "🚨" },
-  "config": []
+  "page": {
+    "label": "Alarm",
+    "icon": "🚨"
+  },
+  "config": [],
+  "changelog": {
+    "1.1.0": "Alarmzentrale mit Scharfschaltung und Sirene."
+  }
 }

@@ -9,13 +9,49 @@
   "minCore": "1.20.0",
   "main": "index.js",
   "client": "client.js",
-  "page": { "label": "Heizung (SIOCS)", "icon": "🔥" },
+  "page": {
+    "label": "Heizung (SIOCS)",
+    "icon": "🔥"
+  },
   "config": [
-    { "key": "url", "label": "Adresse des SIOCS-Portals", "type": "text", "placeholder": "https://dein-portal.example/" },
-    { "key": "username", "label": "Benutzername", "type": "text" },
-    { "key": "password", "label": "Passwort", "type": "password" },
-    { "key": "poll", "label": "Abfrage alle … Sekunden (30–3600)", "type": "number", "default": 60, "help": "Das Portal gehört dem Betreiber – nicht öfter abfragen als nötig. Ab 120 s mit Sparmodus (empfohlen: 300)." },
-    { "key": "saver", "label": "Sparmodus (Browser nur während der Abfrage öffnen)", "type": "bool", "default": true, "help": "Spart etwa 400 MB Arbeitsspeicher. Wirkt ab einem Abfrageintervall von 120 s; jede Abfrage dauert dann ca. 10 s länger. Bei kürzeren Intervallen bleibt der Browser offen." },
-    { "key": "room", "label": "Raum für die Geräte (optional)", "type": "text", "default": "" }
-  ]
+    {
+      "key": "url",
+      "label": "Adresse des SIOCS-Portals",
+      "type": "text",
+      "placeholder": "https://dein-portal.example/"
+    },
+    {
+      "key": "username",
+      "label": "Benutzername",
+      "type": "text"
+    },
+    {
+      "key": "password",
+      "label": "Passwort",
+      "type": "password"
+    },
+    {
+      "key": "poll",
+      "label": "Abfrage alle … Sekunden (30–3600)",
+      "type": "number",
+      "default": 60,
+      "help": "Das Portal gehört dem Betreiber – nicht öfter abfragen als nötig. Ab 120 s mit Sparmodus (empfohlen: 300)."
+    },
+    {
+      "key": "saver",
+      "label": "Sparmodus (Browser nur während der Abfrage öffnen)",
+      "type": "bool",
+      "default": true,
+      "help": "Spart etwa 400 MB Arbeitsspeicher. Wirkt ab einem Abfrageintervall von 120 s; jede Abfrage dauert dann ca. 10 s länger. Bei kürzeren Intervallen bleibt der Browser offen."
+    },
+    {
+      "key": "room",
+      "label": "Raum für die Geräte (optional)",
+      "type": "text",
+      "default": ""
+    }
+  ],
+  "changelog": {
+    "1.2.0": "Sparmodus: Browser nur bei Abfrage geöffnet (spart Arbeitsspeicher)."
+  }
 }

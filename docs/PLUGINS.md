@@ -34,6 +34,8 @@ Hinweis: Wer ein Plugin installiert hat, kann dessen Seite unter Einstellungen �
 
 Optional: `"repo": "https://github.com/Besitzer/Repo[/tree/Zweig/Pfad]"` – Quelle für Update-Hinweis und „GitHub ↗“-Link. Fehlt es, sucht HomeLite unter `plugins-example/<id>` im HomeLite-Repository nach einer neueren `plugin.json`.
 
+Optional: `"changelog": {"1.2.0": "Was neu ist"}` – wird beim Update-Hinweis angezeigt (alle Versionen neuer als die installierte). Der Knopf „Jetzt aktualisieren“ lädt den Plugin-Ordner von GitHub (siehe `repo`) und behält Einstellungen und Geräte.
+
 ## Server-API (`index.js`)
 
 ```js

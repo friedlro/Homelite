@@ -9,6 +9,12 @@
   "minCore": "1.20.0",
   "main": "index.js",
   "client": "client.js",
-  "page": { "label": "Tuya", "icon": "☁" },
-  "config": []
+  "page": {
+    "label": "Tuya",
+    "icon": "☁"
+  },
+  "config": [],
+  "changelog": {
+    "1.0.0": "Aktueller Stand."
+  }
 }

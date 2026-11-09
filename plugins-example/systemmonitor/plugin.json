@@ -9,16 +9,70 @@
   "minCore": "1.18.0",
   "main": "index.js",
   "client": "client.js",
-  "page": { "label": "System", "icon": "📈" },
+  "page": {
+    "label": "System",
+    "icon": "📈"
+  },
   "config": [
-    { "key": "interval", "label": "Messen alle … Sekunden", "type": "number", "default": 15, "help": "Die Sensoren werden mit diesem Takt aktualisiert (5–300)." },
-    { "key": "sensors", "label": "Sensoren als Geräte anlegen", "type": "bool", "default": true, "help": "CPU, RAM, Temperatur … erscheinen als Sensoren (für Regeln, Verlauf, KI-Zugriff)." },
-    { "key": "notify", "label": "Bei Überschreitung benachrichtigen", "type": "bool", "default": true },
-    { "key": "cpuMax", "label": "Warnung CPU über … %", "type": "number", "default": 90 },
-    { "key": "cpuMin", "label": "… länger als … Minuten", "type": "number", "default": 5 },
-    { "key": "ramMax", "label": "Warnung Arbeitsspeicher über … %", "type": "number", "default": 90 },
-    { "key": "tempMax", "label": "Warnung Temperatur über … °C", "type": "number", "default": 75 },
-    { "key": "diskMax", "label": "Warnung Datenträger über … %", "type": "number", "default": 90 },
-    { "key": "path", "label": "Datenträger-Pfad (optional)", "type": "text", "placeholder": "/", "help": "Leer: Ordner der HomeLite-Daten." }
-  ]
+    {
+      "key": "interval",
+      "label": "Messen alle … Sekunden",
+      "type": "number",
+      "default": 15,
+      "help": "Die Sensoren werden mit diesem Takt aktualisiert (5–300)."
+    },
+    {
+      "key": "sensors",
+      "label": "Sensoren als Geräte anlegen",
+      "type": "bool",
+      "default": true,
+      "help": "CPU, RAM, Temperatur … erscheinen als Sensoren (für Regeln, Verlauf, KI-Zugriff)."
+    },
+    {
+      "key": "notify",
+      "label": "Bei Überschreitung benachrichtigen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "cpuMax",
+      "label": "Warnung CPU über … %",
+      "type": "number",
+      "default": 90
+    },
+    {
+      "key": "cpuMin",
+      "label": "… länger als … Minuten",
+      "type": "number",
+      "default": 5
+    },
+    {
+      "key": "ramMax",
+      "label": "Warnung Arbeitsspeicher über … %",
+      "type": "number",
+      "default": 90
+    },
+    {
+      "key": "tempMax",
+      "label": "Warnung Temperatur über … °C",
+      "type": "number",
+      "default": 75
+    },
+    {
+      "key": "diskMax",
+      "label": "Warnung Datenträger über … %",
+      "type": "number",
+      "default": 90
+    },
+    {
+      "key": "path",
+      "label": "Datenträger-Pfad (optional)",
+      "type": "text",
+      "placeholder": "/",
+      "help": "Leer: Ordner der HomeLite-Daten."
+    }
+  ],
+  "changelog": {
+    "1.0.0": "Aktueller Stand."
+  }
 }

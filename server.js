@@ -458,6 +458,7 @@ route('POST', '/api/discovery/scan', () => { devices.requestStates(); return { o
 route('GET', '/api/plugins', () => plugins.snapshot());
 route('POST', '/api/plugins/upload', async ({ body }) => plugins.install(Buffer.from(String(body.data || ''), 'base64')));
 route('POST', '/api/plugins/check-updates', async () => plugins.checkUpdates());
+route('POST', '/api/plugins/([a-z0-9-]+)/update', async ({ params }) => plugins.update(params[0]));
 route('POST', '/api/plugins/url', async ({ body }) => plugins.fromUrl(str(body.url, 500)));
 route('PUT', '/api/plugins/([a-z0-9-]+)', async ({ params, body }) => {
   if (isObj(body.config)) plugins.setConfig(params[0], body.config);

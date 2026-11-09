@@ -9,12 +9,46 @@
   "minCore": "1.20.0",
   "main": "index.js",
   "client": "client.js",
-  "page": { "label": "Zigbee", "icon": "🐝" },
+  "page": {
+    "label": "Zigbee",
+    "icon": "🐝"
+  },
   "config": [
-    { "key": "base", "label": "Base-Topic von Zigbee2MQTT", "type": "text", "default": "zigbee2mqtt", "help": "Muss mit „mqtt.base_topic“ in der Zigbee2MQTT-Konfiguration übereinstimmen (Standard zigbee2mqtt)." },
-    { "key": "room", "label": "Standard-Raum für neue Geräte (optional)", "type": "text", "default": "" },
-    { "key": "batteries", "label": "Batteriestand als Sensor anlegen", "type": "bool", "default": true },
-    { "key": "linkquality", "label": "Verbindungsqualität (LQI) als Sensor anlegen", "type": "bool", "default": false },
-    { "key": "frontend", "label": "Adresse der Zigbee2MQTT-Oberfläche (optional)", "type": "text", "default": "", "placeholder": "http://192.168.50.10:8080", "help": "Wird als Link auf der Zigbee-Seite angezeigt." }
-  ]
+    {
+      "key": "base",
+      "label": "Base-Topic von Zigbee2MQTT",
+      "type": "text",
+      "default": "zigbee2mqtt",
+      "help": "Muss mit „mqtt.base_topic“ in der Zigbee2MQTT-Konfiguration übereinstimmen (Standard zigbee2mqtt)."
+    },
+    {
+      "key": "room",
+      "label": "Standard-Raum für neue Geräte (optional)",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "batteries",
+      "label": "Batteriestand als Sensor anlegen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "linkquality",
+      "label": "Verbindungsqualität (LQI) als Sensor anlegen",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "frontend",
+      "label": "Adresse der Zigbee2MQTT-Oberfläche (optional)",
+      "type": "text",
+      "default": "",
+      "placeholder": "http://192.168.50.10:8080",
+      "help": "Wird als Link auf der Zigbee-Seite angezeigt."
+    }
+  ],
+  "changelog": {
+    "1.0.0": "Erste Version: Geräte automatisch aus Zigbee2MQTT, Anlernen, Dongle-Einrichtung."
+  }
 }

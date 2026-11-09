@@ -9,13 +9,49 @@
   "minCore": "1.19.3",
   "main": "index.js",
   "client": "client.js",
-  "page": { "label": "Müll", "icon": "🗑" },
+  "page": {
+    "label": "Müll",
+    "icon": "🗑"
+  },
   "config": [
-    { "key": "notify", "label": "Am Vorabend benachrichtigen", "type": "bool", "default": true },
-    { "key": "notifyTime", "label": "Uhrzeit der Erinnerung (HH:MM)", "type": "text", "default": "18:00" },
-    { "key": "hours", "label": "Termine neu laden alle … Stunden", "type": "number", "default": 6 },
-    { "key": "room", "label": "Raum für die Sensoren (optional)", "type": "text", "default": "" },
-    { "key": "apiV2", "label": "Adresse API v2 (nur für Tests ändern)", "type": "text", "default": "https://api.v2.citiesapps.com" },
-    { "key": "apiV1", "label": "Adresse API v1 (nur für Tests ändern)", "type": "text", "default": "https://api.citiesapps.com" }
-  ]
+    {
+      "key": "notify",
+      "label": "Am Vorabend benachrichtigen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "notifyTime",
+      "label": "Uhrzeit der Erinnerung (HH:MM)",
+      "type": "text",
+      "default": "18:00"
+    },
+    {
+      "key": "hours",
+      "label": "Termine neu laden alle … Stunden",
+      "type": "number",
+      "default": 6
+    },
+    {
+      "key": "room",
+      "label": "Raum für die Sensoren (optional)",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "apiV2",
+      "label": "Adresse API v2 (nur für Tests ändern)",
+      "type": "text",
+      "default": "https://api.v2.citiesapps.com"
+    },
+    {
+      "key": "apiV1",
+      "label": "Adresse API v1 (nur für Tests ändern)",
+      "type": "text",
+      "default": "https://api.citiesapps.com"
+    }
+  ],
+  "changelog": {
+    "1.0.0": "Aktueller Stand."
+  }
 }
