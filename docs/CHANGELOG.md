@@ -3,6 +3,8 @@
 ## 1.25.9
 - **Plugin-Update mit einem Klick:** Bei gefundenem Update zeigt das Plugin einen Kasten mit der neuen Version, der Änderungsbeschreibung und dem Knopf „⬆ Jetzt aktualisieren“. HomeLite lädt den Plugin-Ordner von GitHub und ersetzt ihn; Einstellungen, Geräte und Aktivierung bleiben erhalten, ein laufendes Plugin wird neu gestartet. Die Beschreibung stammt aus dem neuen Feld `changelog` der `plugin.json` (`{"1.2.0": "Text"}`); angezeigt werden alle Einträge neuer als die installierte Version. Alle Beispiel-Plugins haben jetzt einen Eintrag.
 
+- Neues Plugin `tomons-wallbox` 1.0.0: Tomons / Inateck Mobile Wallbox (11/22 kW) über die Tomons-Cloud, inoffiziell nach Reverse-Engineering von Limo123123 (MIT). Messwerte, Kabelstatus, Ladestrom-Grenze; Start/Stopp optional und experimentell. Nicht an echter Hardware getestet.
+
 ## 1.25.8
 - **Update-Hinweise für Plugins:** Unter Einstellungen → Erweiterungen → Plugins zeigt jedes Plugin einen Hinweis „⬆ Update x.y.z“, sobald auf GitHub eine neuere Version liegt, plus einen Link „GitHub ↗“ zum passenden Ordner im Repository. Prüfung automatisch täglich (einmalige Benachrichtigung je neuer Version) oder per Knopf „🔄 Auf Updates prüfen“. Eigene Plugins können in `plugin.json` ein Feld `repo` setzen (`https://github.com/Besitzer/Repo` oder `…/tree/main/pfad`); ohne `repo` gilt `plugins-example/<id>` im HomeLite-Repository. Das Update selbst installierst du wie gewohnt über die Plugin-Datei.
 

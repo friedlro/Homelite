@@ -1,0 +1,23 @@
+{
+  "id": "tomons-wallbox",
+  "name": "Tomons Wallbox",
+  "version": "1.0.0",
+  "description": "Tomons / Inateck Mobile Wallbox (11 kW, 22 kW) über die Tomons-Cloud: Ladeleistung, Spannung, Strom, Energie, Temperatur, Kabelstatus als Geräte; Ladestrom-Grenze einstellen. Inoffiziell (Reverse-Engineering), experimentell.",
+  "author": "HomeLite",
+  "icon": "🔌",
+  "api": 1,
+  "minCore": "1.20.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "Wallbox", "icon": "🔌" },
+  "config": [
+    { "key": "email", "label": "E-Mail der Tomons-App", "type": "text", "default": "" },
+    { "key": "password", "label": "Passwort der Tomons-App", "type": "password", "default": "", "help": "Wird nur für die Anmeldung bei der Tomons-Cloud verwendet (als MD5-Hash, wie die App)." },
+    { "key": "mqttPassword", "label": "MQTT-Passwort der Cloud", "type": "password", "default": "", "help": "Gemeinsames Zugangspasswort der App zum Cloud-Broker. Liefert die Cloud es nicht bei der Anmeldung mit, trage es hier ein (siehe LIESMICH)." },
+    { "key": "deviceId", "label": "Geräte-ID (optional)", "type": "text", "default": "", "help": "Nur bei mehreren Wallboxen im Konto; sonst wird die erste genommen." },
+    { "key": "maxA", "label": "Höchster Ladestrom (A)", "type": "number", "default": 16, "help": "11-kW-Geräte: 16 A, 22-kW-Geräte: 32 A. Begrenzt, was HomeLite einstellen darf." },
+    { "key": "allowStartStop", "label": "Start/Stopp erlauben (experimentell)", "type": "bool", "default": false, "help": "Der Befehl zum Starten/Stoppen ist nicht an echter Hardware bestätigt. Erst aktivieren, wenn du es bewusst ausprobieren willst." },
+    { "key": "room", "label": "Raum", "type": "text", "default": "" }
+  ],
+  "changelog": { "1.0.0": "Erste Version: Messwerte, Kabelstatus, Ladestrom-Grenze, optional Start/Stopp (experimentell)." }
+}
