@@ -1,7 +1,7 @@
 {
   "id": "tapo-kamera",
   "name": "TP-Link Tapo Kameras",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Tapo-Kameras (C100, C200, C210, C310, C500 …) lokal über ONVIF und RTSP: Bewegung, Person, Fahrzeug, Tier und Sabotage als Geräte (für Regeln und Alarmzentrale), Schwenken/Neigen und Positionen, Standbild und Live-Ansicht. Ohne Cloud.",
   "author": "HomeLite",
   "icon": "📹",

@@ -25,7 +25,7 @@ module.exports = (api) => {
   function post(url, xml, timeout = 8000) {
     return new Promise((resolve, reject) => {
       const u = new URL(url);
-      const req = http.request({ host: u.hostname, port: u.port || 80, path: u.pathname + u.search, method: 'POST', timeout, headers: { 'Content-Type': 'application/soap+xml; charset=utf-8', 'Content-Length': Buffer.byteLength(xml) } }, (res) => {
+      const req = http.request({ host: u.hostname, port: u.port || 80, path: u.pathname + u.search, method: 'POST', timeout, agent: false, headers: { 'Content-Type': 'application/soap+xml; charset=utf-8', 'Content-Length': Buffer.byteLength(xml), Connection: 'close' } }, (res) => {
         const ch = []; res.on('data', (d) => ch.push(d));
         res.on('end', () => { const body = Buffer.concat(ch).toString('utf8'); if (res.statusCode >= 400 && !/Fault/.test(body)) return reject(new Error(res.statusCode === 401 ? 'Anmeldung abgelehnt (Kamerakonto prüfen)' : `HTTP ${res.statusCode}`)); if (/<(?:\w+:)?Fault\b/.test(body)) { const reason = tag(body, 'Text') || tag(body, 'Subcode') || 'Fehler'; return reject(new Error(/NotAuthorized|Sender not|Authority/i.test(body) ? 'Anmeldung abgelehnt (Kamerakonto prüfen)' : reason)); } resolve(body); });
       });
@@ -100,16 +100,16 @@ module.exports = (api) => {
         if (!r.online) await connect(c);
         const s = await call(c, r.urls.events, '<tev:CreatePullPointSubscription><tev:InitialTerminationTime>PT90S</tev:InitialTerminationTime></tev:CreatePullPointSubscription>');
         sub = fixUrl(c, tag(tag(s, 'SubscriptionReference'), 'Address'), r.urls.events);
-        backoff = 3000; let n = 0;
+        let n = 0;
         while (!r.stop) {
           const x = await call(c, sub, '<tev:PullMessages><tev:Timeout>PT10S</tev:Timeout><tev:MessageLimit>20</tev:MessageLimit></tev:PullMessages>', 20000);
-          handleMessages(c, x);
+          backoff = 3000; handleMessages(c, x);
           if (++n % 4 === 0) await call(c, sub, '<wsnt:Renew><wsnt:TerminationTime>PT90S</wsnt:TerminationTime></wsnt:Renew>').catch(() => { throw new Error('erneuern'); });
         }
       } catch (e) {
         if (r.stop) break;
         const was = r.online; r.online = false; r.err = clean(c, e.message);
-        if (was) api.log('warn', `[${c.name}] ${r.err}`);
+        if (r.lastLog !== r.err || Date.now() - (r.lastLogT || 0) > 600000) { r.lastLog = r.err; r.lastLogT = Date.now(); api.log('warn', `[${c.name}] ${r.err}`); }
         for (const k of Object.keys(r.events)) { try { api.devices.setState(`tapo:${c.id}:${k}`, { online: false }); } catch { /* egal */ } }
         push(); await sleep(backoff); backoff = Math.min(backoff * 2, 60000);
       }

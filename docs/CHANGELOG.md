@@ -1,5 +1,9 @@
 # Änderungen
 
+## 1.25.7
+- **Apple TV bleibt verbunden:** HomeLite findet ein gekoppeltes Apple TV jetzt auch nach einer geänderten IP-Adresse (DHCP) oder geänderten Kennung (private WLAN-Adresse) wieder – über alle bekannten Kennungen und den Gerätenamen. Die Kopplung bleibt gültig, neu koppeln ist nicht mehr nötig. Die neue Adresse wird gespeichert; der Fehlergrund erscheint in der Apple-TV-Liste.
+- Plugin `tapo-kamera` 1.0.1: „socket hang up“-Meldungen behoben (neue Verbindung je Anfrage statt wiederverwendeter, von der Kamera bereits geschlossener Verbindung), Wiederholung mit wachsender Pause, Fehlermeldungen im Protokoll gedrosselt.
+
 ## 1.25.6
 - **Automatisches Backup:** Ändert sich während der Sicherung eine Datei im Datenordner (Protokolle, Plugin-Daten), meldete tar „file changed as we read it“ (Exit-Code 1) und das Backup galt als fehlgeschlagen. Dieser Fall ist nicht mehr fatal; die Sicherung wird normal fertiggestellt. Die Datenbank wird weiterhin als konsistente Momentaufnahme gesichert.
 

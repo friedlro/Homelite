@@ -125,14 +125,36 @@ class Watch(PushListener, DeviceListener, PowerListener):
         except Exception:  # noqa: BLE001
             pass
 
+    async def locate(self, loop):
+        """Gerät finden – auch wenn sich IP-Adresse oder Kennung (private WLAN-Adresse) geändert haben."""
+        dev = self.dev
+        ids = {dev["id"], *(dev.get("ids") or [])}
+        host = [dev["address"]] if dev.get("address") else None
+        res = await pyatv.scan(loop, identifier=ids, hosts=host, timeout=5)
+        if not res and host:                      # IP-Adresse geändert (DHCP)
+            res = await pyatv.scan(loop, identifier=ids, timeout=5)
+        if not res:                               # Kennung geändert: über andere Kennungen oder den Namen suchen
+            allr = await pyatv.scan(loop, timeout=6)
+            res = [c for c in allr if ids & set(c.all_identifiers)]
+            if not res and dev.get("name"):
+                same = [c for c in allr if c.name == dev["name"]]
+                res = same if len(same) == 1 else []
+        if not res:
+            raise RuntimeError("nicht im Netzwerk gefunden (mDNS/Standby?)")
+        c = res[0]
+        ident = list(c.all_identifiers)
+        if str(c.address) != dev.get("address") or c.identifier != dev["id"] or set(ident) - set(dev.get("ids") or []):
+            emit({"event": "found", "id": dev["id"], "address": str(c.address), "ident": c.identifier, "ids": ident})
+            dev["address"] = str(c.address)
+            dev["ids"] = ident
+        return res
+
     async def run(self):
         loop = asyncio.get_running_loop()
         wait = 5
         while not self.stop:
             try:
-                res = await pyatv.scan(loop, identifier=self.dev["id"], hosts=[self.dev["address"]] if self.dev.get("address") else None, timeout=5)
-                if not res:
-                    raise RuntimeError("nicht gefunden")
+                res = await self.locate(loop)
                 conf = res[0]
                 for key, proto in PROTO.items():
                     cred = (self.dev.get("creds") or {}).get(key)
@@ -173,6 +195,7 @@ class Watch(PushListener, DeviceListener, PowerListener):
                 break
             except Exception as exc:  # noqa: BLE001
                 print("Apple TV %s: %r" % (self.dev["id"], exc), file=sys.stderr, flush=True)
+                emit({"event": "error", "id": self.dev["id"], "msg": ("%s: %s" % (type(exc).__name__, exc))[:200]})
                 self.set(online=False)
             finally:
                 if self.atv is not None:
@@ -199,7 +222,7 @@ async def handle(req):
             out = []
             for c in found:
                 out.append({
-                    "id": c.identifier, "name": c.name, "address": str(c.address),
+                    "id": c.identifier, "ids": list(c.all_identifiers), "name": c.name, "address": str(c.address),
                     "model": str(getattr(c.device_info, "model", "")) if getattr(c, "device_info", None) else "",
                     "protocols": sorted(s.protocol.name.lower() for s in c.services),
                 })

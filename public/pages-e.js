@@ -216,7 +216,7 @@ function appletvSection(el) {
     A.error ? h('p', { class: 'hint', style: 'color:var(--bad)' }, A.error) : null,
     A.devices.map((d) => h('div', { class: 'ed' },
       h('div', { class: 'row sb' }, h('b', {}, d.name), h('span', { class: 'pill ' + (d.online ? 'ok' : 'bad') }, d.online ? (d.power === 'off' ? 'Standby' : d.power === 'on' ? 'an' : 'online') : 'offline')),
-      h('div', { class: 'hint', style: 'margin:4px 0' }, `${d.address || ''} · gekoppelt: ${d.paired.join(', ') || '–'}`, (d.online && d.power !== 'off' ? ` · ${d.app || '–'}${d.title ? ' · ' + d.title : ''}${d.state ? ' (' + d.state + ')' : ''}` : '') + ` · Meldung des Geräts: ${({ on: 'an', off: 'Standby', unknown: 'unbekannt' })[d.powerRaw] || d.powerRaw}`),
+      h('div', { class: 'hint', style: 'margin:4px 0' }, `${d.address || ''} · gekoppelt: ${d.paired.join(', ') || '–'}`, (d.error && !d.online ? ' · ⚠ ' + d.error : '') + (d.online && d.power !== 'off' ? ` · ${d.app || '–'}${d.title ? ' · ' + d.title : ''}${d.state ? ' (' + d.state + ')' : ''}` : '') + ` · Meldung des Geräts: ${({ on: 'an', off: 'Standby', unknown: 'unbekannt' })[d.powerRaw] || d.powerRaw}`),
       h('div', { class: 'row' },
         ['companion', 'airplay'].map((pr) => h('button', { class: 'sm', onclick: () => appletvPair(d, pr) }, (d.paired.includes(pr) ? '↻ ' : '') + (pr === 'companion' ? 'Companion' : 'AirPlay') + ' koppeln')),
         h('button', { class: 'sm primary', onclick: () => api('POST', '/api/appletv/link', { id: d.id }).then((r) => { toast(r.created ? `${r.created} Sensoren angelegt` : 'Sensoren sind schon angelegt'); return reload(); }).catch(fail) }, d.linked ? `Sensoren ergänzen (${d.linked})` : 'Sensoren anlegen'),
