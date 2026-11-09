@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.25.8
+- **Update-Hinweise für Plugins:** Unter Einstellungen → Erweiterungen → Plugins zeigt jedes Plugin einen Hinweis „⬆ Update x.y.z“, sobald auf GitHub eine neuere Version liegt, plus einen Link „GitHub ↗“ zum passenden Ordner im Repository. Prüfung automatisch täglich (einmalige Benachrichtigung je neuer Version) oder per Knopf „🔄 Auf Updates prüfen“. Eigene Plugins können in `plugin.json` ein Feld `repo` setzen (`https://github.com/Besitzer/Repo` oder `…/tree/main/pfad`); ohne `repo` gilt `plugins-example/<id>` im HomeLite-Repository. Das Update selbst installierst du wie gewohnt über die Plugin-Datei.
+
 ## 1.25.7
 - **Apple TV bleibt verbunden:** HomeLite findet ein gekoppeltes Apple TV jetzt auch nach einer geänderten IP-Adresse (DHCP) oder geänderten Kennung (private WLAN-Adresse) wieder – über alle bekannten Kennungen und den Gerätenamen. Die Kopplung bleibt gültig, neu koppeln ist nicht mehr nötig. Die neue Adresse wird gespeichert; der Fehlergrund erscheint in der Apple-TV-Liste.
 - Plugin `tapo-kamera` 1.0.1: „socket hang up“-Meldungen behoben (neue Verbindung je Anfrage statt wiederverwendeter, von der Kamera bereits geschlossener Verbindung), Wiederholung mit wachsender Pause, Fehlermeldungen im Protokoll gedrosselt.

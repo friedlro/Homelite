@@ -548,6 +548,8 @@ function pluginsDraw(boxEl) {
     L.length ? L.map((p) => h('div', { class: 'row sb', style: 'padding:10px 0;border-top:1px solid var(--line)' },
       h('div', { style: 'min-width:0;flex:1' },
         h('div', {}, h('b', {}, `${p.icon} ${p.name}`), h('span', { class: 'hint' }, `  ${p.version}${p.author ? ' · ' + p.author : ''}`), ' ',
+          p.update ? h('span', { class: 'pill', style: 'background:var(--warn,#f5a623);color:#000', title: 'Neue Version auf GitHub' }, `⬆ Update ${p.update}`) : null, ' ',
+          p.link ? h('a', { href: p.link, target: '_blank', rel: 'noopener noreferrer', class: 'hint', title: p.update ? 'Neue Version herunterladen' : 'Quellcode und Dateien auf GitHub' }, 'GitHub ↗') : null, ' ',
           h('span', { class: 'pill ' + (p.error ? 'bad' : p.running ? 'ok' : '') }, p.error ? 'Fehler' : p.running ? 'läuft' : 'aus')),
         p.description ? h('div', { class: 'hint' }, p.description) : null,
         (p.perms || []).includes('core') ? h('div', { class: 'hint', style: 'color:var(--warn,#d9a400)' }, '🔑 Recht: Zugriff auf Geräte, Automationen und Protokoll von HomeLite (wie der KI-Zugriff)') : null,
@@ -561,6 +563,7 @@ function pluginsDraw(boxEl) {
         toggle(p.enabled, async (v) => { try { await api('PUT', `/api/plugins/${p.id}`, { enabled: v }); await reload(); } catch (e) { fail(e); } })))) : h('div', { class: 'hint' }, 'Noch keine Plugins installiert.'),
     h('div', { class: 'row', style: 'margin-top:12px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:12px' },
       h('button', { onclick: () => file.click() }, '⬆ Plugin-Datei wählen (.tar.gz)'), file, url,
+      h('button', { onclick: async (e) => { e.target.disabled = true; try { const r = await api('POST', '/api/plugins/check-updates'); S.plugins = r; pluginsDraw(); const n = r.filter((p) => p.update).length; toast(n ? `${n} Plugin-Update${n === 1 ? '' : 's'} verfügbar` : 'Alle Plugins sind aktuell'); } catch (err) { fail(err); } e.target.disabled = false; } }, '🔄 Auf Updates prüfen'),
       h('button', { onclick: async () => { if (!url.value.trim() || !confirm(PLUGIN_WARN)) return; try { toast('Lade und installiere …'); const r = await api('POST', '/api/plugins/url', { url: url.value.trim() }); await pluginInstalled(r); } catch (e) { fail(e); } } }, 'Von Adresse installieren')));
   return true;
 }

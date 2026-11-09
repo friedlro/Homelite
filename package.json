@@ -1,6 +1,6 @@
 {
   "name": "homelite",
-  "version": "1.25.7",
+  "version": "1.25.8",
   "description": "Leichte Hausautomatisierung: MQTT, Shelly, Leapmotor, Heizung, Geofence",
   "main": "server.js",
   "scripts": { "start": "node server.js" },

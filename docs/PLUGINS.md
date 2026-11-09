@@ -32,6 +32,8 @@ Hinweis: Wer ein Plugin installiert hat, kann dessen Seite unter Einstellungen �
 | `api` | benötigte Plugin-API-Version (1) |
 | `config` | Einstellungsfelder: `{key,label,type,help,placeholder,default,options}`; Typen `text`, `textarea`, `number`, `bool`, `password`, `select` |
 
+Optional: `"repo": "https://github.com/Besitzer/Repo[/tree/Zweig/Pfad]"` – Quelle für Update-Hinweis und „GitHub ↗“-Link. Fehlt es, sucht HomeLite unter `plugins-example/<id>` im HomeLite-Repository nach einer neueren `plugin.json`.
+
 ## Server-API (`index.js`)
 
 ```js

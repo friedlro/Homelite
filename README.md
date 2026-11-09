@@ -48,7 +48,7 @@ Dauerbetrieb (systemd), Raspberry Pi und Updates: [docs/INSTALLATION.md](docs/IN
 | `erreichbarkeit` | Erreichbarkeitsprüfung von Geräten/Adressen |
 | `duckdns` | DuckDNS-Client |
 
-Installation: Einstellungen → Erweiterungen → Plugins (Datei oder URL) oder Ordner nach `data/plugins/<id>` kopieren.
+Installation: Einstellungen → Erweiterungen → Plugins (Datei oder URL) oder Ordner nach `data/plugins/<id>` kopieren. Neue Plugin-Versionen auf GitHub werden dort mit „⬆ Update“ und GitHub-Link angezeigt.
 
 ## Dokumentation
 | Datei | Inhalt |
