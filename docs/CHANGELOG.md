@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.25.6
+- **Automatisches Backup:** Ändert sich während der Sicherung eine Datei im Datenordner (Protokolle, Plugin-Daten), meldete tar „file changed as we read it“ (Exit-Code 1) und das Backup galt als fehlgeschlagen. Dieser Fall ist nicht mehr fatal; die Sicherung wird normal fertiggestellt. Die Datenbank wird weiterhin als konsistente Momentaufnahme gesichert.
+
 ## 1.25.5
 - **App-Symbol repariert:** Die PNG-Symbole (Startbildschirm/Web-App, Favicon) waren durch einen Fehler beim Erzeugen weiß; sie zeigen jetzt wieder das HomeLite-Logo. Neu: eigenes Symbol für Android („maskable“). Falls das alte weiße Symbol bleibt: Web-App vom Startbildschirm entfernen und neu hinzufügen.
 
