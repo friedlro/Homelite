@@ -1,7 +1,7 @@
 # Firmware: ESP32 + Waveshare 3.5" RPi LCD
 
 Firmware für das Plugin **ESP32-Display**: Sie spricht das MQTT-Textprotokoll des Plugins (siehe
-[../LIESMICH.md](../LIESMICH.md)), zeichnet die in HomeLite zusammengestellten Seiten und Kacheln auf einem
+[Plugin-Anleitung](../../plugins-example/esp32-display/LIESMICH.md)), zeichnet die in HomeLite zusammengestellten Seiten und Kacheln auf einem
 **Waveshare 3.5" RPi LCD (320×480, ILI9486 über SPI, resistiver Touch XPT2046)** und meldet Tippen zurück.
 Der ESP32 braucht kein JSON, kein HTTP, kein HomeLite-Passwort und keinen KI-Zugriff.
 
@@ -48,7 +48,7 @@ Das Display ist ein Raspberry-Pi-Aufsteckmodul (26 Pins am Stecker, SPI). Alle P
    (anonyme Verbindungen sind dort standardmäßig verboten, TLS wird nicht unterstützt: nur im Heimnetz oder über ein VPN verwenden).
 3. Konfiguration anlegen und ausfüllen:
    ```bash
-   cd plugins-example/esp32-display/firmware
+   cd firmware/esp32-display
    cp include/config.example.h include/config.h    # WLAN, MQTT_HOST/USER/PASS, DISPLAY_ID, MQTT_PREFIX
    ```
    `DISPLAY_ID` und `MQTT_PREFIX` müssen mit HomeLite (Display-ID, Plugin-Einstellung "Themenpräfix") übereinstimmen.
@@ -65,4 +65,4 @@ Das Display ist ein Raspberry-Pi-Aufsteckmodul (26 Pins am Stecker, SPI). Alle P
 - MQTT: PubSubClient mit Puffer 1024 Byte (Layout-Nachrichten sind länger als der Standardpuffer)
 - Plattform: `espressif32@6.9.0` (Arduino-Core 2.x), Bibliotheken `TFT_eSPI`, `PubSubClient`
 - Die eingebauten Fonts haben keine Umlaute; Texte werden als ae/oe/ue/ss dargestellt
-- Das Plugin selbst ändert sich durch die Firmware nicht; das Protokoll steht in [../LIESMICH.md](../LIESMICH.md)
+- Das Plugin selbst ändert sich durch die Firmware nicht; das Protokoll steht in [Plugin-Anleitung](../../plugins-example/esp32-display/LIESMICH.md)

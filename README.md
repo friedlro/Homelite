@@ -33,7 +33,7 @@ Dauerbetrieb (systemd), Raspberry Pi und Updates: [docs/INSTALLATION.md](docs/IN
 ## Plugins (`plugins-example/`)
 | Plugin | Zweck |
 |---|---|
-| `esp32-display` | ESP32 mit Display (z. B. Waveshare): Seiten/Kacheln in HomeLite, nur Änderungen per MQTT-Textprotokoll, Tippen zurück. Mit Firmware für ESP32 + Waveshare 3.5" RPi LCD (PlatformIO) inkl. Bildschirmschoner mit Uhr: [firmware/](plugins-example/esp32-display/firmware/README.md) |
+| `esp32-display` | ESP32 mit Display (z. B. Waveshare): Seiten/Kacheln in HomeLite, nur Änderungen per MQTT-Textprotokoll, Tippen zurück. Mit Firmware für ESP32 + Waveshare 3.5" RPi LCD (PlatformIO) inkl. Bildschirmschoner mit Uhr: [firmware/esp32-display](firmware/esp32-display/README.md) |
 | `tomons-wallbox` | Tomons / Inateck Mobile Wallbox über die Tomons-Cloud (inoffiziell, experimentell): Leistung, Energie, Kabelstatus, Ladestrom-Grenze |
 | `flows` | Visueller Flow-Editor (Node-RED/n8n-Stil), Webhooks, MQTT, Unterflows, Verlauf, eigene Knoten |
 | `tuya` | Tuya / Smart Life, lokal (LAN) mit Cloud-Fallback |
@@ -51,6 +51,13 @@ Dauerbetrieb (systemd), Raspberry Pi und Updates: [docs/INSTALLATION.md](docs/IN
 | `duckdns` | DuckDNS-Client | Der Bereich „Verfügbare Plugins (GitHub)“ listet alle Plugins des Repositories zur Installation mit einem Klick. Fertige SD-Karten-Images für Orange Pi One und Raspberry Pi 2+ (docs/INSTALLATION.md).
 
 Installation: Einstellungen → Erweiterungen → Plugins (Datei oder URL) oder Ordner nach `data/plugins/<id>` kopieren. Neue Plugin-Versionen auf GitHub werden dort mit „⬆ Update“ und GitHub-Link angezeigt.
+
+## Firmware (`firmware/`)
+Firmware für eigene Geräte, die mit HomeLite zusammenarbeiten (getrennt von den Plugins, wird nicht mit ihnen installiert).
+
+| Ordner | Zweck |
+|---|---|
+| [`firmware/esp32-display`](firmware/esp32-display/README.md) | ESP32 + Waveshare 3.5" RPi LCD (PlatformIO) für das Plugin `esp32-display`: Seiten und Kacheln aus HomeLite, Tippen schaltet, Bildschirmschoner mit wanderndem Datum und Uhrzeit |
 
 ## Dokumentation
 | Datei | Inhalt |

@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.25.12
+- **Firmware-Ordner:** Die Firmware für das ESP32-Display liegt jetzt in einem eigenen Ordner `firmware/esp32-display` im Hauptverzeichnis des Repositorys statt im Plugin-Ordner (Plugin `esp32-display` 1.1.1). Sie wird dadurch bei Plugin-Installation und -Update nicht mehr mitgeladen. Dokumentation (README, Handbuch, Plugin-Anleitung, Firmware-README) angepasst; die Firmware selbst ist unverändert.
+
 ## 1.25.11
 - **Firmware für das ESP32-Display:** Neues Plugin `esp32-display` 1.1.0 mit fertiger Firmware für ESP32 + Waveshare 3.5" RPi LCD (320×480, ILI9486, Touch XPT2046) als PlatformIO-Projekt im Ordner `plugins-example/esp32-display/firmware`. Zeichnet die in HomeLite angelegten Seiten und Kacheln, Schalter-Kacheln sind antippbar, Layout und Hash liegen im Flash. **Bildschirmschoner:** Nach einstellbarer Ruhezeit (Standard 120 s) schwarzer Bildschirm mit Uhrzeit und Datum (NTP, Zeitzone einstellbar), die über den Bildschirm wandern; Berührung weckt auf. Anleitung (Verdrahtung, Einrichtung, Grenzen) in `firmware/README.md`, `LIESMICH.md` des Plugins, README und Handbuch. Die Firmware kompiliert, ist aber noch nicht auf echter Hardware getestet; die Hintergrundbeleuchtung des Moduls ist nicht steuerbar (Nachtabsenkung ohne Wirkung).
 

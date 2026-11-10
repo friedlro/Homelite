@@ -2,7 +2,7 @@
 
 Schnittstelle für einen **ESP32 mit Display** (z. B. Waveshare LCD): Du stellst in HomeLite Seiten und Kacheln zusammen, der ESP32 zeichnet sie. HomeLite sendet **nur Änderungen** – der ESP32 braucht weder JSON noch HTTP noch Geräte-Wissen.
 
-Das Plugin beschreibt das Protokoll, das die Firmware sprechen muss. Eine fertige Firmware für **ESP32 + Waveshare 3.5" RPi LCD** (PlatformIO) liegt im Ordner [`firmware/`](firmware/README.md). Das Plugin ist mit einem simulierten ESP32 getestet; die Firmware kompiliert, ist aber noch nicht auf echter Hardware getestet.
+Das Plugin beschreibt das Protokoll, das die Firmware sprechen muss. Eine fertige Firmware für **ESP32 + Waveshare 3.5" RPi LCD** (PlatformIO) liegt im eigenen Repository-Ordner [`firmware/esp32-display`](../../firmware/esp32-display/README.md). Das Plugin ist mit einem simulierten ESP32 getestet; die Firmware kompiliert, ist aber noch nicht auf echter Hardware getestet.
 
 ## Einrichtung
 0. **MQTT-Broker:** *Einstellungen → Erweiterungen → Eingebauter MQTT-Broker* einschalten und einen Benutzer für das Display anlegen (anonyme Verbindungen sind dort standardmäßig verboten; kein TLS, nur im Heimnetz oder über ein VPN). Mit einem externen Broker funktioniert es ebenso, solange HomeLite und ESP32 denselben nutzen.
@@ -41,8 +41,8 @@ Der ESP32 nutzt denselben MQTT-Broker wie HomeLite. Themenpräfix: Plugin-Einste
 - Last Will auf `<Präfix>/<ID>/status` mit `offline` (retained) setzen.
 - Beim Wiederverbinden erneut `hello` senden, damit der aktuelle Stand kommt.
 
-## Firmware (Ordner `firmware/`)
-Fertiges PlatformIO-Projekt für einen ESP32 mit **Waveshare 3.5" RPi LCD** (320×480, ILI9486 über SPI, Touch XPT2046). Verdrahtung, Konfiguration und Flashen: [firmware/README.md](firmware/README.md).
+## Firmware (Repository-Ordner `firmware/esp32-display`)
+Fertiges PlatformIO-Projekt für einen ESP32 mit **Waveshare 3.5" RPi LCD** (320×480, ILI9486 über SPI, Touch XPT2046). Verdrahtung, Konfiguration und Flashen: [firmware/esp32-display/README.md](../../firmware/esp32-display/README.md). Die Firmware gehört nicht zum Plugin und wird bei Plugin-Installation oder -Update nicht mitgeladen.
 
 - Zeichnet Seiten und Kacheln (4 Spalten, bis zu 12 Kacheln je Seite), Schalter-Kacheln senden beim Tippen die Kachel-Nummer; Blättern mit `<` und `>`.
 - Speichert Layout und Hash im Flash. Nach einem Neustart meldet der ESP32 den Hash im `hello`, und HomeLite sendet nur noch die Werte.
