@@ -33,7 +33,7 @@ Dauerbetrieb (systemd), Raspberry Pi und Updates: [docs/INSTALLATION.md](docs/IN
 ## Plugins (`plugins-example/`)
 | Plugin | Zweck |
 |---|---|
-| `esp32-display` | ESP32 mit Display (z. B. Waveshare): Seiten/Kacheln in HomeLite, nur Änderungen per MQTT-Textprotokoll, Tippen zurück (ohne Firmware) |
+| `esp32-display` | ESP32 mit Display (z. B. Waveshare): Seiten/Kacheln in HomeLite, nur Änderungen per MQTT-Textprotokoll, Tippen zurück. Mit Firmware für ESP32 + Waveshare 3.5" RPi LCD (PlatformIO) inkl. Bildschirmschoner mit Uhr: [firmware/](plugins-example/esp32-display/firmware/README.md) |
 | `tomons-wallbox` | Tomons / Inateck Mobile Wallbox über die Tomons-Cloud (inoffiziell, experimentell): Leistung, Energie, Kabelstatus, Ladestrom-Grenze |
 | `flows` | Visueller Flow-Editor (Node-RED/n8n-Stil), Webhooks, MQTT, Unterflows, Verlauf, eigene Knoten |
 | `tuya` | Tuya / Smart Life, lokal (LAN) mit Cloud-Fallback |

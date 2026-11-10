@@ -163,6 +163,16 @@ HomeLite nutzt automatisch `.venv/bin/python3` im Projektordner (sonst `$PYTHON`
 
 Läuft noch ein Mosquitto auf Port 1883, meldet HomeLite „Port belegt“ – dann dort stoppen oder in HomeLite einen anderen Port wählen. Nicht unterstützt: MQTT 5, TLS (nur im vertrauenswürdigen LAN oder über Tailscale verwenden), persistente Sessions.
 
+## ESP32-Display (Plugin)
+
+Mit dem Plugin `esp32-display` (Seite **Displays**) stellst du Seiten und Kacheln zusammen, ein ESP32 mit Display zeichnet sie. HomeLite sendet nur Änderungen über den MQTT-Broker (kompaktes Textprotokoll), der ESP32 meldet Tippen zurück. Protokoll und Einstellungen: `plugins-example/esp32-display/LIESMICH.md`.
+
+1. **Broker:** Den eingebauten MQTT-Broker (siehe oben) einschalten und einen Benutzer für das Display anlegen.
+2. **Display anlegen:** *Displays → Display hinzufügen*, eine Display-ID vergeben (z. B. `flur`), Seiten (max. 8) und Kacheln (max. 12 je Seite) mit Gerät, Beschriftung und Art (*Wert*, *Schalter*, *Zustand*) anlegen; optional Mindeständerung Δ und Nachtabsenkung.
+3. **Firmware:** `plugins-example/esp32-display/firmware` ist ein fertiges PlatformIO-Projekt für ESP32 + Waveshare 3.5" RPi LCD (Verdrahtung, Konfiguration, Flashen: `firmware/README.md`). `include/config.example.h` nach `config.h` kopieren und WLAN, Broker-Zugang, Display-ID und Themenpräfix eintragen.
+
+Die Firmware speichert das Layout im Flash (nach einem Neustart kommen nur noch Werte), kalibriert den Touch beim ersten Start und hat einen **Bildschirmschoner**: Nach `SAVER_AFTER_S` Sekunden (Standard 120) ohne Berührung zeigt der schwarze Bildschirm Uhrzeit und Datum, die über den Bildschirm wandern; eine Berührung weckt auf. Die Uhrzeit kommt per NTP, der ESP32 braucht dafür Internetzugang. Die Hintergrundbeleuchtung dieses Moduls ist fest verdrahtet (keine Dimmung, die Nachtabsenkung des Plugins bleibt ohne Wirkung). Die Firmware kompiliert, ist aber noch nicht auf echter Hardware getestet.
+
 ## KI-Zugriff (MCP)
 
 *Einstellungen → Erweiterungen → „KI-Zugriff (MCP)“* einschalten: HomeLite wird zum MCP-Server (Streamable HTTP, Pfad `/mcp/<Token>` oder `/mcp` mit `Authorization: Bearer <Token>`). Claude kann dann Geräte, Räume, Energie, Heizung, Auto, Anwesenheit und das Protokoll abfragen und – wenn erlaubt – Geräte schalten und Szenen ausführen (Aufsperren von Schlössern nur mit zusätzlicher Freigabe). Eingebunden wird die auf der Einstellungsseite angezeigte Adresse:
