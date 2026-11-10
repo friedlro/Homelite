@@ -1,5 +1,7 @@
 # Änderungen
 
+## 1.25.14
+- **Sicherheit gehärtet:** Sperre nach Fehlversuchen jetzt auch für Webhook-/Auslöser-Schlüssel und Plugin-Webhooks (20 Fehler → 10 Minuten), Anmeldesperre mit Protokolleintrag und Benachrichtigung; hinter einem lokalen Reverse-Proxy zählt die echte Client-Adresse. Neuer Knopf **„Überall abmelden“**. Neue Passwörter brauchen mindestens 8 Zeichen. Zusätzliche Schutz-Header (X-Frame-Options, Permissions-Policy, COOP/CORP, HSTS hinter HTTPS), JSON-Eingaben ohne Prototyp-Schlüssel, kürzeres Zeitlimit für unvollständige Anfragen, robustere Origin-Prüfung im KI-Zugriff. Neu: `docs/SICHERHEIT.md` mit Empfehlungen und gehärteter systemd-Datei (Betrieb ohne root).
 ## 1.25.13
 - **Firmware für die gängigen Display-Controller:** `firmware/esp32-display` baut jetzt mit einer Umgebung je Controller: `waveshare35` (Standard), `ili9341`, `cyd` (ESP32-2432S028R mit eigenem Touch-Bus und PWM-Hintergrundlicht), `ili9488`, `ili9486`, `st7796`, `st7789` (`pio run -e <Umgebung> -t upload`). Die Darstellung berechnet Kachelgrößen aus der Displaygröße (Querformat 4, Hochformat 3 Spalten), die Drehung ist einstellbar (`ROTATION`), der Touch wird je Drehung kalibriert (bei `cyd` mit eigener 3-Punkt-Kalibrierung). Neu: optionaler Taster (`BUTTON_PIN`) für Module ohne Touch, Umsetzung des `cfg`-Werts `b=` und optionales Dimmen im Bildschirmschoner (`SAVER_BACKLIGHT`), sofern das Board `TFT_BL` hat. Plugin `esp32-display` 1.1.2 (nur Anleitung). Alle Umgebungen kompilieren, sind aber noch nicht auf echter Hardware getestet.
 

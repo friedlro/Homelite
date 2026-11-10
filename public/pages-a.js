@@ -663,11 +663,12 @@ PAGES.set = {
       h('div', { class: 'row', style: 'margin-top:10px' }, h('button', { class: 'primary', onclick: () => api('PUT', '/api/rooms', { rooms: rooms.value.split('\n') }).then(() => { toast('Gespeichert'); return reload(); }).catch(fail) }, 'Speichern'))));
 
     const cur = h('input', { type: 'password', autocomplete: 'current-password' });
-    const nw = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'mind. 6 Zeichen' });
+    const nw = h('input', { type: 'password', autocomplete: 'new-password', placeholder: 'mind. 8 Zeichen' });
     el.append(h('h2', {}, 'Passwort'), h('div', { class: 'card' }, h('div', { class: 'form' }, fld('Aktuell', cur), fld('Neu', nw)),
       h('div', { class: 'row', style: 'margin-top:12px' },
         h('button', { class: 'primary', onclick: () => api('PUT', '/api/password', { current: cur.value, password: nw.value }).then(() => { toast('Passwort geändert'); showLogin(); }).catch(fail) }, 'Ändern'),
-        h('button', { onclick: () => api('POST', '/api/logout', {}).then(showLogin) }, 'Abmelden'))));
+        h('button', { onclick: () => api('POST', '/api/logout', {}).then(showLogin) }, 'Abmelden'), ' ',
+        h('button', { title: 'Meldet alle Geräte und Browser ab (z. B. nach Verlust eines Handys)', onclick: () => { if (confirm('Wirklich alle Geräte und Browser abmelden?')) api('POST', '/api/logout-all', {}).then(showLogin).catch(fail); } }, 'Überall abmelden'))));
 
     el.append(h('h2', {}, 'HomeLite unterstützen'), h('div', { class: 'card' },
       h('p', { class: 'hint', style: 'margin-top:0' }, 'HomeLite ist kostenlos und ohne Werbung. Wenn es dir gefällt, freut sich der Entwickler über eine kleine Spende – freiwillig.'),

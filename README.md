@@ -63,6 +63,7 @@ Firmware für eigene Geräte, die mit HomeLite zusammenarbeiten (getrennt von de
 | Datei | Inhalt |
 |---|---|
 | [docs/INSTALLATION.md](docs/INSTALLATION.md) | Installation, systemd, Raspberry Pi, Update, Backup |
+| [docs/SICHERHEIT.md](docs/SICHERHEIT.md) | Schutzmaßnahmen, Empfehlungen, Betrieb ohne root |
 | [docs/HANDBUCH.md](docs/HANDBUCH.md) | Ausführliches Handbuch zu allen Funktionen |
 | [docs/FLOWS.md](docs/FLOWS.md) | Flow-Plugin: Knoten, Ausdrücke, Fehlerbehandlung, Erweiterung |
 | [docs/PLUGINS.md](docs/PLUGINS.md) | Plugin-API (Server, Oberfläche, MQTT, Webhook, MCP) |

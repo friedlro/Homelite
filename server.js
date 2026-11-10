@@ -311,6 +311,25 @@ function isAuthed(req) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 const fails = new Map();
+// Client-Adresse: X-Forwarded-For zählt nur, wenn die Anfrage von einem lokalen Reverse-Proxy kommt
+function clientIp(req) {
+  const ra = req.socket.remoteAddress || '';
+  if (/^(::1|127\.|::ffff:127\.)/.test(ra)) { const x = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim(); if (x && x.length < 50) return x; }
+  return ra;
+}
+// Fehlversuche je Adresse und Bereich (Login, Webhook-Schlüssel): nach „max“ Fehlern 10 Minuten Sperre
+function limited(req, scope, max) {
+  const k = scope + '|' + clientIp(req); const f = fails.get(k);
+  if (f && Date.now() - f.t > 600000) { fails.delete(k); return false; }
+  return !!f && f.n >= max;
+}
+function failed(req, scope, max) {
+  const k = scope + '|' + clientIp(req); const f = fails.get(k) || { n: 0, t: Date.now() };
+  f.n++; fails.set(k, f);
+  if (fails.size > 5000) for (const [kk, v] of fails) if (Date.now() - v.t > 600000) fails.delete(kk);
+  if (f.n === max) { log('warn', `Sicherheit: ${max} Fehlversuche (${scope}) von ${clientIp(req)} – 10 Minuten gesperrt`); if (scope === 'login') notify('HomeLite: Anmeldung gesperrt', `${max} falsche Passwörter von ${clientIp(req)}. Die Adresse ist 10 Minuten gesperrt.`).catch(() => {}); }
+}
+setInterval(() => { for (const [k, v] of fails) if (Date.now() - v.t > 600000) fails.delete(k); }, 300000).unref();
 const safeEq = (a, b) => { const x = Buffer.from(String(a)); const y = Buffer.from(String(b)); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 
 // ---------- Body ----------
@@ -335,7 +354,7 @@ function readBody(req, max = 1e6) {
       const ct = req.headers['content-type'] || '';
       try {
         if (ct.includes('application/x-www-form-urlencoded')) resolve(Object.fromEntries(new URLSearchParams(s)));
-        else resolve(JSON.parse(s));
+        else resolve(JSON.parse(s, (k, v) => (k === '__proto__' || k === 'constructor' || k === 'prototype' ? undefined : v)));
       } catch { reject(bad('Ungültiger Body')); }
     });
     req.on('error', reject);
@@ -360,7 +379,8 @@ const hookMeta = (b) => ({
 async function hook(req, res, url) {
   if (!on('geo') && !on('where')) throw new HttpError(403, 'Erweiterung Anwesenheit/Karte ist ausgeschaltet');
   const key = url.searchParams.get('key') || req.headers['x-key'] || '';
-  if (!safeEq(key, cfg().geofence.key)) throw new HttpError(401, 'Schlüssel ungültig');
+  if (limited(req, 'hook', 20)) throw new HttpError(429, 'Zu viele Versuche');
+  if (!safeEq(key, cfg().geofence.key)) { failed(req, 'hook', 20); throw new HttpError(401, 'Schlüssel ungültig'); }
   const body = req.method === 'GET' ? {} : await readBody(req);
   const b = { ...Object.fromEntries(url.searchParams), ...(isObj(body) ? body : {}) };
   const person = b.person || b.tid || b.device;
@@ -389,7 +409,8 @@ async function hook(req, res, url) {
 // ---------- Webhook-Auslöser (öffentlich, per Schlüssel) ----------
 async function trigger(req, res, url) {
   const key = url.searchParams.get('key') || req.headers['x-key'] || '';
-  if (!safeEq(key, cfg().geofence.key)) throw new HttpError(401, 'Schlüssel ungültig');
+  if (limited(req, 'hook', 20)) throw new HttpError(429, 'Zu viele Versuche');
+  if (!safeEq(key, cfg().geofence.key)) { failed(req, 'hook', 20); throw new HttpError(401, 'Schlüssel ungültig'); }
   const name = str(url.searchParams.get('name'), 60);
   if (!name) throw bad('name fehlt');
   const n = engine.webhook(name);
@@ -439,9 +460,14 @@ route('PUT', '/api/rooms', ({ body }) => {
   return { ok: true };
 });
 
+route('POST', '/api/logout-all', () => {   // alle Sitzungen (alle Geräte/Browser) ungültig machen
+  cfg().auth.secret = crypto.randomBytes(32).toString('hex'); store.save();
+  log('info', 'Sicherheit: alle Sitzungen abgemeldet');
+  return { ok: true, relogin: true };
+});
 route('PUT', '/api/password', ({ body }) => {
   if (!store.checkPassword(body.current || '')) throw new HttpError(403, 'Aktuelles Passwort falsch');
-  if (String(body.password || '').length < 6) throw bad('Mindestens 6 Zeichen');
+  if (typeof body.password !== 'string' || body.password.length < 8 || body.password.length > 200) throw bad('Mindestens 8 Zeichen');
   store.setPassword(body.password);
   cfg().auth.secret = crypto.randomBytes(32).toString('hex');
   store.save();
@@ -1022,7 +1048,8 @@ route('POST', '/api/presence/(\\w[\\w-]*)', ({ params, body }) => {
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json', '.webmanifest': 'application/manifest+json' };
 const SEC = {
   'Content-Security-Policy': "default-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'",
-  'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer',
+  'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'X-Frame-Options': 'DENY',
+  'Permissions-Policy': 'camera=(), microphone=(), payment=(), usb=(), geolocation=(self)', 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Resource-Policy': 'same-origin',
 };
 
 function serveStatic(req, res, pathname) {
@@ -1051,36 +1078,34 @@ const server = http.createServer(async (req, res) => {
     if (p === '/mcp' || p.startsWith('/mcp/') || p.startsWith('/mcp-plugin/')) { if (await mcp.handle(req, res, url, (r) => readBody(r), on('mcp'))) return undefined; }
     const hk = /^\/hook\/([a-z0-9][a-z0-9-]{1,40})\/([A-Za-z0-9_-]{16,64})(\/[^?]*)?$/.exec(p);
     if (hk) {
+      if (limited(req, 'hook', 20)) { res.writeHead(429, { 'Content-Type': 'application/json' }); res.end('{"error":"Zu viele Versuche"}'); return undefined; }
       const raw = ['GET', 'HEAD', 'OPTIONS'].includes(req.method) ? '' : await readRaw(req);
       let body = raw;
       if (/json/i.test(req.headers['content-type'] || '') && raw) { try { body = JSON.parse(raw); } catch { /* Text */ } }
       else if (/x-www-form-urlencoded/i.test(req.headers['content-type'] || '') && raw) body = Object.fromEntries(new URLSearchParams(raw));
       let out;
       try { out = await plugins.hook(hk[1], hk[2], { method: req.method, sub: hk[3] || '', query: Object.fromEntries(url.searchParams), headers: req.headers, body, ip: req.socket.remoteAddress }); }
-      catch (e) { res.writeHead(e.status || 500, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: e.message })); return undefined; }
+      catch (e) { if (e.status === 401 || e.status === 404) failed(req, 'hook', 20); res.writeHead(e.status || 500, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: e.message })); return undefined; }
       const o = out && typeof out === 'object' && ('body' in out || 'status' in out) ? out : { body: out };
       const payload = typeof o.body === 'string' || Buffer.isBuffer(o.body) ? o.body : JSON.stringify(o.body === undefined ? { ok: true } : o.body);
-      res.writeHead(Number(o.status) || 200, { 'Content-Type': typeof o.body === 'string' ? 'text/plain; charset=utf-8' : 'application/json', 'Cache-Control': 'no-store', ...(o.headers || {}) });
+      res.writeHead(Number(o.status) || 200, { 'Content-Type': typeof o.body === 'string' ? 'text/plain; charset=utf-8' : 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', ...(o.headers || {}) });
       res.end(payload);
       return undefined;
     }
     if (!p.startsWith('/api/')) return serveStatic(req, res, p);
 
     if (p === '/api/login' && req.method === 'POST') {
-      const ip = req.socket.remoteAddress;
-      const f = fails.get(ip) || { n: 0, t: Date.now() };
-      if (Date.now() - f.t > 600000) { f.n = 0; f.t = Date.now(); }
-      if (f.n >= 8) throw new HttpError(429, 'Zu viele Versuche, bitte später erneut');
-      const body = await readBody(req);
-      if (!store.checkPassword(body.password || '')) {
-        f.n++; fails.set(ip, f);
+      if (limited(req, 'login', 8)) throw new HttpError(429, 'Zu viele Versuche, bitte später erneut');
+      const body = await readBody(req, 4096);
+      if (typeof body.password !== 'string' || body.password.length > 200 || !store.checkPassword(body.password)) {
+        failed(req, 'login', 8);
         await new Promise((r) => setTimeout(r, 600));
         throw new HttpError(401, 'Passwort falsch');
       }
-      fails.delete(ip);
+      fails.delete('login|' + clientIp(req));
       const exp = Date.now() + 30 * 86400000;
       const secure = req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : '';
-      return send(res, 200, { ok: true }, { 'Set-Cookie': `hl=${sign(exp)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=2592000${secure}` });
+      return send(res, 200, { ok: true }, { 'Set-Cookie': `hl=${sign(exp)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=2592000${secure}`, ...(secure ? { 'Strict-Transport-Security': 'max-age=15552000' } : {}) });
     }
     if (p === '/api/logout') return send(res, 200, { ok: true }, { 'Set-Cookie': 'hl=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0' });
     if (!isAuthed(req)) return send(res, 401, { error: 'Nicht angemeldet' });
@@ -1132,6 +1157,7 @@ setInterval(() => { if (on('energy')) energy.tick(); }, 10000);
 setInterval(() => backup.tick().catch(() => {}), 30000);
 setInterval(() => { engine.onTick(); runHeating(); }, 20000);
 
+server.headersTimeout = 20000; server.maxHeadersCount = 100;
 server.listen(PORT, HOST, () => {
   console.log(`HomeLite läuft auf http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
   devices.start();
