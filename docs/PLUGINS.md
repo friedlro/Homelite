@@ -36,6 +36,8 @@ Optional: `"repo": "https://github.com/Besitzer/Repo[/tree/Zweig/Pfad]"` – Que
 
 Optional: `"changelog": {"1.2.0": "Was neu ist"}` – wird beim Update-Hinweis angezeigt (alle Versionen neuer als die installierte). Der Knopf „Jetzt aktualisieren“ lädt den Plugin-Ordner von GitHub (siehe `repo`) und behält Einstellungen und Geräte.
 
+Plugins im Ordner `plugins-example/` des Repositories erscheinen automatisch im Katalog (Einstellungen → Erweiterungen); Voraussetzung: `plugin.json` mit `id` gleich Ordnername und gültiger `version`.
+
 ## Server-API (`index.js`)
 
 ```js

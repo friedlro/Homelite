@@ -574,9 +574,40 @@ function pluginsDraw(boxEl) {
       h('button', { onclick: async () => { if (!url.value.trim() || !confirm(PLUGIN_WARN)) return; try { toast('Lade und installiere …'); const r = await api('POST', '/api/plugins/url', { url: url.value.trim() }); await pluginInstalled(r); } catch (e) { fail(e); } } }, 'Von Adresse installieren')));
   return true;
 }
+let PCAT = null;
+async function pluginCatalogLoad(refresh) {
+  try { PCAT = await api('POST', '/api/plugins/catalog', { refresh: !!refresh }); } catch (e) { PCAT = { error: e.message, items: [] }; }
+  pluginCatalogDraw();
+}
+function pluginCatalogDraw() {
+  const box = document.getElementById('plugincat'); if (!box) return;
+  const C = PCAT;
+  const card = (x) => h('div', { class: 'row sb', style: 'padding:10px 0;border-top:1px solid var(--line)' },
+    h('div', { style: 'min-width:0;flex:1' },
+      h('div', {}, h('b', {}, `${x.icon} ${x.name}`), h('span', { class: 'hint' }, `  ${x.version}${x.author ? ' · ' + x.author : ''}`), ' ',
+        x.installed ? h('span', { class: 'pill ok' }, x.update ? `installiert ${x.installed}` : 'installiert') : null, ' ',
+        x.update ? h('span', { class: 'pill', style: 'background:var(--warn,#f5a623);color:#000' }, `⬆ Update ${x.version}`) : null, ' ',
+        h('a', { href: x.link, target: '_blank', rel: 'noopener noreferrer', class: 'hint' }, 'GitHub ↗')),
+      h('div', { class: 'hint' }, x.description),
+      x.notes ? h('div', { class: 'hint', style: 'white-space:pre-wrap' }, 'Neu: ' + x.notes) : null,
+      (x.perms || []).includes('core') ? h('div', { class: 'hint', style: 'color:var(--warn,#d9a400)' }, '🔑 Recht: Zugriff auf Geräte, Automationen und Protokoll von HomeLite') : null,
+      !x.compatible ? h('div', { class: 'hint', style: 'color:var(--bad)' }, `Benötigt HomeLite ab ${x.minCore}`) : null),
+    h('div', { style: 'flex:none' }, (!x.installed || x.update) && x.compatible ? h('button', { class: 'sm', onclick: async (e) => {
+      if (!confirm(PLUGIN_WARN)) return;
+      e.target.disabled = true; e.target.textContent = 'Installiere …';
+      try { const r = await api('POST', '/api/plugins/catalog-install', { id: x.id }); await pluginInstalled(r); await pluginCatalogLoad(false); } catch (err) { fail(err); e.target.disabled = false; e.target.textContent = x.update ? 'Aktualisieren' : 'Installieren'; }
+    } }, x.update ? 'Aktualisieren' : 'Installieren') : null));
+  fill(box,
+    h('div', { class: 'row', style: 'gap:8px;align-items:center' }, h('button', { class: 'sm', onclick: () => { fill(box, h('div', { class: 'hint' }, 'Lade Katalog von GitHub …')); pluginCatalogLoad(true); } }, '🔄 Katalog aktualisieren'), C && C.ts ? h('span', { class: 'hint' }, 'Stand: ' + new Date(C.ts).toLocaleString('de-AT')) : null),
+    !C ? h('div', { class: 'hint' }, 'Lade Katalog von GitHub …') : C.error ? h('div', { class: 'hint', style: 'color:var(--bad)' }, C.error) : (C.items.length ? C.items.map(card) : h('div', { class: 'hint' }, 'Keine Plugins gefunden.')));
+}
 function pluginsSection(el) {
   el.append(h('h2', {}, 'Plugins'), h('div', { class: 'card' },
     h('p', { class: 'hint', style: 'margin-top:0' }, 'Weitere Erweiterungen als Plugin: einfach installieren, ohne HomeLite zu aktualisieren oder neu zu starten. Plugins bringen eigene Geräte, Einstellungen und bei Bedarf eine eigene Seite im Menü mit. Sie bleiben bei Systemupdates erhalten.'),
     h('div', { id: 'pluginbox' })));
   pluginsDraw(el.querySelector('#pluginbox'));
+  el.append(h('h3', {}, 'Verfügbare Plugins (GitHub)'), h('div', { class: 'card' },
+    h('p', { class: 'hint', style: 'margin-top:0' }, 'Alle Plugins aus dem HomeLite-Repository auf GitHub. Auswählen und mit einem Klick installieren; Einstellungen vorhandener Plugins bleiben bei Updates erhalten.'),
+    h('div', { id: 'plugincat' })));
+  PCAT ? pluginCatalogDraw() : pluginCatalogLoad(false);
 }

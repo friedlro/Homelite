@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.25.10
+- **Plugin-Katalog:** Unter Einstellungen → Erweiterungen → Plugins gibt es den Bereich „Verfügbare Plugins (GitHub)“. Er listet alle Plugins aus dem Ordner `plugins-example` des HomeLite-Repositories (Name, Version, Beschreibung, Neuerungen, benötigte Rechte, Link) und installiert oder aktualisiert sie mit einem Klick. Bereits installierte Plugins sind markiert. Der Katalog wird 6 Stunden zwischengespeichert, „Katalog aktualisieren“ lädt neu. Quelle ist die Update-Adresse von HomeLite (Standard `github.com/friedlro/Homelite`).
+
 ## 1.25.9
 - **Plugin-Update mit einem Klick:** Bei gefundenem Update zeigt das Plugin einen Kasten mit der neuen Version, der Änderungsbeschreibung und dem Knopf „⬆ Jetzt aktualisieren“. HomeLite lädt den Plugin-Ordner von GitHub und ersetzt ihn; Einstellungen, Geräte und Aktivierung bleiben erhalten, ein laufendes Plugin wird neu gestartet. Die Beschreibung stammt aus dem neuen Feld `changelog` der `plugin.json` (`{"1.2.0": "Text"}`); angezeigt werden alle Einträge neuer als die installierte Version. Alle Beispiel-Plugins haben jetzt einen Eintrag.
 

@@ -457,6 +457,8 @@ route('POST', '/api/discovery/scan', () => { devices.requestStates(); return { o
 // Plugins (ohne Systemupdate nachinstallierbar)
 route('GET', '/api/plugins', () => plugins.snapshot());
 route('POST', '/api/plugins/upload', async ({ body }) => plugins.install(Buffer.from(String(body.data || ''), 'base64')));
+route('POST', '/api/plugins/catalog', async ({ body }) => plugins.catalog({ refresh: !!(body && body.refresh) }));
+route('POST', '/api/plugins/catalog-install', async ({ body }) => plugins.catalogInstall(str(body.id, 40)));
 route('POST', '/api/plugins/check-updates', async () => plugins.checkUpdates());
 route('POST', '/api/plugins/([a-z0-9-]+)/update', async ({ params }) => plugins.update(params[0]));
 route('POST', '/api/plugins/url', async ({ body }) => plugins.fromUrl(str(body.url, 500)));
