@@ -1,0 +1,18 @@
+{
+  "id": "esp32-display",
+  "name": "ESP32-Display",
+  "version": "1.0.0",
+  "description": "Schnittstelle für ESP32 mit Display (z. B. Waveshare LCD): Seiten und Kacheln in HomeLite zusammenstellen, der ESP32 bekommt nur Änderungen über ein kompaktes MQTT-Textprotokoll und meldet Tippen zurück. Sehr geringe Last auf dem ESP32.",
+  "author": "HomeLite",
+  "icon": "🖥️",
+  "api": 1,
+  "minCore": "1.21.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "Displays", "icon": "🖥️" },
+  "config": [
+    { "key": "prefix", "label": "MQTT-Themenpräfix", "type": "text", "default": "hl", "help": "Themen: <Präfix>/<Display-ID>/…  (Standard hl). Der ESP32 nutzt denselben Broker wie HomeLite." },
+    { "key": "batchMs", "label": "Änderungen bündeln (ms)", "type": "number", "default": 500, "help": "Mehrere Änderungen innerhalb dieser Zeit werden in einer Nachricht gesendet (100–5000)." }
+  ],
+  "changelog": { "1.0.0": "Erste Version: Layout-Editor, Änderungsprotokoll (nur Deltas), Tippen, Nachtabsenkung, Statusanzeige." }
+}
