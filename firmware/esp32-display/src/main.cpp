@@ -1,4 +1,5 @@
-// HomeLite-Bedienpanel, ESP32 + Waveshare 3.5" RPi LCD (320x480, ILI9486 über SPI, Touch XPT2046)
+// HomeLite-Bedienpanel für den ESP32 mit SPI-Displays (ILI9341/ILI9486/ILI9488/ST7796/ST7789, Waveshare 3.5" RPi LCD, CYD)
+// Display, Pins und Touch werden je Umgebung in platformio.ini per Build-Flags gewählt (siehe README.md).
 //
 // Spricht das Protokoll des HomeLite-Plugins "ESP32-Display" (Text über MQTT, siehe dessen LIESMICH.md):
 //   ESP32 -> HomeLite:  <Präfix>/<ID>/status  online|offline (retained, Last Will)
@@ -6,7 +7,7 @@
 //                       <Präfix>/<ID>/tap     Kachel-Nummer (tid)
 //   HomeLite -> ESP32:  <Präfix>/<ID>/layout/<n>   Seite n:  H|hash|anzahl  /  P|n|name  /  T|tid|art|label|einheit
 //                       <Präfix>/<ID>/v            Werte:    <tid>=<wert> je Zeile
-//                       <Präfix>/<ID>/cfg          b=<Helligkeit>  (hier ohne Wirkung, siehe README)
+//                       <Präfix>/<ID>/cfg          b=<Helligkeit 0-100>  (wirkt nur mit PWM-Hintergrundlicht, Flag TFT_BL)
 // Seiten und Kacheln werden in HomeLite zusammengestellt; die Firmware zeichnet sie nur.
 
 #include <Arduino.h>
@@ -16,6 +17,25 @@
 #include <time.h>
 #include <TFT_eSPI.h>
 #include "config.h"
+
+// ---- Optionen mit Standardwerten (config.h oder Build-Flags überschreiben sie) ----
+#ifndef ROTATION
+#define ROTATION 1
+#endif
+#ifndef SAVER_BACKLIGHT
+#define SAVER_BACKLIGHT -1
+#endif
+
+// ---- Touch-Variante: TFT_eSPI-intern (TOUCH_CS), eigener XPT2046-Bus (TOUCH_RAW) oder keiner ----
+#if defined(TOUCH_RAW)
+#include <SPI.h>
+#include <XPT2046_Touchscreen.h>
+#define HAS_TOUCH 1
+#elif defined(TOUCH_CS)
+#define HAS_TOUCH 1
+#else
+#define HAS_TOUCH 0
+#endif
 
 #define RGB(r, g, b) ((((r) & 0xF8) << 8) | (((g) & 0xFC) << 3) | ((b) >> 3))
 static const uint16_t C_BG = RGB(10, 14, 24);
@@ -28,14 +48,35 @@ static const uint16_t C_BTN = RGB(48, 70, 120);
 static const uint16_t C_WARN = RGB(200, 140, 20);
 static const uint16_t C_ERR = RGB(200, 50, 50);
 
-static const int SCR_W = 480;
 static const int MAXP = 8;    // Seiten (wie im Plugin)
 static const int MAXT = 12;   // Kacheln je Seite (wie im Plugin)
-static const int COLS = 4;
-static const int TILE_W = 112, TILE_H = 70, TILE_GX = 117, TILE_GY = 75, TILE_X0 = 8, TILE_Y0 = 44;
 static const uint16_t TOUCH_Z = 350;
-
 TFT_eSPI tft = TFT_eSPI();
+
+// Geometrie wird aus der Displaygröße berechnet (computeGeometry), damit alle Auflösungen/Ausrichtungen passen
+static int SCR_W, SCR_H;
+static int COLS, ROWS, TILE_W, TILE_H, TILE_GX, TILE_GY, TILE_X0;
+static const int TILE_Y0 = 44, GAP = 5;
+static int FTR_Y, FTR_H, BTN_W, KAL_X, PREV_X, NEXT_X;
+
+static void computeGeometry() {
+  SCR_W = tft.width();
+  SCR_H = tft.height();
+  FTR_H = SCR_H >= 300 ? 44 : 38;
+  FTR_Y = SCR_H - FTR_H - 4;
+  COLS = SCR_W >= SCR_H ? 4 : 3;
+  ROWS = 12 / COLS;
+  TILE_W = (SCR_W - 12 - (COLS - 1) * GAP) / COLS;
+  TILE_H = (FTR_Y - 4 - TILE_Y0 - (ROWS - 1) * GAP) / ROWS;
+  TILE_GX = TILE_W + GAP;
+  TILE_GY = TILE_H + GAP;
+  TILE_X0 = (SCR_W - (COLS * TILE_W + (COLS - 1) * GAP)) / 2;
+  BTN_W = SCR_W >= 400 ? 70 : 62;
+  KAL_X = 8;
+  PREV_X = KAL_X + BTN_W + 8;
+  NEXT_X = SCR_W - 8 - BTN_W;
+}
+
 Preferences prefs;
 WiFiClient wifi;
 PubSubClient mqtt(wifi);
@@ -61,9 +102,22 @@ static uint8_t gotMask = 0;
 static String pendingHash, layoutHash;
 static bool layoutOk = false;
 static int curPage = 0;
-static int bright = -1;          // letzter cfg-Wert (Backlight dieses Moduls ist nicht steuerbar)
+static int bright = -1;          // letzter cfg-Wert (0-100), wirkt nur mit PWM-Hintergrundlicht (TFT_BL)
 
 static String tTopic(const char* sub) { return String(MQTT_PREFIX) + "/" + DISPLAY_ID + "/" + sub; }
+
+// ---------- Hintergrundlicht (PWM, nur wenn das Board TFT_BL definiert) ----------
+#if defined(TFT_BL)
+static void blInit() { ledcSetup(0, 5000, 8); ledcAttachPin(TFT_BL, 0); }
+static void blSet(int pct) { ledcWrite(0, constrain(pct, 0, 100) * 255 / 100); }
+#else
+static void blInit() {}
+static void blSet(int) {}
+#endif
+static void applyBacklight() {
+  if (saverOn && SAVER_BACKLIGHT >= 0) blSet(SAVER_BACKLIGHT);
+  else blSet(bright < 0 ? 100 : bright);
+}
 
 // ---------- Text (eingebaute Fonts haben keine Umlaute) ----------
 static String ascii(const String& s) {
@@ -179,11 +233,11 @@ static void drawHeader() {
   tft.setTextDatum(ML_DATUM);
   tft.setTextColor(TFT_WHITE, C_HEAD);
   String title = (layoutOk && nPages > 0) ? pages[curPage].name : String("HomeLite Panel");
-  tft.drawString(fit(ascii(title), 320, 4), 10, 18, 4);
-  tft.fillCircle(466, 18, 6, mqtt.connected() ? C_ON : C_ERR);
+  tft.drawString(fit(ascii(title), SCR_W - 130, 4), 10, 18, 4);
+  tft.fillCircle(SCR_W - 14, 18, 6, mqtt.connected() ? C_ON : C_ERR);
   tft.setTextDatum(MR_DATUM);
   tft.setTextColor(C_SUB, C_HEAD);
-  tft.drawString(fit(ascii(shownStatus), 120, 2), 454, 18, 2);
+  tft.drawString(fit(ascii(shownStatus), 100, 2), SCR_W - 26, 18, 2);
 }
 
 static void tileRect(int ti, int& x, int& y) {
@@ -202,30 +256,32 @@ static void drawTile(int pi, int ti) {
   if (t.kind == K_TOGGLE) tft.drawRoundRect(x, y, TILE_W, TILE_H, 8, RGB(190, 200, 225));
   tft.setTextDatum(TC_DATUM);
   tft.setTextColor(RGB(215, 220, 235), col);
-  tft.drawString(fit(ascii(t.label), TILE_W - 8, 2), x + TILE_W / 2, y + 6, 2);
+  tft.drawString(fit(ascii(t.label), TILE_W - 8, 2), x + TILE_W / 2, y + 3, 2);
   String v = bin ? (t.val == "1" ? String("An") : String("Aus")) : t.val;
   if (!bin && t.val != "-" && t.unit.length()) v += " " + t.unit;
   v = ascii(v);
   int font = tft.textWidth(v, 4) <= TILE_W - 8 ? 4 : 2;
   tft.setTextColor(TFT_WHITE, col);
   tft.setTextDatum(MC_DATUM);
-  tft.drawString(fit(v, TILE_W - 8, font), x + TILE_W / 2, y + 44, font);
+  tft.drawString(fit(v, TILE_W - 8, font), x + TILE_W / 2, y + 17 + (TILE_H - 17) / 2, font);
 }
 
 static void drawFooter() {
   auto btn = [](int x, int w, const char* label, uint16_t col) {
-    tft.fillRoundRect(x, 268, w, 44, 6, col);
+    tft.fillRoundRect(x, FTR_Y, w, FTR_H, 6, col);
     tft.setTextColor(TFT_WHITE, col);
     tft.setTextDatum(MC_DATUM);
-    tft.drawString(label, x + w / 2, 290, 2);
+    tft.drawString(label, x + w / 2, FTR_Y + FTR_H / 2, 2);
   };
-  btn(8, 70, "Kal.", C_OFF);
+  if (HAS_TOUCH) btn(KAL_X, BTN_W, "Kal.", C_OFF);
   if (layoutOk && nPages > 1) {
-    btn(86, 70, "<", C_BTN);
-    btn(402, 70, ">", C_BTN);
+    if (HAS_TOUCH) {
+      btn(PREV_X, BTN_W, "<", C_BTN);
+      btn(NEXT_X, BTN_W, ">", C_BTN);
+    }
     tft.setTextDatum(MC_DATUM);
     tft.setTextColor(C_SUB, C_BG);
-    tft.drawString(String(curPage + 1) + "/" + String(nPages), 340, 290, 2);
+    tft.drawString(String(curPage + 1) + "/" + String(nPages), SCR_W / 2, FTR_Y + FTR_H / 2, 2);
   }
 }
 
@@ -236,10 +292,11 @@ static void drawPage() {
   if (!layoutOk || nPages == 0) {
     tft.setTextDatum(MC_DATUM);
     tft.setTextColor(TFT_WHITE, C_BG);
-    tft.drawString("Warte auf Layout von HomeLite ...", SCR_W / 2, 130, 2);
+    int cy = (TILE_Y0 + FTR_Y) / 2;
+    tft.drawString("Warte auf Layout von HomeLite ...", SCR_W / 2, cy - 26, 2);
     tft.setTextColor(C_SUB, C_BG);
-    tft.drawString(String("Display-ID: ") + DISPLAY_ID + "   Praefix: " + MQTT_PREFIX, SCR_W / 2, 160, 2);
-    tft.drawString("In HomeLite: Displays -> Display hinzufuegen", SCR_W / 2, 186, 2);
+    tft.drawString(String("Display-ID: ") + DISPLAY_ID + "  Praefix: " + MQTT_PREFIX, SCR_W / 2, cy, 2);
+    tft.drawString("HomeLite: Displays -> hinzufuegen", SCR_W / 2, cy + 26, 2);
   } else {
     for (int i = 0; i < pages[curPage].n; i++) drawTile(curPage, i);
   }
@@ -296,7 +353,7 @@ static void mqttCallback(char* topic, byte* payload, unsigned int len) {
   if (sub == "v") onValues(body);
   else if (sub.startsWith("layout/")) onLayout(sub.substring(7).toInt(), body);
   else if (sub == "cfg") {
-    if (body.startsWith("b=")) bright = body.substring(2).toInt();
+    if (body.startsWith("b=")) { bright = constrain((int)body.substring(2).toInt(), 0, 100); applyBacklight(); }
   }
 }
 
@@ -319,26 +376,133 @@ static void mqttConnect() {
 }
 
 // ---------- Touch ----------
-static void calibrate() {
+// Drei Varianten: TFT_eSPI-intern (TOUCH_CS, 4-Ecken-Kalibrierung der Bibliothek), eigener XPT2046-Bus
+// (TOUCH_RAW, 3-Punkt-Kalibrierung in dieser Datei) oder ohne Touch (nur Taster/Anzeige).
+static String calKey() { return String("cal") + ROTATION; }
+
+#if defined(TOUCH_RAW)
+static SPIClass touchSPI(VSPI);
+static XPT2046_Touchscreen ts(TOUCH_RAW_CS);
+static float rcal[6];  // x = a*rx + b*ry + c, y = d*rx + e*ry + f
+static bool haveCal = false;
+
+// Löst [rx ry 1] * [a b c]^T = t für drei Punkte (Cramer)
+static bool solve3(const float* rx, const float* ry, const float* t, float* o) {
+  float det = rx[0] * (ry[1] - ry[2]) - ry[0] * (rx[1] - rx[2]) + (rx[1] * ry[2] - rx[2] * ry[1]);
+  if (fabsf(det) < 1e-3f) return false;
+  o[0] = (t[0] * (ry[1] - ry[2]) - ry[0] * (t[1] - t[2]) + (t[1] * ry[2] - t[2] * ry[1])) / det;
+  o[1] = (rx[0] * (t[1] - t[2]) - t[0] * (rx[1] - rx[2]) + (rx[1] * t[2] - rx[2] * t[1])) / det;
+  o[2] = (rx[0] * (ry[1] * t[2] - ry[2] * t[1]) - ry[0] * (rx[1] * t[2] - rx[2] * t[1]) + t[0] * (rx[1] * ry[2] - rx[2] * ry[1])) / det;
+  return true;
+}
+
+static void rawSample(float& rx, float& ry) {
+  while (!ts.touched()) delay(10);
+  delay(60);  // Kontakt setzen lassen
+  float sx = 0, sy = 0;
+  int n = 0;
+  uint32_t t0 = millis();
+  while (ts.touched() && millis() - t0 < 500) {
+    TS_Point p = ts.getPoint();
+    sx += p.x; sy += p.y; n++;
+    delay(10);
+  }
+  while (ts.touched()) delay(10);
+  delay(150);
+  rx = n ? sx / n : 0;
+  ry = n ? sy / n : 0;
+}
+
+static void calibrateTouch() {
+  float tx[3] = {24, (float)SCR_W - 24, SCR_W / 2.0f}, ty[3] = {24, 24, (float)SCR_H - 24};
+  float rx[3], ry[3];
+  for (;;) {
+    for (int i = 0; i < 3; i++) {
+      tft.fillScreen(C_BG);
+      tft.setTextDatum(MC_DATUM);
+      tft.setTextColor(TFT_WHITE, C_BG);
+      tft.drawString("Touch kalibrieren", SCR_W / 2, SCR_H / 2 - 20, 4);
+      tft.drawString("Kreuze nacheinander antippen", SCR_W / 2, SCR_H / 2 + 14, 2);
+      tft.drawLine(tx[i] - 12, ty[i], tx[i] + 12, ty[i], TFT_MAGENTA);
+      tft.drawLine(tx[i], ty[i] - 12, tx[i], ty[i] + 12, TFT_MAGENTA);
+      rawSample(rx[i], ry[i]);
+    }
+    if (solve3(rx, ry, tx, rcal) && solve3(rx, ry, ty, rcal + 3)) break;
+  }
+  haveCal = true;
+  prefs.putBytes(calKey().c_str(), rcal, sizeof(rcal));
+}
+
+static void touchBegin() {
+  touchSPI.begin(TOUCH_RAW_CLK, TOUCH_RAW_MISO, TOUCH_RAW_MOSI, TOUCH_RAW_CS);
+  ts.begin(touchSPI);
+  haveCal = prefs.getBytes(calKey().c_str(), rcal, sizeof(rcal)) == sizeof(rcal);
+  if (!haveCal) calibrateTouch();
+}
+
+static bool touchRead(int16_t& x, int16_t& y) {
+  if (!ts.touched()) return false;
+  TS_Point p = ts.getPoint();
+  x = constrain((int)(rcal[0] * p.x + rcal[1] * p.y + rcal[2]), 0, SCR_W - 1);
+  y = constrain((int)(rcal[3] * p.x + rcal[4] * p.y + rcal[5]), 0, SCR_H - 1);
+  return true;
+}
+
+#elif HAS_TOUCH
+static void calibrateTouch() {
   uint16_t cal[5];
   tft.fillScreen(C_BG);
   tft.setTextDatum(MC_DATUM);
   tft.setTextColor(TFT_WHITE, C_BG);
-  tft.drawString("Touch kalibrieren:", SCR_W / 2, 100, 4);
-  tft.drawString("Die Ecken nacheinander antippen", SCR_W / 2, 140, 2);
+  tft.drawString("Touch kalibrieren:", SCR_W / 2, SCR_H / 2 - 40, 4);
+  tft.drawString("Die Ecken nacheinander antippen", SCR_W / 2, SCR_H / 2 - 6, 2);
   tft.calibrateTouch(cal, TFT_MAGENTA, C_BG, 15);
-  prefs.putBytes("cal", cal, sizeof(cal));
+  prefs.putBytes(calKey().c_str(), cal, sizeof(cal));
   tft.setTouch(cal);
 }
+
+static void touchBegin() {
+  uint16_t cal[5];
+  if (prefs.getBytes(calKey().c_str(), cal, sizeof(cal)) == sizeof(cal)) tft.setTouch(cal);
+  else calibrateTouch();
+}
+
+static bool touchRead(int16_t& x, int16_t& y) {
+  uint16_t ux, uy;
+  if (!tft.getTouch(&ux, &uy, TOUCH_Z)) return false;
+  x = ux; y = uy;
+  return true;
+}
+
+#else
+static void calibrateTouch() {}
+static void touchBegin() {}
+static bool touchRead(int16_t&, int16_t&) { return false; }
+#endif
+
+// Optionaler Taster (gegen GND): liefert true bei jedem Drücken
+#if defined(BUTTON_PIN)
+static bool buttonEdge() {
+  static bool last = false;
+  static uint32_t lt = 0;
+  bool d = digitalRead(BUTTON_PIN) == LOW;
+  if (d == last || millis() - lt < 40) return false;
+  lt = millis();
+  last = d;
+  return d;
+}
+#else
+static bool buttonEdge() { return false; }
+#endif
 
 static int flashPage = -1, flashTileIdx = -1;
 static uint32_t flashUntil = 0;
 
 static void handleTap(int16_t x, int16_t y) {
-  if (y >= 268) {
-    if (x < 78) { calibrate(); drawPage(); }
-    else if (layoutOk && nPages > 1 && x >= 86 && x < 156) { curPage = (curPage + nPages - 1) % nPages; drawPage(); }
-    else if (layoutOk && nPages > 1 && x >= 402) { curPage = (curPage + 1) % nPages; drawPage(); }
+  if (y >= FTR_Y) {
+    if (HAS_TOUCH && x < KAL_X + BTN_W + 4) { calibrateTouch(); drawPage(); }
+    else if (layoutOk && nPages > 1 && x >= PREV_X && x < PREV_X + BTN_W) { curPage = (curPage + nPages - 1) % nPages; drawPage(); }
+    else if (layoutOk && nPages > 1 && x >= NEXT_X) { curPage = (curPage + 1) % nPages; drawPage(); }
     return;
   }
   if (!layoutOk || nPages == 0) return;
@@ -364,7 +528,8 @@ static void handleTap(int16_t x, int16_t y) {
 // ---------- Bildschirmschoner ----------
 // Schwarzer Bildschirm mit Uhrzeit und Datum, die als Sprite langsam über den Schirm wandern (abprallend).
 // Das Sprite hat einen schwarzen Rand größer als die Schrittweite, dadurch bleiben keine Spuren zurück.
-static const int SPR_W = 240, SPR_H = 100;
+static int SPR_W = 240;
+static const int SPR_H = 100;
 static const int SAVER_STEP_MS = 50;
 static TFT_eSprite spr = TFT_eSprite(&tft);
 static int sx = 0, sy = 0, svx = 2, svy = 1;
@@ -394,11 +559,13 @@ static void renderClock() {
 }
 
 static void enterSaver() {
+  SPR_W = min(240, SCR_W);
   if (!spr.createSprite(SPR_W, SPR_H)) { lastActivity = millis(); return; }  // zu wenig Speicher -> kein Schoner
   saverOn = true;
+  applyBacklight();
   tft.fillScreen(TFT_BLACK);
   sx = random(0, SCR_W - SPR_W + 1);
-  sy = random(0, 320 - SPR_H + 1);
+  sy = random(0, SCR_H - SPR_H + 1);
   svx = random(2) ? 2 : -2;
   svy = random(2) ? 1 : -1;
   sprKey = "";
@@ -415,13 +582,14 @@ static void tickSaver() {
   if (sx <= 0) { sx = 0; svx = -svx; }
   if (sx >= SCR_W - SPR_W) { sx = SCR_W - SPR_W; svx = -svx; }
   if (sy <= 0) { sy = 0; svy = -svy; }
-  if (sy >= 320 - SPR_H) { sy = 320 - SPR_H; svy = -svy; }
+  if (sy >= SCR_H - SPR_H) { sy = SCR_H - SPR_H; svy = -svy; }
   renderClock();
   spr.pushSprite(sx, sy);
 }
 
 static void exitSaver() {
   saverOn = false;
+  applyBacklight();
   spr.deleteSprite();
   drawPage();
 }
@@ -432,21 +600,24 @@ void setup() {
   prefs.begin("panel", false);
 
   tft.init();
-  tft.setRotation(1);  // Querformat 480x320
+  tft.setRotation(ROTATION);
+  computeGeometry();
+  blInit();
+  applyBacklight();
   tft.fillScreen(C_BG);
-
-  uint16_t cal[5];
-  if (prefs.getBytes("cal", cal, sizeof(cal)) == sizeof(cal)) tft.setTouch(cal);
-  else calibrate();
+#if defined(BUTTON_PIN)
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+#endif
+  touchBegin();
 
   loadLayout();
 
   tft.fillScreen(C_BG);
   tft.setTextDatum(MC_DATUM);
   tft.setTextColor(TFT_WHITE, C_BG);
-  tft.drawString("HomeLite Panel", SCR_W / 2, 110, 4);
+  tft.drawString("HomeLite Panel", SCR_W / 2, SCR_H / 2 - 30, 4);
   tft.setTextColor(C_SUB, C_BG);
-  tft.drawString("Verbinde mit WLAN ...", SCR_W / 2, 160, 2);
+  tft.drawString("Verbinde mit WLAN ...", SCR_W / 2, SCR_H / 2 + 14, 2);
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -472,8 +643,13 @@ void loop() {
   mqttConnect();
   mqtt.loop();
 
-  uint16_t x, y;
-  bool down = tft.getTouch(&x, &y, TOUCH_Z);
+  int16_t x = 0, y = 0;
+  bool down = touchRead(x, y);
+  if (buttonEdge()) {
+    lastActivity = millis();
+    if (saverOn) exitSaver();
+    else if (layoutOk && nPages > 1) { curPage = (curPage + 1) % nPages; drawPage(); }
+  }
   if (down) {
     lastActivity = millis();
     if (saverOn) {

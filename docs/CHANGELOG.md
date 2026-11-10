@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.25.13
+- **Firmware für die gängigen Display-Controller:** `firmware/esp32-display` baut jetzt mit einer Umgebung je Controller: `waveshare35` (Standard), `ili9341`, `cyd` (ESP32-2432S028R mit eigenem Touch-Bus und PWM-Hintergrundlicht), `ili9488`, `ili9486`, `st7796`, `st7789` (`pio run -e <Umgebung> -t upload`). Die Darstellung berechnet Kachelgrößen aus der Displaygröße (Querformat 4, Hochformat 3 Spalten), die Drehung ist einstellbar (`ROTATION`), der Touch wird je Drehung kalibriert (bei `cyd` mit eigener 3-Punkt-Kalibrierung). Neu: optionaler Taster (`BUTTON_PIN`) für Module ohne Touch, Umsetzung des `cfg`-Werts `b=` und optionales Dimmen im Bildschirmschoner (`SAVER_BACKLIGHT`), sofern das Board `TFT_BL` hat. Plugin `esp32-display` 1.1.2 (nur Anleitung). Alle Umgebungen kompilieren, sind aber noch nicht auf echter Hardware getestet.
+
 ## 1.25.12
 - **Firmware-Ordner:** Die Firmware für das ESP32-Display liegt jetzt in einem eigenen Ordner `firmware/esp32-display` im Hauptverzeichnis des Repositorys statt im Plugin-Ordner (Plugin `esp32-display` 1.1.1). Sie wird dadurch bei Plugin-Installation und -Update nicht mehr mitgeladen. Dokumentation (README, Handbuch, Plugin-Anleitung, Firmware-README) angepasst; die Firmware selbst ist unverändert.
 

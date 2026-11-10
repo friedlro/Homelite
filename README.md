@@ -33,7 +33,7 @@ Dauerbetrieb (systemd), Raspberry Pi und Updates: [docs/INSTALLATION.md](docs/IN
 ## Plugins (`plugins-example/`)
 | Plugin | Zweck |
 |---|---|
-| `esp32-display` | ESP32 mit Display (z. B. Waveshare): Seiten/Kacheln in HomeLite, nur Änderungen per MQTT-Textprotokoll, Tippen zurück. Mit Firmware für ESP32 + Waveshare 3.5" RPi LCD (PlatformIO) inkl. Bildschirmschoner mit Uhr: [firmware/esp32-display](firmware/esp32-display/README.md) |
+| `esp32-display` | ESP32 mit Display (z. B. Waveshare): Seiten/Kacheln in HomeLite, nur Änderungen per MQTT-Textprotokoll, Tippen zurück. Mit Firmware für ESP32 und gängige SPI-Displays (Waveshare 3.5", ILI9341, ILI9486, ILI9488, ST7796, ST7789, CYD; PlatformIO) inkl. Bildschirmschoner mit Uhr: [firmware/esp32-display](firmware/esp32-display/README.md) |
 | `tomons-wallbox` | Tomons / Inateck Mobile Wallbox über die Tomons-Cloud (inoffiziell, experimentell): Leistung, Energie, Kabelstatus, Ladestrom-Grenze |
 | `flows` | Visueller Flow-Editor (Node-RED/n8n-Stil), Webhooks, MQTT, Unterflows, Verlauf, eigene Knoten |
 | `tuya` | Tuya / Smart Life, lokal (LAN) mit Cloud-Fallback |
@@ -57,7 +57,7 @@ Firmware für eigene Geräte, die mit HomeLite zusammenarbeiten (getrennt von de
 
 | Ordner | Zweck |
 |---|---|
-| [`firmware/esp32-display`](firmware/esp32-display/README.md) | ESP32 + Waveshare 3.5" RPi LCD (PlatformIO) für das Plugin `esp32-display`: Seiten und Kacheln aus HomeLite, Tippen schaltet, Bildschirmschoner mit wanderndem Datum und Uhrzeit |
+| [`firmware/esp32-display`](firmware/esp32-display/README.md) | ESP32 + gängige SPI-Displays (PlatformIO, eine Umgebung je Controller: Waveshare 3.5" RPi LCD, ILI9341, CYD/ESP32-2432S028R, ILI9488, ILI9486, ST7796, ST7789) für das Plugin `esp32-display`: Seiten und Kacheln aus HomeLite, Tippen schaltet, Bildschirmschoner mit wanderndem Datum und Uhrzeit |
 
 ## Dokumentation
 | Datei | Inhalt |
