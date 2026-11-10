@@ -1,6 +1,6 @@
 # HomeLite
 
-Leichte Hausautomatisierung im Domoticz-Stil, **ohne Home Assistant**: Geräte direkt über MQTT (Zigbee2MQTT, Tasmota, beliebige Topics) und Shelly per HTTP, eigene Automationen, Heizungssteuerung mit Zeitplan, Leapmotor-Anbindung und Geofence fürs iPhone.
+Leichte Hausautomatisierung. Geräte direkt über MQTT (Zigbee2MQTT, Tasmota, beliebige Topics) und Shelly per HTTP, eigene Automationen, Heizungssteuerung mit Zeitplan, Leapmotor-Anbindung und Geofence fürs iPhone.
 
 ## Installation
 
