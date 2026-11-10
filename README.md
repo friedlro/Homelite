@@ -48,7 +48,7 @@ Dauerbetrieb (systemd), Raspberry Pi und Updates: [docs/INSTALLATION.md](docs/IN
 | `philips-hue` | Hue-Bridge |
 | `muellkalender` | Müllkalender (CITIES-App) |
 | `erreichbarkeit` | Erreichbarkeitsprüfung von Geräten/Adressen |
-| `duckdns` | DuckDNS-Client | Der Bereich „Verfügbare Plugins (GitHub)“ listet alle Plugins des Repositories zur Installation mit einem Klick.
+| `duckdns` | DuckDNS-Client | Der Bereich „Verfügbare Plugins (GitHub)“ listet alle Plugins des Repositories zur Installation mit einem Klick. Fertige SD-Karten-Images für Orange Pi One und Raspberry Pi 2+ (docs/INSTALLATION.md).
 
 Installation: Einstellungen → Erweiterungen → Plugins (Datei oder URL) oder Ordner nach `data/plugins/<id>` kopieren. Neue Plugin-Versionen auf GitHub werden dort mit „⬆ Update“ und GitHub-Link angezeigt.
 

@@ -26,6 +26,9 @@ WantedBy=multi-user.target
 ```
 `sudo systemctl enable --now homelite`. Läuft der Dienst ohne Root-Rechte, braucht der System-Neustart in der Oberfläche eine sudoers-Regel (siehe Handbuch, „System-Neustart“).
 
+## Fertige SD-Karten-Images
+HomeLite ist als fertiges Image für **Orange Pi One** (Armbian) und **Raspberry Pi 2 und neuer** (Raspberry Pi OS Lite, 32 Bit) verfügbar: auf SD-Karte schreiben (z. B. Balena Etcher), starten, Einrichtungsassistenten des Betriebssystems durchlaufen, dann `http://<IP-Adresse>:3100` öffnen. Node.js und HomeLite liegen unter `/opt`, der Dienst `homelite` startet automatisch. Die Images baut `images/build-image.sh` aus dem offiziellen Basis-Image (siehe Kopf des Skripts). Nicht vorinstalliert: ffmpeg und Python-Pakete für Apple TV.
+
 ## Raspberry Pi (ab Pi 2)
 ```bash
 git clone https://github.com/friedlro/Homelite.git && cd Homelite
