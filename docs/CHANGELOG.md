@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.25.15
+- **GitLite als Quelle für Software-Update und Plugins:** Standard-Quelle ist jetzt `https://gitlite.bicolor-bull.ts.net/r/homelite`. Tägliche Update-Prüfung, „Nach Update suchen“, Plugin-Update-Hinweise, ein-Klick-Plugin-Update und der Plugin-Katalog lesen Dateien über GitLite (`/raw`), das Paket selbst kommt per flachem `git clone` (neues Modul `lib/gitsrc.js`; Symlinks und Hooks aus dem Repository werden nicht ausgeführt). Adressen: `…/r/<Repo>` oder `…/r/<Repo>/tree?ref=<Zweig>&path=<Ordner>`; GitHub-Adressen funktionieren weiter, auch je Plugin über `repo` in `plugin.json`. Voraussetzung: `git` auf dem Gerät und Zugriff aufs Tailnet; private Repositories (Anmeldung) werden nicht unterstützt. Beschriftungen „GitHub“ → „Quelle“. Lokal mit Test-Repository geprüft (Katalog, Installation, Update-Hinweis, Paketprüfung), gegen den echten GitLite-Server noch nicht.
+
 ## 1.25.14
 - **Sicherheit gehärtet:** Sperre nach Fehlversuchen jetzt auch für Webhook-/Auslöser-Schlüssel und Plugin-Webhooks (20 Fehler → 10 Minuten), Anmeldesperre mit Protokolleintrag und Benachrichtigung; hinter einem lokalen Reverse-Proxy zählt die echte Client-Adresse. Neuer Knopf **„Überall abmelden“**. Neue Passwörter brauchen mindestens 8 Zeichen. Zusätzliche Schutz-Header (X-Frame-Options, Permissions-Policy, COOP/CORP, HSTS hinter HTTPS), JSON-Eingaben ohne Prototyp-Schlüssel, kürzeres Zeitlimit für unvollständige Anfragen, robustere Origin-Prüfung im KI-Zugriff. Neu: `docs/SICHERHEIT.md` mit Empfehlungen und gehärteter systemd-Datei (Betrieb ohne root).
 ## 1.25.13

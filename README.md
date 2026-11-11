@@ -22,7 +22,7 @@ Heimserver oder Raspberry Pi (ab Pi 2). Keine Cloud-Pflicht, keine Build-Schritt
 ## Schnellstart
 Voraussetzung: Node.js ≥ 22.
 ```bash
-git clone https://github.com/friedlro/Homelite.git
+git clone https://gitlite.bicolor-bull.ts.net/homelite.git
 cd Homelite
 npm install --omit=dev
 node server.js          # http://<server>:3100
@@ -48,9 +48,9 @@ Dauerbetrieb (systemd), Raspberry Pi und Updates: [docs/INSTALLATION.md](docs/IN
 | `philips-hue` | Hue-Bridge |
 | `muellkalender` | Müllkalender (CITIES-App) |
 | `erreichbarkeit` | Erreichbarkeitsprüfung von Geräten/Adressen |
-| `duckdns` | DuckDNS-Client | Der Bereich „Verfügbare Plugins (GitHub)“ listet alle Plugins des Repositories zur Installation mit einem Klick. Fertige SD-Karten-Images für Orange Pi One und Raspberry Pi 2+ (docs/INSTALLATION.md).
+| `duckdns` | DuckDNS-Client | Der Bereich „Verfügbare Plugins“ listet alle Plugins des Repositories zur Installation mit einem Klick. Fertige SD-Karten-Images für Orange Pi One und Raspberry Pi 2+ (docs/INSTALLATION.md).
 
-Installation: Einstellungen → Erweiterungen → Plugins (Datei oder URL) oder Ordner nach `data/plugins/<id>` kopieren. Neue Plugin-Versionen auf GitHub werden dort mit „⬆ Update“ und GitHub-Link angezeigt.
+Installation: Einstellungen → Erweiterungen → Plugins (Datei oder URL) oder Ordner nach `data/plugins/<id>` kopieren. Neue Plugin-Versionen werden dort mit „⬆ Update“ und Link zur Quelle angezeigt. Standard-Quelle für Updates und Plugins ist das GitLite-Repository `https://gitlite.bicolor-bull.ts.net/r/homelite` (GitHub bleibt als Quelle möglich; für GitLite muss `git` auf dem Gerät installiert sein).
 
 ## Firmware (`firmware/`)
 Firmware für eigene Geräte, die mit HomeLite zusammenarbeiten (getrennt von den Plugins, wird nicht mit ihnen installiert).

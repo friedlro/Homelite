@@ -2,7 +2,7 @@
 
 Plugins erweitern HomeLite **ohne Systemupdate und ohne Neustart**. Sie liegen in `data/plugins/<id>/` und bleiben bei Updates von HomeLite erhalten.
 
-**Installieren:** Einstellungen → Erweiterungen → Plugins → „Plugin-Datei wählen (.tar.gz)“ oder „Von Adresse installieren“ (URL einer `.tar.gz` oder eines GitHub-Repositories). Danach aktivieren und ggf. über „⚙ Einstellungen“ konfigurieren.
+**Installieren:** Einstellungen → Erweiterungen → Plugins → „Plugin-Datei wählen (.tar.gz)“ oder „Von Adresse installieren“ (URL einer `.tar.gz` oder eines GitLite- oder GitHub-Repositories). Danach aktivieren und ggf. über „⚙ Einstellungen“ konfigurieren.
 
 > **Sicherheit:** Plugins laufen mit allen Rechten im HomeLite-Prozess (Geräte, Zugangsdaten, Netzwerk). Nur Pakete aus vertrauenswürdiger Quelle installieren.
 
@@ -32,9 +32,9 @@ Hinweis: Wer ein Plugin installiert hat, kann dessen Seite unter Einstellungen �
 | `api` | benötigte Plugin-API-Version (1) |
 | `config` | Einstellungsfelder: `{key,label,type,help,placeholder,default,options}`; Typen `text`, `textarea`, `number`, `bool`, `password`, `select` |
 
-Optional: `"repo": "https://github.com/Besitzer/Repo[/tree/Zweig/Pfad]"` – Quelle für Update-Hinweis und „GitHub ↗“-Link. Fehlt es, sucht HomeLite unter `plugins-example/<id>` im HomeLite-Repository nach einer neueren `plugin.json`.
+Optional: `"repo": "https://gitlite…/r/Repo[/tree?ref=Zweig&path=Pfad]"` oder `"https://github.com/Besitzer/Repo[/tree/Zweig/Pfad]"` – Quelle für Update-Hinweis und „Quelle ↗“-Link. Fehlt es, sucht HomeLite unter `plugins-example/<id>` im HomeLite-Repository (Standard: GitLite) nach einer neueren `plugin.json`.
 
-Optional: `"changelog": {"1.2.0": "Was neu ist"}` – wird beim Update-Hinweis angezeigt (alle Versionen neuer als die installierte). Der Knopf „Jetzt aktualisieren“ lädt den Plugin-Ordner von GitHub (siehe `repo`) und behält Einstellungen und Geräte.
+Optional: `"changelog": {"1.2.0": "Was neu ist"}` – wird beim Update-Hinweis angezeigt (alle Versionen neuer als die installierte). Der Knopf „Jetzt aktualisieren“ lädt den Plugin-Ordner aus der Quelle (siehe `repo`) und behält Einstellungen und Geräte.
 
 Plugins im Ordner `plugins-example/` des Repositories erscheinen automatisch im Katalog (Einstellungen → Erweiterungen); Voraussetzung: `plugin.json` mit `id` gleich Ordnername und gültiger `version`.
 

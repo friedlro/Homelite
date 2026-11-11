@@ -46,4 +46,4 @@ Einschränkungen: Der Neustart des Rechners aus der Oberfläche braucht dann ein
 
 ## Bekannte Grenzen
 - Kein eingebautes HTTPS, keine Mehrbenutzer-Rechte, keine Zwei-Faktor-Anmeldung.
-- Updates und Plugins von GitHub werden über HTTPS geladen, aber nicht signiert geprüft.
+- Updates und Plugins von GitLite (per Git über das Tailnet) bzw. GitHub (HTTPS) werden geladen, aber nicht signiert geprüft.

@@ -543,22 +543,22 @@ function pluginsDraw(boxEl) {
     if (!f || !confirm(PLUGIN_WARN)) return;
     try { toast('Installiere …'); const r = await api('POST', '/api/plugins/upload', { data: b64(await f.arrayBuffer()) }); await pluginInstalled(r); } catch (err) { fail(err); }
   } });
-  const url = h('input', { placeholder: 'https://github.com/…/mein-plugin  oder  https://…/plugin.tar.gz', style: 'flex:1;min-width:200px' });
+  const url = h('input', { placeholder: 'https://gitlite…/r/mein-plugin, https://github.com/…/mein-plugin oder https://…/plugin.tar.gz', style: 'flex:1;min-width:200px' });
   fill(box,
     L.length ? L.map((p) => h('div', { class: 'row sb', style: 'padding:10px 0;border-top:1px solid var(--line)' },
       h('div', { style: 'min-width:0;flex:1' },
         h('div', {}, h('b', {}, `${p.icon} ${p.name}`), h('span', { class: 'hint' }, `  ${p.version}${p.author ? ' · ' + p.author : ''}`), ' ',
-          p.update ? h('span', { class: 'pill', style: 'background:var(--warn,#f5a623);color:#000', title: 'Neue Version auf GitHub' }, `⬆ Update ${p.update}`) : null, ' ',
-          p.link ? h('a', { href: p.link, target: '_blank', rel: 'noopener noreferrer', class: 'hint', title: p.update ? 'Neue Version herunterladen' : 'Quellcode und Dateien auf GitHub' }, 'GitHub ↗') : null, ' ',
+          p.update ? h('span', { class: 'pill', style: 'background:var(--warn,#f5a623);color:#000', title: 'Neue Version in der Quelle' }, `⬆ Update ${p.update}`) : null, ' ',
+          p.link ? h('a', { href: p.link, target: '_blank', rel: 'noopener noreferrer', class: 'hint', title: p.update ? 'Neue Version herunterladen' : 'Quellcode und Dateien in der Quelle' }, 'Quelle ↗') : null, ' ',
           h('span', { class: 'pill ' + (p.error ? 'bad' : p.running ? 'ok' : '') }, p.error ? 'Fehler' : p.running ? 'läuft' : 'aus')),
         p.description ? h('div', { class: 'hint' }, p.description) : null,
         p.update ? h('div', { style: 'margin:6px 0;padding:8px;border:1px solid var(--warn,#f5a623);border-radius:8px' },
           h('div', {}, h('b', {}, `Neu: Version ${p.update}`), ' (installiert: ' + p.version + ')'),
           ...(p.updateNotes || []).map((n) => h('div', { class: 'hint', style: 'white-space:pre-wrap;margin-top:4px' }, `${n.v}: ${n.text}`)),
-          !(p.updateNotes || []).length ? h('div', { class: 'hint' }, 'Keine Änderungsbeschreibung hinterlegt – siehe GitHub.') : null,
+          !(p.updateNotes || []).length ? h('div', { class: 'hint' }, 'Keine Änderungsbeschreibung hinterlegt – siehe Quelle.') : null,
           h('div', { class: 'row', style: 'margin-top:6px' },
             h('button', { class: 'sm', onclick: async (e) => { if (!confirm(`„${p.name}“ auf ${p.update} aktualisieren? Einstellungen und Geräte bleiben erhalten.`)) return; e.target.disabled = true; e.target.textContent = 'Aktualisiere …'; try { await api('POST', '/api/plugins/' + p.id + '/update'); toast(`${p.name} aktualisiert`); } catch (err) { fail(err); e.target.disabled = false; e.target.textContent = '⬆ Jetzt aktualisieren'; } } }, '⬆ Jetzt aktualisieren'),
-            p.link ? h('a', { href: p.link, target: '_blank', rel: 'noopener noreferrer', class: 'hint' }, 'Auf GitHub ansehen ↗') : null)) : null,
+            p.link ? h('a', { href: p.link, target: '_blank', rel: 'noopener noreferrer', class: 'hint' }, 'In der Quelle ansehen ↗') : null)) : null,
         (p.perms || []).includes('core') ? h('div', { class: 'hint', style: 'color:var(--warn,#d9a400)' }, '🔑 Recht: Zugriff auf Geräte, Automationen und Protokoll von HomeLite (wie der KI-Zugriff)') : null,
         p.error ? h('div', { class: 'hint', style: 'color:var(--bad)' }, p.error) : null,
         p.devices ? h('div', { class: 'hint' }, `${p.devices} Gerät${p.devices === 1 ? '' : 'e'}`) : null),
@@ -587,7 +587,7 @@ function pluginCatalogDraw() {
       h('div', {}, h('b', {}, `${x.icon} ${x.name}`), h('span', { class: 'hint' }, `  ${x.version}${x.author ? ' · ' + x.author : ''}`), ' ',
         x.installed ? h('span', { class: 'pill ok' }, x.update ? `installiert ${x.installed}` : 'installiert') : null, ' ',
         x.update ? h('span', { class: 'pill', style: 'background:var(--warn,#f5a623);color:#000' }, `⬆ Update ${x.version}`) : null, ' ',
-        h('a', { href: x.link, target: '_blank', rel: 'noopener noreferrer', class: 'hint' }, 'GitHub ↗')),
+        h('a', { href: x.link, target: '_blank', rel: 'noopener noreferrer', class: 'hint' }, 'Quelle ↗')),
       h('div', { class: 'hint' }, x.description),
       x.notes ? h('div', { class: 'hint', style: 'white-space:pre-wrap' }, 'Neu: ' + x.notes) : null,
       (x.perms || []).includes('core') ? h('div', { class: 'hint', style: 'color:var(--warn,#d9a400)' }, '🔑 Recht: Zugriff auf Geräte, Automationen und Protokoll von HomeLite') : null,
@@ -598,16 +598,16 @@ function pluginCatalogDraw() {
       try { const r = await api('POST', '/api/plugins/catalog-install', { id: x.id }); await pluginInstalled(r); await pluginCatalogLoad(false); } catch (err) { fail(err); e.target.disabled = false; e.target.textContent = x.update ? 'Aktualisieren' : 'Installieren'; }
     } }, x.update ? 'Aktualisieren' : 'Installieren') : null));
   fill(box,
-    h('div', { class: 'row', style: 'gap:8px;align-items:center' }, h('button', { class: 'sm', onclick: () => { fill(box, h('div', { class: 'hint' }, 'Lade Katalog von GitHub …')); pluginCatalogLoad(true); } }, '🔄 Katalog aktualisieren'), C && C.ts ? h('span', { class: 'hint' }, 'Stand: ' + new Date(C.ts).toLocaleString('de-AT')) : null),
-    !C ? h('div', { class: 'hint' }, 'Lade Katalog von GitHub …') : C.error ? h('div', { class: 'hint', style: 'color:var(--bad)' }, C.error) : (C.items.length ? C.items.map(card) : h('div', { class: 'hint' }, 'Keine Plugins gefunden.')));
+    h('div', { class: 'row', style: 'gap:8px;align-items:center' }, h('button', { class: 'sm', onclick: () => { fill(box, h('div', { class: 'hint' }, 'Lade Katalog von GitLite …')); pluginCatalogLoad(true); } }, '🔄 Katalog aktualisieren'), C && C.ts ? h('span', { class: 'hint' }, 'Stand: ' + new Date(C.ts).toLocaleString('de-AT')) : null),
+    !C ? h('div', { class: 'hint' }, 'Lade Katalog von GitLite …') : C.error ? h('div', { class: 'hint', style: 'color:var(--bad)' }, C.error) : (C.items.length ? C.items.map(card) : h('div', { class: 'hint' }, 'Keine Plugins gefunden.')));
 }
 function pluginsSection(el) {
   el.append(h('h2', {}, 'Plugins'), h('div', { class: 'card' },
     h('p', { class: 'hint', style: 'margin-top:0' }, 'Weitere Erweiterungen als Plugin: einfach installieren, ohne HomeLite zu aktualisieren oder neu zu starten. Plugins bringen eigene Geräte, Einstellungen und bei Bedarf eine eigene Seite im Menü mit. Sie bleiben bei Systemupdates erhalten.'),
     h('div', { id: 'pluginbox' })));
   pluginsDraw(el.querySelector('#pluginbox'));
-  el.append(h('h3', {}, 'Verfügbare Plugins (GitHub)'), h('div', { class: 'card' },
-    h('p', { class: 'hint', style: 'margin-top:0' }, 'Alle Plugins aus dem HomeLite-Repository auf GitHub. Auswählen und mit einem Klick installieren; Einstellungen vorhandener Plugins bleiben bei Updates erhalten.'),
+  el.append(h('h3', {}, 'Verfügbare Plugins'), h('div', { class: 'card' },
+    h('p', { class: 'hint', style: 'margin-top:0' }, 'Alle Plugins aus dem HomeLite-Repository (GitLite; Git muss auf dem Gerät installiert sein). Auswählen und mit einem Klick installieren; Einstellungen vorhandener Plugins bleiben bei Updates erhalten.'),
     h('div', { id: 'plugincat' })));
   PCAT ? pluginCatalogDraw() : pluginCatalogLoad(false);
 }
