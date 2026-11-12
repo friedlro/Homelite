@@ -522,6 +522,10 @@ route('POST', '/api/shelly/fw/update', async ({ body }) => {
   if (errs.length && errs.length === ips.length) throw bad(errs.join('; '));
   return { ok: true, started: ips.length - errs.length, errors: errs };
 });
+route('POST', '/api/shelly/find', async () => {   // Shellys per MAC unter neuer IP wiederfinden
+  const r = await devices.findShellies('manuell', true);
+  return { ok: true, ...r, withMac: devices.list.filter((d) => d.driver === 'shelly' && d.mac).length, withoutMac: devices.list.filter((d) => d.driver === 'shelly' && !d.mac).length };
+});
 route('POST', '/api/shelly/probe', async ({ body }) => {
   const ip = str(body.ip, 100);
   if (!/^[\w.:-]+$/.test(ip)) throw bad('Ungültige IP');

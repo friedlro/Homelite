@@ -111,6 +111,8 @@ class LocalLink(threading.Thread):
         self.ok = False
         self.ip = ""
         self.version = 0
+        self.fails = 0                    # aufeinanderfolgende Fehlversuche
+        self.wake = threading.Event()     # weckt die Wartezeit, sobald der Scan eine (neue) IP kennt
 
     def device(self):
         return manager.device_map.get(self.dev_id) if manager else None
@@ -118,8 +120,14 @@ class LocalLink(threading.Thread):
     def target(self):
         man = LOCAL["devices"].get(self.dev_id) or {}
         fnd = found.get(self.dev_id) or {}
-        ip = man.get("ip") or fnd.get("ip") or ""
-        ver = man.get("version") or fnd.get("version") or 3.3
+        # Manuelle IP gilt, solange sie funktioniert. Hat sich die Adresse geändert (Router-Neustart/DHCP),
+        # nimmt das Gerät nach 2 Fehlversuchen die per Scan gefundene IP – die Geräte-ID ist eindeutig.
+        mip, fip = man.get("ip") or "", fnd.get("ip") or ""
+        if mip and fip and mip != fip and self.fails >= 2:
+            ip, ver = fip, fnd.get("version") or man.get("version") or 3.3
+        else:
+            ip = mip or fip
+            ver = man.get("version") or fnd.get("version") or 3.3
         return ip, float(ver)
 
     def apply(self, dps):
@@ -172,6 +180,7 @@ class LocalLink(threading.Thread):
                 self.d = d
                 self.apply(st["dps"])
                 self.set_state(True, ip, ver)
+                self.fails = 0
                 wait = 10
                 last_hb = time.time()
                 while not self.stop_flag:
@@ -188,7 +197,9 @@ class LocalLink(threading.Thread):
                         last_hb = time.time()
                     time.sleep(0.05)
             except Exception as exc:  # noqa: BLE001
+                self.fails += 1
                 self.set_state(False, ip, ver, str(exc)[:120])
+                request_scan()            # vielleicht hat das Gerät eine neue IP bekommen
             finally:
                 try:
                     if self.d is not None:
@@ -197,8 +208,9 @@ class LocalLink(threading.Thread):
                     pass
                 self.d = None
             if not self.stop_flag:
-                time.sleep(wait)
-                wait = min(wait * 2, 300)
+                self.wake.wait(wait)
+                self.wake.clear()
+                wait = min(wait * 2, 60)
 
     def send(self, dps):
         if not self.ok or self.d is None:
@@ -219,12 +231,30 @@ def scan_network():
         for ip, info in (res or {}).items():
             gid = info.get("gwId") or info.get("id")
             if gid:
-                found[gid] = {"ip": info.get("ip") or ip, "version": info.get("version") or 3.3}
+                new_ip = info.get("ip") or ip
+                old = found.get(gid) or {}
+                found[gid] = {"ip": new_ip, "version": info.get("version") or 3.3}
+                lk = links.get(gid)
+                if lk is not None and (old.get("ip") != new_ip or not lk.ok):
+                    lk.wake.set()         # sofort mit der gefundenen IP verbinden
         emit({"event": "scan", "found": {k: v for k, v in found.items()}})
     except Exception as exc:  # noqa: BLE001
         print("Tuya-Scan: %r" % exc, file=sys.stderr, flush=True)
     finally:
         scan_lock.release()
+
+
+_last_scan_req = 0.0
+
+
+def request_scan():
+    """Nach einem Verbindungsfehler sofort (höchstens alle 20 s) im Netzwerk nach der neuen IP suchen."""
+    global _last_scan_req
+    now = time.time()
+    if now - _last_scan_req < 20 or tinytuya is None or not LOCAL.get("enabled"):
+        return
+    _last_scan_req = now
+    threading.Thread(target=scan_network, daemon=True).start()
 
 
 def local_start():

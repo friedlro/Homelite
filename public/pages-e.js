@@ -251,6 +251,7 @@ function shellyFwDraw() {
     h('div', { class: 'row sb' }, h('h2', { style: 'margin:0' }, 'Shelly-Firmware'),
       h('div', { class: 'row' },
         h('button', { disabled: busy, onclick: () => api('POST', '/api/shelly/fw/check', {}).catch(fail) }, '↻ Auf Updates prüfen'),
+        h('button', { title: 'Sucht alle Shelly im Netzwerk (Port 80) und übernimmt geänderte IP-Adressen anhand der MAC', onclick: async (e) => { e.target.disabled = true; try { const r = await api('POST', '/api/shelly/find', {}); toast(r.skipped ? 'Suche läuft gerade nicht – bitte kurz warten' : `${r.seen || 0} Shelly gefunden, ${r.moved || 0} neue IP übernommen` + (r.withoutMac ? ` · ${r.withoutMac} Gerät(e) ohne gespeicherte MAC (wird beim ersten Kontakt gelernt)` : '')); } catch (err) { fail(err); } e.target.disabled = false; } }, '🔎 IP-Adressen suchen'),
         avail > 1 ? h('button', { class: 'primary', disabled: busy, onclick: () => { if (confirm(`${avail} Shelly-Geräte aktualisieren? Sie starten dabei kurz neu.`)) api('POST', '/api/shelly/fw/update', { all: true }).catch(fail); } }, `Alle aktualisieren (${avail})`) : null)),
     h('div', { class: 'card', style: 'margin-top:10px;overflow-x:auto' }, h('table', {},
       h('thead', {}, h('tr', {}, ['Gerät', 'IP', 'Version', 'Status', ''].map((t) => h('th', {}, t)))),
