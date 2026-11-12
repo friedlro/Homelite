@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.26.2
+- Standard-Quelle für Software-Update und Plugin-Katalog ist wieder das GitHub-Repository `friedlro/homelite`; GitLite bleibt als wählbare Quelle möglich. README/Installation: Klon-Adresse wieder GitHub.
+
 ## 1.26.1
 - **Shelly finden sich nach Router-Neustart selbst wieder:** HomeLite speichert die MAC-Adresse jedes Shelly. Gen1 melden sich per CoIoT (neue IP wird sofort übernommen); bei Ausfall (3 Fehlversuche) durchsucht HomeLite das eigene Netz (Port 80, `/shelly` liefert die MAC) und übernimmt geänderte IP-Adressen (neues Modul `lib/netfind.js`). Manuell über „🔎 IP-Adressen suchen“ im Shelly-Bereich. Lokal mit einem Test-Shelly geprüft; mit echten Geräten und Router-Neustart nicht getestet.
 - **Plugin Tuya 1.0.1:** Bei Verbindungsfehler sofort Netzwerk-Scan über die Geräte-ID (eindeutiger als die MAC); eine veraltete manuelle IP wird nach 2 Fehlversuchen durch die gefundene ersetzt; Wartezeit zwischen Versuchen höchstens 60 s statt 5 Min.

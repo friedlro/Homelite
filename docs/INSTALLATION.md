@@ -5,7 +5,7 @@ Node.js ≥ 22 (benötigt `node:sqlite`). Optional: Python 3 mit `pip` für Appl
 
 ## Manuell
 ```bash
-git clone https://gitlite.bicolor-bull.ts.net/homelite.git /opt/homelite
+git clone https://github.com/friedlro/homelite.git /opt/homelite
 cd /opt/homelite && npm install --omit=dev
 node server.js
 ```
@@ -31,7 +31,7 @@ HomeLite ist als fertiges Image für **Orange Pi One** (Armbian) und **Raspberry
 
 ## Raspberry Pi (ab Pi 2)
 ```bash
-git clone https://gitlite.bicolor-bull.ts.net/homelite.git && cd homelite
+git clone https://github.com/friedlro/homelite.git && cd homelite
 sudo ./raspberry-pi/install.sh
 ```
 Der Installer richtet Node.js (passend zur Architektur), Swap, Dienst und alle Plugins aus `plugins-example/` ein. Details: `raspberry-pi/LIESMICH.txt`.
@@ -44,7 +44,7 @@ Einstellungen → Erweiterungen → Plugins → „Von Adresse installieren“, 
 Das Start-Passwort steht im Log. Danach: Einstellungen → Passwort ändern, Räume und Geräte anlegen, ggf. Übernahme aus Home Assistant (Handbuch).
 
 ## Update
-- Per Klick: Einstellungen → Update (Standard-Quelle: GitLite-Repository `https://gitlite.bicolor-bull.ts.net/r/homelite`, nur im Tailnet erreichbar; `sudo apt install git` nötig – GitLite bietet kein Archiv zum Herunterladen, HomeLite holt die Dateien per `git clone --depth 1`). Vorher `data/` sichern (Einstellungen → Backup).
+- Per Klick: Einstellungen → Update (Standard-Quelle: GitHub-Repository `https://github.com/friedlro/homelite`; als eigene Quelle geht auch ein GitLite-Repository, dafür ist `sudo apt install git` nötig, weil GitLite kein Archiv anbietet und HomeLite die Dateien per `git clone --depth 1` holt). Vorher `data/` sichern (Einstellungen → Backup).
 - Per Git: `git pull && sudo systemctl restart homelite`.
 Plugins unter `data/plugins` und alle Daten bleiben erhalten; neue Plugin-Versionen aus `plugins-example/` bei Bedarf neu installieren.
 
