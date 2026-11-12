@@ -9,6 +9,7 @@
 
 ## Schutz vor Zugriffen von außen (ab 1.27.0, standardmäßig an)
 - **Nur Schlüssel-Pfade von außen:** Anfragen aus dem Internet (nicht aus LAN, Tailnet 100.64.0.0/10, lokal oder IPv6-ULA; erkannt an der Client-Adresse und am Header `Tailscale-Funnel-Request`) erreichen nur `/mcp`, `/hook`, `/trigger` und die Handy-Seite `/where.html`. Oberfläche, Anmeldung und API antworten von außen mit „Nicht gefunden“. Das gilt für Tailscale Funnel, Cloudflare Tunnel und Portfreigaben, solange der Proxy auf demselben Rechner läuft (Header `X-Forwarded-For` wird nur von dort akzeptiert).
+- **Tailscale Funnel wird akzeptiert** (Einstellung „Tailscale Funnel akzeptieren“, Standard an): Anfragen, die der eigene `tailscaled` mit dem Header `Tailscale-Funnel-Request` weiterreicht, gelten als vertrauenswürdiger Zugang – auch die Oberfläche ist dann über die Funnel-Adresse erreichbar. Weiterhin gelten Anfragenbegrenzung, Sperre nach Fehlversuchen und die Meldung bei Anmeldung. Das Plugin Tailscale warnt, solange Funnel aktiv ist. Ausschalten, wenn nur `/mcp`, `/hook` und `/trigger` per Funnel erreichbar sein sollen (dann am besten auch `tailscale funnel` auf diese Pfade beschränken).
 - **Begrenzung:** höchstens 120 Anfragen pro Minute und Adresse von außen; wer 30 Pfade abfragt, die es nicht gibt (Scanner), wird 10 Minuten gesperrt.
 - **Meldung:** erfolgreiche Anmeldung von außen erzeugt Protokolleintrag und Push.
 - **Server:** Zeitlimit für Anfragen (60 s), höchstens 400 gleichzeitige Verbindungen.

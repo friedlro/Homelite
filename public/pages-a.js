@@ -668,14 +668,16 @@ PAGES.set = {
     { // Schutz vor Zugriffen von außen
       const sec = S.security || { lockExternal: true, extraPaths: [], blocked: 0 };
       const lock = h('input', { type: 'checkbox', checked: sec.lockExternal });
+      const fun = h('input', { type: 'checkbox', checked: sec.allowFunnel !== false });
       const extra = h('textarea', { style: 'min-height:60px', placeholder: '/meinpfad/' }, (sec.extraPaths || []).join('\n'));
       el.append(h('h2', {}, 'Schutz vor Zugriffen von außen'), h('div', { class: 'card' },
-        h('p', { class: 'hint', style: 'margin-top:0' }, 'Anfragen aus dem Internet (z. B. über Tailscale Funnel, Cloudflare Tunnel oder Portfreigabe) erreichen nur die per Schlüssel geschützten Pfade /mcp, /hook, /trigger und die Handy-Seite /where.html. Oberfläche und API sind nur im Heimnetz, Tailnet oder lokal erreichbar. Zusätzlich: höchstens 120 Anfragen pro Minute und Adresse, Sperre für Scanner, Meldung bei Anmeldung von außen.'),
+        h('p', { class: 'hint', style: 'margin-top:0' }, 'Anfragen aus dem Internet (z. B. über Tailscale Funnel, Cloudflare Tunnel oder Portfreigabe) erreichen nur die per Schlüssel geschützten Pfade /mcp, /hook, /trigger und die Handy-Seite /where.html. Oberfläche und API sind nur im Heimnetz, Tailnet, über Tailscale Funnel (wenn unten akzeptiert) oder lokal erreichbar. Zusätzlich: höchstens 120 Anfragen pro Minute und Adresse, Sperre für Scanner, Meldung bei Anmeldung von außen.'),
         h('label', { class: 'row' }, lock, ' Von außen nur Schlüssel-Pfade erlauben (empfohlen)'),
+        h('label', { class: 'row' }, fun, ' Tailscale Funnel akzeptieren (Oberfläche über Funnel erreichbar; Anmeldung wird gemeldet, Begrenzung und Sperre nach Fehlversuchen bleiben)'),
         sec.envOverride ? h('p', { class: 'hint' }, '⚠ Per Umgebungsvariable HOMELITE_ALLOW_EXTERNAL=1 ausgeschaltet.') : null,
         h('label', { class: 'hint', style: 'display:block;margin-top:10px' }, 'Weitere von außen erlaubte Pfade (einer pro Zeile, Ordner mit / am Ende, z. B. /hook-meinplugin/)'), extra,
         h('p', { class: 'hint' }, `Abgewiesene Anfragen seit Start: ${sec.blocked || 0}` + (sec.lastBlocked ? ` · zuletzt ${sec.lastBlocked.ip} → ${sec.lastBlocked.path}` : '')),
-        h('div', { class: 'row', style: 'margin-top:10px' }, h('button', { class: 'primary', onclick: () => api('PUT', '/api/security', { lockExternal: lock.checked, extraPaths: extra.value.split('\n').map((x) => x.trim()).filter(Boolean) }).then((r) => { S.security = r; toast('Gespeichert'); }).catch(fail) }, 'Speichern'))));
+        h('div', { class: 'row', style: 'margin-top:10px' }, h('button', { class: 'primary', onclick: () => api('PUT', '/api/security', { lockExternal: lock.checked, allowFunnel: fun.checked, extraPaths: extra.value.split('\n').map((x) => x.trim()).filter(Boolean) }).then((r) => { S.security = r; toast('Gespeichert'); }).catch(fail) }, 'Speichern'))));
     }
 
     el.append(h('h2', {}, 'HomeLite unterstützen'), h('div', { class: 'card' },

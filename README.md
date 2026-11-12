@@ -76,7 +76,7 @@ Firmware für eigene Geräte, die mit HomeLite zusammenarbeiten (getrennt von de
 
 ## Sicherheit
 Login mit Passwort und signiertem Cookie, MCP und Webhooks nur mit geheimem Token. HomeLite gehört ins Heimnetz; für Zugriff von außen
-ein VPN (z. B. Tailscale) oder einen Reverse-Proxy mit HTTPS verwenden. Von außen (Internet, Funnel, Tunnel) erreichbar sind nur die per Schlüssel geschützten Pfade `/mcp`, `/hook`, `/trigger` und `/where.html`; dazu Anfragenbegrenzung und Scanner-Sperre – Details in [docs/SICHERHEIT.md](docs/SICHERHEIT.md). Plugins und Flows laufen mit den Rechten des HomeLite-Dienstes.
+ein VPN (z. B. Tailscale) oder einen Reverse-Proxy mit HTTPS verwenden. Von außen (Internet, Tunnel, Portfreigabe) erreichbar sind nur die per Schlüssel geschützten Pfade `/mcp`, `/hook`, `/trigger` und `/where.html` (Tailscale Funnel wird akzeptiert, abschaltbar); dazu Anfragenbegrenzung und Scanner-Sperre – Details in [docs/SICHERHEIT.md](docs/SICHERHEIT.md). Plugins und Flows laufen mit den Rechten des HomeLite-Dienstes.
 Persönliche Daten (`data/`, `import/ha-migration.json`) sind per `.gitignore` ausgeschlossen.
 
 ## Lizenz

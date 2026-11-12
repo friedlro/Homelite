@@ -1,6 +1,6 @@
 {
   "name": "homelite",
-  "version": "1.27.0",
+  "version": "1.27.1",
   "description": "Leichte Hausautomatisierung: MQTT, Shelly, Heizung, Geofence, Plugins",
   "main": "server.js",
   "scripts": { "start": "node server.js" },

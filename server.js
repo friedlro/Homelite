@@ -456,8 +456,9 @@ route('PUT', '/api/rooms', ({ body }) => {
 });
 
 route('PUT', '/api/security', ({ body }) => {   // Schutz vor Zugriffen von außen
-  const s = cfg().security || (cfg().security = { lockExternal: true, extraPaths: [] });
+  const s = cfg().security || (cfg().security = { lockExternal: true, allowFunnel: true, extraPaths: [] });
   if (body.lockExternal !== undefined) s.lockExternal = !!body.lockExternal;
+  if (body.allowFunnel !== undefined) s.allowFunnel = !!body.allowFunnel;
   if (Array.isArray(body.extraPaths)) {
     s.extraPaths = body.extraPaths.map((x) => String(x).trim()).filter(Boolean).slice(0, 20);
     if (s.extraPaths.some((x) => !/^\/[\w./-]{0,80}$/.test(x) || x === '/' || x.startsWith('/api/login'))) throw bad('Pfade müssen mit / beginnen (z. B. /meinhook/); „/“ und /api/login sind nicht erlaubt');
@@ -1062,9 +1063,9 @@ const server = http.createServer(async (req, res) => {
   try {
     // Zugriffe von außen (Internet/Funnel): nur Schlüssel-Pfade, Anfragenbegrenzung, Scanner-Sperre
     const g = guard.classify(req);
-    if (g.external) {
+    if (g.external || g.funnel) {
       if (limited(req, 'scan', 30) || guard.rateExceeded(g.ip)) { res.writeHead(429, { 'Retry-After': '600', 'Content-Type': 'text/plain' }); res.end('Zu viele Anfragen'); return undefined; }
-      if (guard.locked() && !guard.allowedPath(p)) {
+      if (g.external && guard.locked() && !guard.allowedPath(p)) {
         failed(req, 'scan', 30); guard.noteBlocked(g.ip, p);
         res.writeHead(404, { 'Content-Type': 'text/plain', ...SEC }); res.end('Nicht gefunden'); return undefined;
       }
@@ -1099,7 +1100,7 @@ const server = http.createServer(async (req, res) => {
         throw new HttpError(401, 'Passwort falsch');
       }
       fails.delete('login|' + clientIp(req));
-      if (g.external) { log('warn', `Sicherheit: Anmeldung von außen (${g.ip})`); notify('HomeLite: Anmeldung von außen', `Erfolgreiche Anmeldung von ${g.ip} (nicht aus dem Heim- oder Tailscale-Netz).`).catch(() => {}); }
+      if (g.external || g.funnel) { log('warn', `Sicherheit: Anmeldung ${g.funnel ? 'über Tailscale Funnel' : 'von außen'} (${g.ip})`); notify('HomeLite: Anmeldung von außen', `Erfolgreiche Anmeldung von ${g.ip}${g.funnel ? ' über Tailscale Funnel' : ''} (nicht aus dem Heim- oder Tailnet).`).catch(() => {}); }
       const exp = Date.now() + 30 * 86400000;
       const secure = req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : '';
       return send(res, 200, { ok: true }, { 'Set-Cookie': `hl=${sign(exp)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=2592000${secure}`, ...(secure ? { 'Strict-Transport-Security': 'max-age=15552000' } : {}) });

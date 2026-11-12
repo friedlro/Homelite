@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.27.1
+- **Tailscale Funnel wird bei der Außen-Sperre akzeptiert:** Anfragen über Funnel (Header `Tailscale-Funnel-Request` vom lokalen tailscaled) zählen nicht mehr als „außen“, die Oberfläche ist über die Funnel-Adresse erreichbar. Anfragenbegrenzung, Fehlversuch-Sperre und Meldung bei Anmeldung (jetzt mit Hinweis „über Tailscale Funnel“) gelten weiter. Neue Einstellung „Tailscale Funnel akzeptieren“ (Standard an) unter Einstellungen → Allgemein. Lokal mit simulierten Funnel-Anfragen geprüft.
+
 ## 1.27.0
 - **Schutz vor Zugriffen von außen (neu, standardmäßig an):** Anfragen aus dem Internet (z. B. Tailscale Funnel, Cloudflare Tunnel, Portfreigabe) erreichen nur noch `/mcp`, `/hook`, `/trigger` und `/where.html`; Oberfläche, Anmeldung und API sind von außen nicht erreichbar („Nicht gefunden“). Dazu: 120 Anfragen/Minute je Adresse, Sperre für Scanner (30 unbekannte Pfade → 10 Minuten), Protokoll und Push bei Anmeldung von außen, Anfrage-Zeitlimit 60 s, höchstens 400 Verbindungen. Einstellbar unter Einstellungen → Allgemein (auch weitere Pfade), Notfall `HOMELITE_ALLOW_EXTERNAL=1`. Neues Modul `lib/guard.js`. **Achtung:** Wer die Oberfläche bisher über Funnel/Tunnel von außen genutzt hat, muss die Sperre ausschalten oder das Tailnet nutzen. Lokal mit simulierten Funnel-/Proxy-Anfragen geprüft.
 - **Plugin „Tailscale“ 1.0.0:** Status, Geräte im Tailnet, Sensoren für gewählte Geräte, Serve-/Funnel-Prüfung mit Warnung, KI-Werkzeug `tailscale_status`. Mit einem simulierten `tailscale`-Programm geprüft, nicht mit einer echten Tailscale-Installation.
