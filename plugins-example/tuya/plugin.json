@@ -1,7 +1,7 @@
 {
   "id": "tuya",
   "name": "Tuya / Smart Life",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Tuya- und Smart-Life-Geräte: Anmeldung per QR-Code (ohne Entwicklerkonto), Zustände live, Schalten lokal im Heimnetz (mit Cloud als Ersatz).",
   "author": "HomeLite",
   "icon": "☁",
@@ -16,6 +16,7 @@
   "config": [],
   "changelog": {
     "1.0.0": "Aktueller Stand.",
-    "1.0.1": "Geräte finden sich nach Router-Neustart/IP-Wechsel selbst wieder: Bei Verbindungsfehlern sofortiger Netzwerk-Scan (anhand der eindeutigen Geräte-ID), eine veraltete manuelle IP wird nach 2 Fehlversuchen durch die gefundene ersetzt, kürzere Wartezeit (max. 60 s)."
+    "1.0.1": "Geräte finden sich nach Router-Neustart/IP-Wechsel selbst wieder: Bei Verbindungsfehlern sofortiger Netzwerk-Scan (anhand der eindeutigen Geräte-ID), eine veraltete manuelle IP wird nach 2 Fehlversuchen durch die gefundene ersetzt, kürzere Wartezeit (max. 60 s).",
+    "1.0.2": "Batteriezustand (Prozent oder Stufe) von Tuya-Batteriegeräten wird in den Kacheln angezeigt."
   }
 }

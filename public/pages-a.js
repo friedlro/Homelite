@@ -13,7 +13,9 @@ function tile(d) {
   const s = st(d.id);
   const offline = s.online === false;
   const base = (cls, onclick, sw, ...kids) => h('div', { class: `card tile ${cls} ${offline ? 'off-line' : ''} ${d.pending ? 'pending' : ''}`, onclick: d.pending ? null : onclick },
-    h('div', { class: 'top' }, h('span', { class: 'ico' }, d.driver === 'dew' ? '💧' : (ICON[d.type] || '')), sw ? h('span', { class: 'sw' }) : null),
+    h('div', { class: 'top' }, h('span', { class: 'ico' }, d.driver === 'dew' ? '💧' : (ICON[d.type] || '')),
+      s.battery != null || s.batteryState ? h('span', { class: 'bat' + ((s.battery != null && s.battery <= 20) || s.batteryState === 'niedrig' ? ' low' : ''), title: 'Batterie' }, '🔋 ' + (s.battery != null ? s.battery + ' %' : s.batteryState)) : null,
+      sw ? h('span', { class: 'sw' }) : null),
     h('div', { class: 'name', title: d.name }, d.name), ...kids);
   if (d.pending) {
     return base('', null, false, h('div', { class: 'sub' }, '⚠ nicht verbunden'), h('div', { class: 'sub', title: d.note || '' }, d.note ? d.note.slice(0, 48) : ''));

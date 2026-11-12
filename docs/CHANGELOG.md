@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.26.3
+- **Batteriezustand in den Kacheln:** Geräte mit Batterie zeigen oben in der Kachel „🔋 87 %“ (ab 20 % rot) bzw. bei Geräten, die nur Stufen melden, „niedrig/mittel/voll“. Allgemein für jedes Gerät mit `battery`/`batteryState` im Zustand (Plugin-API `devices.setState`). **Tuya 1.0.2** liefert den Wert aus `battery_percentage`, `battery`, `residual_electricity`, `battery_level` bzw. `battery_state`, `va_battery`. Nur mit simulierten Daten geprüft, nicht mit echten Tuya-Geräten.
+
 ## 1.26.2
 - Standard-Quelle für Software-Update und Plugin-Katalog ist wieder das GitHub-Repository `friedlro/homelite`; GitLite bleibt als wählbare Quelle möglich. README/Installation: Klon-Adresse wieder GitHub.
 

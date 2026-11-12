@@ -84,10 +84,22 @@ module.exports = (api) => {
 
   // ---------- Geräte in HomeLite ----------
   const SENSOR = 'sensor';
+  // Batterie des Tuya-Geräts: Prozent (battery_percentage, battery, residual_electricity) oder Stufe (battery_state, va_battery)
+  const BAT_NUM = ['battery_percentage', 'battery', 'residual_electricity', 'battery_level'];
+  const BAT_ENUM = ['battery_state', 'va_battery'];
+  const BAT_TEXT = { low: 'niedrig', middle: 'mittel', normal: 'normal', high: 'voll' };
+  function batteryOf(status) {
+    const s = status || {};
+    for (const c of BAT_NUM) if (typeof s[c] === 'number' && s[c] >= 0 && s[c] <= 100) return { battery: Math.round(s[c]), batteryState: undefined };
+    for (const c of BAT_ENUM) if (typeof s[c] === 'string' && s[c]) return { battery: undefined, batteryState: BAT_TEXT[s[c]] || s[c] };
+    return null;
+  }
   function applyDevice(tuyaId, status, online) {
+    const bat = batteryOf(status);
     for (const l of links()) {
       if (l.tuyaId !== tuyaId) continue;
       const patch = { online: online !== false };
+      if (bat) Object.assign(patch, bat);
       try {
         if (l.type === SENSOR) {
           const v = (status || {})[l.value];
