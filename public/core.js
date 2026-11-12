@@ -100,7 +100,7 @@ function renderStatus() {
 }
 
 // Erweiterungen: Seite -> Modul
-const PAGE_MOD = { energy: 'energy', heat: 'heating', car: 'car', geo: 'geo', where: 'where' };
+const PAGE_MOD = { energy: 'energy', heat: 'heating', geo: 'geo', where: 'where' };
 const modOn = (id) => !!(S && S.modules && S.modules[id]);
 const pluginRunning = (id) => !!(S && (S.plugins || []).some((p) => p.id === id && p.running));
 const pluginInMenu = (id) => !!(S && (S.plugins || []).some((p) => p.id === id && p.menu !== false));
@@ -184,7 +184,6 @@ function connect() {
       case 'state': S.states[d.id] = d.st; break;
       case 'presence': S.presence = d.presence; break;
       case 'heating': S.heating = { ...S.heating, ...d.heating }; break;
-      case 'car': S.car = { ...S.car, ...d.car }; break;
       case 'energy': S.energy = d.energy; break;
       case 'victron': S.victron = d.victron; break;
       case 'ecowitt': S.ecowitt = d.ecowitt; break;

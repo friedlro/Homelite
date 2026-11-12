@@ -9,7 +9,6 @@ const crypto = require('crypto');
 const store = require('./lib/store');
 const Devices = require('./lib/devices');
 const Presence = require('./lib/presence');
-const Car = require('./lib/car');
 const createHeating = require('./lib/heating');
 const createEngine = require('./lib/engine');
 const AppleTV = require('./lib/appletv');
@@ -53,11 +52,11 @@ function repairMqttBase() {
 }
 repairMqttBase();
 require('./lib/migrate_tuya')({ store, log: (l, m) => console.log(`[${l}] ${m}`), root: __dirname });
+require('./lib/migrate_leapmotor')({ store, log: (l, m) => console.log(`[${l}] ${m}`), root: __dirname });
 
 // ---------- Module ----------
 const devices = new Devices(store, log);
 const presence = new Presence(store, log);
-const car = new Car(store, log);
 const heating = createHeating({ store, devices, presence, log });
 
 async function notify(title, message) {
@@ -70,7 +69,9 @@ async function notify(title, message) {
   if (!r.ok) throw new Error('ntfy HTTP ' + r.status);
 }
 
-const engine = createEngine({ store, devices, presence, heating, car, notify, log });
+// Automations-Aktion „Leapmotor“: läuft über das Plugin „leapmotor“ (api.expose)
+const pluginCar = { command: async (name) => { const p = plugins.useExposed('leapmotor'); if (!p) throw new Error('Plugin „Leapmotor“ ist nicht installiert oder nicht aktiv'); return p.command(name); } };
+const engine = createEngine({ store, devices, presence, heating, car: pluginCar, notify, log });
 const createHistory = require('./lib/history');
 const history = createHistory({ store, devices, sse });
 devices.history = history;
@@ -101,7 +102,7 @@ let brokerTimer = null;
 const brokerPush = () => { if (brokerTimer) return; brokerTimer = setTimeout(() => { brokerTimer = null; sse({ t: 'broker', broker: broker.snapshot() }); }, 1500); };
 broker.on('status', brokerPush);
 setInterval(() => { if (broker.server) brokerPush(); }, 5000);
-const mcp = require('./lib/mcp')({ store, devices, engine, presence, energy, heating, car, logs, version: () => updater.version(), log, pluginEndpoint: (id) => plugins.mcpToken(id),
+const mcp = require('./lib/mcp')({ store, devices, engine, presence, energy, heating, logs, version: () => updater.version(), log, pluginEndpoint: (id) => plugins.mcpToken(id),
   saveAutomation: (body, id) => { const old = id ? cfg().automations.find((x) => x.id === id) : null; const a = cleanAutomation(body, old || {}); if (old) cfg().automations[cfg().automations.indexOf(old)] = a; else cfg().automations.push(a); store.save(); return a; } });
 const victron = require('./lib/victron')({ store, devices, log, onStatus: () => sse({ t: 'victron', victron: victron.status() }) });
 const backup = require('./lib/backup')({ store, log, notify, version: updater.version });
@@ -110,7 +111,6 @@ const backup = require('./lib/backup')({ store, log, notify, version: updater.ve
 const MODULES = {
   energy: ['⚡ Energie & Victron', 'Energie-Dashboard (PV, Netz, Batterie, Verbrauch) mit Victron-Anbindung'],
   heating: ['🌡 Heizung', 'Raumregelung mit Zeitplänen und Frostschutz'],
-  car: ['🚗 Leapmotor-Auto', 'Ladestand, Reichweite, Fernbefehle'],
   ecowitt: ['🌤 Wetterstation Ecowitt', 'GW1100 & Co. per WLAN abfragen'],
   matter: ['🧩 Matter', 'Matter-Geräte (z. B. SwitchBot-Schloss) als Controller einbinden'],
   appletv: ['📺 Apple TV (Status)', 'Standby, App und Titel als Sensoren (pyatv)'],
@@ -128,7 +128,7 @@ const on = (id) => !!(store.cfg.modules && store.cfg.modules[id]);
   const e = c.energy;
   const used = {
     energy: !!(e.pv.length || e.grid.length || e.battery.length || e.house.length || e.soc || e.victron.host),
-    heating: c.heating.rooms.length > 0, car: !!c.car.enabled, ecowitt: !!c.ecowitt.ip, matter: !!c.matter.enabled,
+    heating: c.heating.rooms.length > 0, ecowitt: !!c.ecowitt.ip, matter: !!c.matter.enabled,
     mcp: false, broker: false, dew: true, appletv: c.appletv.devices.length > 0, geo: c.geofence.persons.length > 0 || c.geofence.zones.some((z) => z.lat != null), where: !!c.findmy.enabled,
   };
   c.modules = Object.fromEntries(Object.keys(MODULES).map((k) => [k, !!used[k]]));
@@ -154,7 +154,6 @@ devices.on('state', (dev, st, prev, force) => {
 devices.on('status', () => sse({ t: 'mqtt', mqtt: mqttInfo(), discovery: devices.discovery() }));
 presence.on('event', (e) => { engine.onGeo(e); runHeating(); });
 presence.on('change', () => sse({ t: 'presence', presence: presence.snapshot() }));
-car.on('status', () => sse({ t: 'car', car: car.snapshot() }));
 
 const mqttInfo = () => ({ ok: devices.mqttOk, error: devices.mqttError, configured: !!cfg().mqtt.url });
 
@@ -280,11 +279,6 @@ function model() {
     mqtt: { ...mqttInfo(), url: c.mqtt.url, user: c.mqtt.user, hasPass: !!c.mqtt.pass, z2mBase: c.mqtt.z2mBase, tasmotaGroup: c.mqtt.tasmotaGroup },
     notify: c.notify,
     heating: { ...heating.status(), config: c.heating.rooms },
-    car: {
-      ...car.snapshot(),
-      config: { enabled: !!c.car.enabled, name: c.car.name, username: c.car.username, hasPassword: !!c.car.password, hasPin: !!c.car.pin, certPath: c.car.certPath, keyPath: c.car.keyPath, vin: c.car.vin, pollMinutes: c.car.pollMinutes },
-      commands: Car.COMMANDS,
-    },
     version: updater.version(), updateInfo: updater.status(),
     dash: c.dash.blocks,
     energyCfg: { ...c.energy, victron: { ...c.energy.victron, pass: undefined, hasPass: !!c.energy.victron.pass } }, energy: energy.live(), victron: victron.status(),
@@ -616,11 +610,11 @@ route('POST', '/api/automations/(\\w+)/run', async ({ params }) => {
 
 
 // Dashboard-Layout
-const DASH_KINDS = ['scenes', 'presence', 'car', 'heating', 'energy', 'weather', 'favs', 'room', 'rest', 'device'];
+const DASH_KINDS = ['scenes', 'presence', 'heating', 'energy', 'weather', 'favs', 'room', 'rest', 'device'];
 route('PUT', '/api/dash', ({ body }) => {
   if (body.blocks === null) { cfg().dash.blocks = null; store.save(); return { ok: true }; }
   if (!Array.isArray(body.blocks) || body.blocks.length > 150) throw bad('Ungültiges Layout');
-  cfg().dash.blocks = body.blocks.map((b) => {
+  cfg().dash.blocks = body.blocks.filter((b) => !(isObj(b) && b.kind === 'car')).map((b) => {   // „car“: früherer Leapmotor-Block (jetzt Plugin)
     if (!isObj(b) || !DASH_KINDS.includes(b.kind)) throw bad('Ungültiger Block');
     return { id: str(b.id, 30) || store.id(), kind: b.kind, ref: str(b.ref, 80) };
   });
@@ -795,28 +789,6 @@ route('POST', '/api/heating/command', ({ body }) => {
   return { ok: true };
 });
 
-// Auto
-route('PUT', '/api/car', ({ body }) => {
-  const c = cfg().car;
-  c.enabled = !!body.enabled;
-  c.name = str(body.name, 40) || 'Leapmotor';
-  c.username = str(body.username, 150);
-  if (body.password) c.password = str(body.password, 200);
-  if (body.pin) c.pin = str(body.pin, 20);
-  c.certPath = str(body.certPath, 400);
-  c.keyPath = str(body.keyPath, 400);
-  c.vin = str(body.vin, 30);
-  c.pollMinutes = Math.max(2, num(body.pollMinutes, 10));
-  store.save();
-  if (on('car')) car.start();
-  return { ok: true };
-});
-route('POST', '/api/car/command', async ({ body }) => {
-  try { await car.command(str(body.command, 30)); } catch (e) { throw bad(e.message); }
-  return { ok: true };
-});
-route('POST', '/api/car/refresh', () => { car.poll(); return { ok: true }; });
-
 // Backup
 route('GET', '/api/backup', () => backup.info());
 route('PUT', '/api/backup', ({ body }) => {
@@ -938,7 +910,6 @@ function applyModule(id) {
   switch (id) {
     case 'energy': if (o) victron.start(); else victron.stop(); break;
     case 'heating': if (o) runHeating(); break;
-    case 'car': if (o) car.start(); else car.stop(); break;
     case 'ecowitt': if (o) ecowitt.start(); else ecowitt.stop(); break;
     case 'matter': if (o && cfg().matter.enabled) matter.start(); else matter.stop(); break;
     case 'dew': dew.sync(); break;
@@ -1169,7 +1140,6 @@ server.listen(PORT, HOST, () => {
   if (on('matter')) matter.start();
   if (on('energy')) victron.start();
   if (on('ecowitt')) ecowitt.start();
-  if (on('car')) car.start();
   if (on('appletv')) appletv.start();
   if (on('where')) findmy.start();
   setTimeout(() => heating.reset(), 4000);

@@ -1,15 +1,15 @@
 # HomeLite
 
-Leichte Hausautomatisierung. Geräte direkt über MQTT (Zigbee2MQTT, Tasmota, beliebige Topics) und Shelly per HTTP, eigene Automationen, Heizungssteuerung mit Zeitplan, Leapmotor-Anbindung und Geofence fürs iPhone.
+Leichte Hausautomatisierung. Geräte direkt über MQTT (Zigbee2MQTT, Tasmota, beliebige Topics) und Shelly per HTTP, eigene Automationen, Heizungssteuerung mit Zeitplan, Geofence fürs iPhone.
 
 ## Installation
 
-Voraussetzungen: Node.js ≥ 22, Python 3 (nur für Leapmotor), ein MQTT-Broker (z. B. Mosquitto).
+Voraussetzungen: Node.js ≥ 22, Python 3 (nur für Plugins wie Leapmotor und Tuya), ein MQTT-Broker (z. B. Mosquitto).
 
 ```bash
 cd homelite
 npm install                      # installiert das Paket "mqtt"
-pip install requests cryptography paho-mqtt   # nur für Leapmotor und Tuya (optional: pyatv für Apple TV, pyicloud für „Wo ist?“) (ggf. --break-system-packages bzw. venv); außerdem muss curl installiert sein
+pip install requests cryptography paho-mqtt   # nur für die Plugins Leapmotor und Tuya (optional: pyatv für Apple TV, pyicloud für „Wo ist?“) (ggf. --break-system-packages bzw. venv); außerdem muss curl installiert sein
 PORT=3100 node server.js
 ```
 
@@ -54,7 +54,7 @@ WantedBy=multi-user.target
 3. **Automationen**
    - Auslöser: Gerät, Uhrzeit, Sonnenauf-/untergang (mit Versatz, aus der Heimposition berechnet), Intervall, Start, Webhook, Geofence.
    - Bedingungen: Gerät (auch negiert), Zahlenvergleich, Differenz zweier Sensoren, Uhrzeit, Wochentag, Anwesenheit.
-   - Aktionen: Gerät, Warten, *Voraussetzung*, *Wenn/Dann/Sonst* (verschachtelbar), Push, Heizung, Leapmotor, MQTT, HTTP.
+   - Aktionen: Gerät, Warten, *Voraussetzung*, *Wenn/Dann/Sonst* (verschachtelbar), Push, Heizung, Leapmotor (braucht das Plugin „Leapmotor“), MQTT, HTTP.
    - Modus: *einzeln* (neuer Lauf wird übersprungen), *neu starten* oder *Warteschlange*. „Still“ unterdrückt Log-Einträge.
    - Ohne Auslöser = Szene; mit Haken erscheint sie als Knopf im Dashboard.
 4. **Heizung**: pro Raum ein Thermostat (z. B. Zigbee-Heizkörperventil) **oder** ein Schalter plus Temperatursensor (Zweipunktregelung ±0,3 °C), Komfort-/Absenktemperatur und Zeitfenster. Bei „niemand zuhause“ wird automatisch abgesenkt. ± im Raum = 2 Std. Boost.
@@ -68,7 +68,7 @@ WantedBy=multi-user.target
 - Shelly-Geräte: IP eintragen (Gerät bearbeiten), dann sind sie aktiv.
 - Tuya-Geräte (Elternbett, Streifen, Stimmungslichter, Keller-Sensoren u. a.) sind Platzhalter; Automationen darauf loggen „nicht verbunden“ und laufen sonst weiter.
 - Ecowitt-Windsensor: URL und Schwellwerte prüfen.
-- Nicht übernommen: SwitchBot-Schloss/Haustürmeldungen, Heizung, Victron, Sonos, Leapmotor-Entitäten. Heizung und Auto richtest du in HomeLite selbst ein.
+- Nicht übernommen: SwitchBot-Schloss/Haustürmeldungen, Heizung, Victron, Sonos, Leapmotor-Entitäten. Heizung richtest du in HomeLite selbst ein, das Auto über das Plugin „Leapmotor“.
 - Heimposition ist nur grob Leibnitz – unter *Geofence* genau eintragen.
 - **NFC/Kurzbefehle**: Webhook `/trigger?key=<Geofence-Schlüssel>&name=nfc_markise` löst Automationen mit Webhook-Auslöser aus.
 
@@ -144,14 +144,13 @@ Seite *Tuya* (Plugin): Benutzercode aus der Smart-Life-App (Ich → Einstellunge
 
 **Lokaler Modus (ab 1.19.10):** Mit dem Python-Paket `tinytuya` (`/opt/homelite/.venv/bin/pip install tinytuya`, danach HomeLite neu starten) verbindet HomeLite WLAN-Geräte direkt im Heimnetz (TCP 6668): Schalten ohne Cloud und ohne Internet, Zustandsänderungen (auch am Gerät) sofort. Der Local Key kommt automatisch aus dem Tuya-Konto; die IP findet HomeLite per Netzwerk-Scan (UDP 6666/6667) – bei Bedarf trägst du sie auf der Tuya-Seite per „IP“ von Hand ein (Protokoll 3.3/3.4/3.5). Pro Gerät zeigt die Spalte „Verbindung“ *lokal* oder *Cloud*. Läuft ein Gerät nicht lokal oder ist ein Befehl nicht direkt übertragbar (z. B. Farben), nimmt HomeLite automatisch die Cloud. Batteriegeräte (Sensoren, Türkontakte) schlafen und bleiben bei der Cloud. Feste IPs im Router reservieren; ändert sich der Local Key (Gerät neu eingelernt), „↻ Geräte neu laden“.
 
-## Leapmotor
+## Leapmotor (Plugin)
 
-Die Auto-Seite zeigt zusätzlich den **Reifendruck** aller vier Räder in bar (Warnung bei Fahrzeug-Alarm oder unter 2,0 bar).
+Seit 1.26.0 ist Leapmotor kein fester Bestandteil mehr, sondern das Plugin **„Leapmotor“** (`plugins-example/leapmotor`, Einstellungen → Erweiterungen → Plugins; Anleitung im Plugin-Ordner: `LIESMICH.md`). **Beim Update werden Zugangsdaten, Einstellungen und App-Zertifikate automatisch übernommen**, das Plugin wird installiert und – wenn Leapmotor vorher aktiv war – eingeschaltet. Die frühere Seite *Leapmotor* heißt jetzt *Auto* und kommt vom Plugin; das Dashboard-Widget „Auto“ entfällt, stattdessen liefert das Plugin Geräte (Ladestand, Reichweite, Kilometerstand, Innen-/Außentemperatur, Ladeleistung, Entfernung von Zuhause sowie Lädt, Ladestecker, Verriegelt, Klima) für Dashboard, Automationen und Verlauf. Die Automations-Aktion *Leapmotor* und die KI-Werkzeuge `get_car` und `car_command` bleiben (Entriegeln, Kofferraum und Ladestecker entriegeln sind im KI-Zugriff gesperrt).
 
+Der Client in `plugins-example/leapmotor/leapmotor/` stammt aus [kerniger/leapmotor-ha](https://github.com/kerniger/leapmotor-ha) (MIT). Die App-Zertifikate aus [markoceri/leapmotor-certs](https://github.com/markoceri/leapmotor-certs) gehören nicht ins Repository: auf der Seite *Auto* genügt „Zertifikate laden“ (sie liegen dann in `data/plugin-data/leapmotor/certs`). Eintragen musst du App-E-Mail, Passwort und für Fernbefehle die Fahrzeug-PIN; eigene Zertifikate sind optional. Python braucht `requests` und `cryptography`, außerdem `curl`. Status alle 10 Min. (einstellbar). Befehle: ver-/entriegeln, Klima, Schnellheizen/-kühlen, Scheibe enteisen, Batterie vorheizen, Kofferraum, Ladestecker entriegeln, Lenkradheizung, Fenster schließen, finden. Laden starten/stoppen unterstützt die Vorlage nicht. Die Seite zeigt zusätzlich den **Reifendruck** aller vier Räder in bar (Warnung bei Fahrzeug-Alarm oder unter 2,0 bar). Inoffizielle Schnittstelle – kann sich jederzeit ändern.
 
-Der Client in `lib/leapmotor/` stammt aus [kerniger/leapmotor-ha](https://github.com/kerniger/leapmotor-ha) (MIT); die App-Zertifikate aus [markoceri/leapmotor-certs](https://github.com/markoceri/leapmotor-certs) sind bereits enthalten (`lib/leapmotor/certs`). Eintragen musst du nur App-E-Mail, Passwort und für Fernbefehle die Fahrzeug-PIN (*Leapmotor → Konfigurieren*); eigene Zertifikate sind optional. Python braucht `requests` und `cryptography`, außerdem `curl`. Status alle 10 Min. (einstellbar). Befehle: ver-/entriegeln, Klima, Schnellheizen/-kühlen, Scheibe enteisen, Batterie vorheizen, Kofferraum, Ladestecker entriegeln, Lenkradheizung, Fenster schließen, finden. Laden starten/stoppen unterstützt die Vorlage nicht. Inoffizielle Schnittstelle – kann sich jederzeit ändern.
-
-HomeLite nutzt automatisch `.venv/bin/python3` im Projektordner (sonst `$PYTHON`, sonst `python3`). Bei Problemen zeigt `/opt/homelite/.venv/bin/python3 lib/leap_diag.py <E-Mail> <Passwort> [PIN]` Schritt für Schritt, was fehlt oder abgelehnt wird.
+HomeLite nutzt automatisch `.venv/bin/python3` im Projektordner (sonst `$PYTHON`, sonst `python3`). Bei Problemen zeigt `LEAP_CERT_DIR=/opt/homelite/data/plugin-data/leapmotor/certs /opt/homelite/.venv/bin/python3 /opt/homelite/data/plugins/leapmotor/leap_diag.py <E-Mail> <Passwort> [PIN]` Schritt für Schritt, was fehlt oder abgelehnt wird.
 
 ## Eingebauter MQTT-Broker
 
@@ -198,7 +197,7 @@ Auf der Seite *Geräte* (unten, sobald Shelly-Geräte mit IP existieren): „Auf
 
 ## Erweiterungen ein-/ausschalten
 
-*Einstellungen → Erweiterungen*: Energie & Victron, Heizung, Leapmotor, Ecowitt, Matter, Apple TV, Anwesenheit/Geofence und „Wo ist?“ lassen sich einzeln aktivieren. Ausgeschaltete Erweiterungen verschwinden aus Menü, Dashboard und Einstellungen und starten keine Hintergrundprozesse; Konfiguration und Geräte bleiben erhalten. Bei einem Update werden Erweiterungen, die du schon nutzt (konfiguriert), automatisch eingeschaltet; bei einer Neuinstallation sind alle aus.
+*Einstellungen → Erweiterungen*: Energie & Victron, Heizung, Ecowitt, Matter, Apple TV, Anwesenheit/Geofence und „Wo ist?“ lassen sich einzeln aktivieren. Ausgeschaltete Erweiterungen verschwinden aus Menü, Dashboard und Einstellungen und starten keine Hintergrundprozesse; Konfiguration und Geräte bleiben erhalten. Bei einem Update werden Erweiterungen, die du schon nutzt (konfiguriert), automatisch eingeschaltet; bei einer Neuinstallation sind alle aus.
 
 ## Taupunkt-Sensoren
 
@@ -250,9 +249,8 @@ lib/sun.js         Sonnenauf-/untergang
 lib/importer.js    HA-Übernahme (import/ha-migration.json)
 lib/heating.js     Heizlogik
 lib/presence.js    Personen, Zonen, Events
-lib/car.js         Leapmotor-Prozess-Steuerung (Adresse via Nominatim, Karte via OSM-Kacheln)
 lib/updater.js     Software-Update per Klick
-lib/leap_bridge.py Brücke zum Leapmotor-Client (lib/leapmotor)
+plugins-example/leapmotor  Leapmotor-Plugin (index.js, leap_bridge.py, leapmotor/ = Client), lib/migrate_leapmotor.js = einmalige Übernahme
 plugins-example/tuya  Tuya-Plugin (index.js, tuya_bridge.py, tuya/ = SDK), lib/migrate_tuya.js = einmalige Übernahme
 public/            Weboberfläche (ohne Build-Schritt)
 ```

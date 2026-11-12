@@ -8,7 +8,7 @@ lib/engine.js        Automationen (Auslöser, Bedingungen, Modi, Aktionen)
 lib/plugins.js       Plugin-Laufzeit und Schnittstelle (api.*), Webhook-Weiterleitung, Plugin-zu-Plugin
 lib/mcp.js           MCP-Server (KI-Zugriff) + Werkzeuge der Plugins
 lib/energy.js        Energiebilanz, Netzbezug-Spitzen (Viertelstunden, Kurzspitzen)
-lib/heating.js, car.js, presence.js, history.js, dew.js, sun.js, broker.js, matter.js, appletv.js, …
+lib/heating.js, presence.js, history.js, dew.js, sun.js, broker.js, matter.js, appletv.js, …
 lib/migrate_tuya.js  einmalige Übernahme alter Tuya-Daten ins Tuya-Plugin
 public/              Weboberfläche ohne Build-Schritt (core.js, pages-*.js, style.css)
 plugins-example/     mitgelieferte Plugins

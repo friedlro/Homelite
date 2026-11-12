@@ -1,7 +1,7 @@
 # Installation
 
 ## Voraussetzungen
-Node.js ≥ 22 (benötigt `node:sqlite`). Optional: Python 3 mit `pip` für Apple TV, Leapmotor, Tuya (lokal) und „Wo ist?“; `@matter/main` für Matter.
+Node.js ≥ 22 (benötigt `node:sqlite`). Optional: Python 3 mit `pip` für Apple TV, die Plugins Leapmotor und Tuya (lokal) und „Wo ist?“; `@matter/main` für Matter.
 
 ## Manuell
 ```bash
@@ -51,5 +51,5 @@ Plugins unter `data/plugins` und alle Daten bleiben erhalten; neue Plugin-Versio
 ## Backup
 Die gesamte Konfiguration liegt in `data/homelite.db` (+ `data/plugins`, `data/plugin-data`). Backup/Wiederherstellung in der Oberfläche oder durch Kopieren von `data/`.
 
-## Leapmotor
-Die App-Zertifikate gehören nicht ins Repository: siehe `lib/leapmotor/certs/README.md`.
+## Leapmotor (Plugin)
+Die App-Zertifikate gehören nicht ins Repository: Auf der Plugin-Seite „Auto“ → „Zertifikate laden“ (siehe `plugins-example/leapmotor/LIESMICH.md`). Bei einem Update von HomeLite ≤ 1.25 werden Zugangsdaten und vorhandene Zertifikate automatisch in das Plugin übernommen.

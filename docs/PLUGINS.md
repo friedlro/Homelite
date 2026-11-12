@@ -60,7 +60,7 @@ Erweiterte Schnittstellen (ab HomeLite 1.21.0):
 - **MQTT:** `api.mqtt.subscribe(filter, (topic, payload)=>…)` (Filter mit `+`/`#`, Rückgabe = Abmelden), `api.mqtt.publish(topic, payload, {retain})`, `api.mqtt.connected()` – über die vorhandene Broker-Verbindung von HomeLite.
 - **Öffentlicher Webhook:** `api.http.on(async ({method, sub, query, headers, body, ip}) => ({status, headers, body}))` beantwortet Aufrufe von `/hook/<id>/<geheimer-Token>/<sub>` (ohne Login, der Token ist das Passwort). `api.http.url()` liefert den Pfad, `api.http.regenerate()` erzeugt einen neuen Token.
 - **Plugin-zu-Plugin:** `api.expose(objekt)` stellt eine Schnittstelle bereit; andere Plugins holen sie mit `api.use('<id>')` oder – auch wenn das Plugin später startet – mit `api.onUse('<id>', (obj)=>…)` (`obj` ist `null`, wenn das Plugin stoppt).
-- **Sonne:** `api.sun(datum?)` → `{ sunrise, sunset }` (Date) für die Heimat-Zone, sonst `null`.
+- **Sonne:** `api.sun(datum?)` → `{ sunrise, sunset }` (Date) für die Heimat-Zone, sonst `null`; `api.home()` → `{ lat, lon, radius }` der Zone „Zuhause“ (ab HomeLite 1.26.0), sonst `null`.
 
 ### Flows erweitern
 Das Plugin **Flows** (`plugins-example/flows`) stellt per `expose` bereit: `registerNode(def, ownerId)`, `unregisterNodes(ownerId)`, `run(flowId, msg)`, `list()`. Ein anderes Plugin kann so eigene Knoten liefern:
@@ -91,4 +91,5 @@ Globales `HL`: `HL.page(id,{label,icon,render(el)})`, `HL.on(id, cb)` (Ereigniss
 - `plugins-example/siocs-heizung/` – SIOCS Heizung (Fernwärme-Übergabestation, SCHNEID MR-12): Python-Brücke mit Playwright/Chromium bedient das Webportal; Sensoren, Thermostat, Schalter Absenkbetrieb/Partymodus, Heizzeiten, KI-Werkzeug. Voraussetzung: `pip install playwright` + `playwright install chromium`. Portiert aus `friedlro/ha-siocs-heizung`.
 - `plugins-example/claude/` – Claude-Assistent: Chat und Systemcheck in HomeLite über das Claude-Abo (Claude Code auf dem Server, kein API-Schlüssel), legt Automationen immer ausgeschaltet an. Nutzt `scopeOnly`-Werkzeuge (nur über den Plugin-Endpunkt, nicht im globalen KI-Zugriff).
 - `plugins-example/systemmonitor/` – Systemüberwachung des HomeLite-Rechners: CPU, RAM, Temperatur, Datenträger, Last; Sensoren, 24-h-Verlauf, Grenzwert-Warnungen, MCP-Tool `system_status`.
+- `plugins-example/leapmotor/` – Leapmotor-Auto über die Leapmotor-Cloud (Python-Brücke): Ladestand, Reichweite, Reifen, Standort mit Karte, Sensoren/Binärgeräte, Fernbefehle, KI-Werkzeuge `get_car`/`car_command`; stellt per `api.expose` `command()` für die Automations-Aktion „Leapmotor“ bereit. Übernimmt Altdaten (Zugangsdaten, Zertifikate) der früher eingebauten Anbindung. Siehe `LIESMICH.md`.
 - `plugins-example/ssh/` – SSH für den KI-Zugriff: Tools `ssh_hosts` und `ssh_exec` (nur eingetragene Hosts, eigener Schlüssel, Verlauf) und ein Terminal auf der Seite „SSH“.

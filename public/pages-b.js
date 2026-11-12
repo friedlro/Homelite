@@ -23,6 +23,12 @@ const COND = {
   all: { label: 'UND – alle davon treffen zu', f: [['conditions', 'Alle müssen zutreffen.', 'conds']] },
   presence: { label: 'Anwesenheit', f: [['mode', 'Bedingung', 'select', { anyone_home: 'Jemand ist zuhause', nobody_home: 'Niemand ist zuhause', person_home: 'Person ist zuhause', person_away: 'Person ist unterwegs' }], ['person', 'Person', 'person']] },
 };
+// Befehle der Leapmotor-Aktion (die Aktion läuft über das Plugin „Leapmotor“)
+const CAR_COMMANDS = {
+  lock: 'Verriegeln', unlock: 'Entriegeln', ac_on: 'Klima an', ac_off: 'Klima aus', quick_heat: 'Schnell heizen', quick_cool: 'Schnell kühlen', windshield_defrost: 'Scheibe enteisen',
+  battery_preheat: 'Batterie vorheizen', find: 'Fahrzeug finden', open_trunk: 'Kofferraum öffnen', close_trunk: 'Kofferraum schließen', unlock_charger: 'Ladestecker entriegeln',
+  battery_preheat_off: 'Batterie-Vorheizen aus', steering_wheel_heat_on: 'Lenkradheizung an', steering_wheel_heat_off: 'Lenkradheizung aus', windows_close: 'Fenster schließen',
+};
 const ACT = {
   device: { label: 'Gerät steuern', f: [['device', 'Gerät', 'device', [...CTRL, 'lock']], ['action', 'Aktion', 'select', { on: 'Einschalten', off: 'Ausschalten', toggle: 'Umschalten', lock: 'Zusperren (Schloss)', unlock: 'Aufsperren (Schloss)', brightness: 'Helligkeit (%)', setpoint: 'Solltemperatur (°C)', open: 'Öffnen (Rollo/Markise)', close: 'Schließen (Rollo/Markise)', stop: 'Stopp (Rollo/Markise)' }], ['value', 'Wert (Helligkeit / Soll)', 'text']] },
   delay: { label: 'Warten', f: [['seconds', 'Sekunden', 'number']] },
@@ -30,7 +36,7 @@ const ACT = {
   if: { label: 'Wenn … dann … sonst …', f: [['conditions', 'Wenn', 'conds'], ['then', 'Dann', 'acts'], ['else', 'Sonst', 'acts']] },
   notify: { label: 'Push-Nachricht (ntfy)', f: [['title', 'Titel', 'text'], ['message', 'Text ({{person}} {{zone}} {{device}} {{state}})', 'text']] },
   heating: { label: 'Heizung', f: [['room', 'Raum (leer = alle)', 'hroom'], ['mode', 'Modus', 'select', { auto: 'Auto', comfort: 'Komfort', eco: 'Absenkung', off: 'Aus / Frostschutz', boost: 'Boost (nur Raum)' }], ['temp', 'Temperatur (Boost)', 'number'], ['minutes', 'Dauer in Min. (0 = dauerhaft)', 'number']] },
-  car: { label: 'Leapmotor', f: [['command', 'Befehl', 'carcmd']] },
+  car: { label: 'Leapmotor (Plugin)', f: [['command', 'Befehl', 'carcmd']] },
   mqtt: { label: 'MQTT senden', f: [['topic', 'Topic', 'text'], ['payload', 'Payload', 'text']] },
   http: { label: 'HTTP-Aufruf', f: [['url', 'URL', 'text'], ['method', 'Methode', 'select', { GET: 'GET', POST: 'POST' }], ['body', 'Body (JSON, nur POST)', 'text']] },
 };
@@ -55,8 +61,8 @@ function fieldEl(def, obj) {
     case 'zone': input = sel({ '': '(alle)', ...Object.fromEntries(S.geofence.zones.map((z) => [z.id, z.name])) }, obj[key] || '', set); break;
     case 'hroom': input = sel({ '': '(alle Räume)', ...Object.fromEntries(S.heating.config.map((r) => [r.id, r.name])) }, obj[key] || '', set); break;
     case 'carcmd':
-      if (obj[key] === undefined) obj[key] = Object.keys(S.car.commands)[0];
-      input = sel(S.car.commands, obj[key], set); break;
+      if (obj[key] === undefined) obj[key] = Object.keys(CAR_COMMANDS)[0];
+      input = sel(CAR_COMMANDS, obj[key], set); break;
     case 'days': {
       const cur = new Set(obj[key] || []);
       input = h('div', { class: 'days' }, [1, 2, 3, 4, 5, 6, 0].map((d) => h('label', {}, h('input', { type: 'checkbox', checked: cur.has(d), onchange: (e) => { if (e.target.checked) cur.add(d); else cur.delete(d); obj[key] = [...cur].sort(); } }), DAYS[d])));
@@ -241,94 +247,6 @@ PAGES.heat = {
   },
 };
 
-// ---------- Leapmotor ----------
-function carDialog() {
-  const c = S.car.config;
-  const o = { enabled: c.enabled };
-  const f = {
-    name: h('input', { value: c.name }), username: h('input', { value: c.username, autocomplete: 'off' }),
-    password: h('input', { type: 'password', placeholder: c.hasPassword ? '(unverändert)' : '', autocomplete: 'new-password' }),
-    pin: h('input', { type: 'password', placeholder: c.hasPin ? '(unverändert)' : 'Fahrzeug-PIN', autocomplete: 'new-password' }),
-    certPath: h('input', { value: c.certPath, placeholder: 'leer = mitgeliefertes' }), keyPath: h('input', { value: c.keyPath, placeholder: 'leer = mitgelieferter' }),
-    vin: h('input', { value: c.vin, placeholder: 'leer = erstes Fahrzeug' }), pollMinutes: h('input', { type: 'number', min: 2, value: c.pollMinutes }),
-  };
-  modal('Leapmotor konfigurieren', h('div', {},
-    h('p', { class: 'hint', style: 'margin-top:0' }, 'Nutzt die Leapmotor-Cloud (inoffiziell, Client nach kerniger/leapmotor-ha). Die App-Zertifikate aus markoceri/leapmotor-certs sind bereits enthalten – nur E-Mail, Passwort und für Fernbefehle die Fahrzeug-PIN eintragen. Zugangsdaten bleiben auf deinem Server. Benötigt python3 mit „requests“ und „cryptography“ sowie curl.'),
-    chk('Leapmotor aktivieren', o.enabled, (v) => { o.enabled = v; }),
-    h('div', { class: 'form', style: 'margin-top:10px' }, fld('Anzeigename', f.name), fld('Leapmotor-App E-Mail', f.username), fld('Passwort', f.password), fld('Fahrzeug-PIN (Fernsteuerung)', f.pin), fld('Eigenes Zertifikat (optional, Pfad)', f.certPath), fld('Eigener Schlüssel (optional, Pfad)', f.keyPath), fld('VIN (optional)', f.vin), fld('Abfrage alle … Min.', f.pollMinutes))),
-  [{ label: 'Abbrechen' }, {
-    label: 'Speichern', primary: true,
-    onClick: async () => {
-      await api('PUT', '/api/car', { enabled: o.enabled, name: f.name.value, username: f.username.value.trim(), password: f.password.value, pin: f.pin.value, certPath: f.certPath.value.trim(), keyPath: f.keyPath.value.trim(), vin: f.vin.value.trim(), pollMinutes: Number(f.pollMinutes.value) || 10 });
-      toast('Gespeichert – Abfrage startet');
-      await reload();
-    },
-  }]);
-}
-
-// Kleine OpenStreetMap-Karte aus Kacheln (ohne Bibliothek)
-function tileMap(lat, lon, z = 16) {
-  const n = 2 ** z;
-  const x = ((lon + 180) / 360) * n;
-  const lr = (lat * Math.PI) / 180;
-  const y = ((1 - Math.log(Math.tan(lr) + 1 / Math.cos(lr)) / Math.PI) / 2) * n;
-  const tx = Math.floor(x);
-  const ty = Math.floor(y);
-  const tiles = [];
-  for (let dy = -1; dy <= 1; dy++) {
-    for (let dx = -2; dx <= 2; dx++) {
-      tiles.push(h('img', {
-        src: `https://tile.openstreetmap.org/${z}/${tx + dx}/${ty + dy}.png`, alt: '', width: 256, height: 256, draggable: 'false', onerror: (e) => { e.target.style.visibility = 'hidden'; }, referrerpolicy: 'strict-origin-when-cross-origin',
-        style: `left:calc(50% + ${Math.round((dx - (x - tx)) * 256)}px);top:calc(50% + ${Math.round((dy - (y - ty)) * 256)}px)`,
-      }));
-    }
-  }
-  return h('a', { class: 'map', href: `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}`, target: '_blank', rel: 'noopener noreferrer', title: 'In OpenStreetMap öffnen' },
-    tiles, h('span', { class: 'pin' }, '📍'), h('span', { class: 'attr' }, '© OpenStreetMap'));
-}
-
-// Reifendruck in bar; Warnung bei Alarm des Fahrzeugs oder < 2,0 bar
-function tireView(s) {
-  const cell = (k, label) => {
-    const v = s.tires[k];
-    const bad = (s.tireAlarms && s.tireAlarms[k]) || (v != null && v < 2.0);
-    return h('div', { class: 'tire' + (bad ? ' bad' : '') }, h('div', { class: 'hint' }, label), h('b', {}, v == null ? '–' : fmtNum(v, 2) + ' bar'), bad ? h('div', { class: 'hint' }, '⚠ prüfen') : null);
-  };
-  return h('div', { class: 'tires' }, cell('fl', 'vorn links'), cell('fr', 'vorn rechts'), cell('rl', 'hinten links'), cell('rr', 'hinten rechts'));
-}
-
-PAGES.car = {
-  label: 'Leapmotor', short: 'Auto', icon: '🚗', live: true,
-  render(el) {
-    const C = S.car;
-    el.append(h('div', { class: 'row sb' }, h('h2', { class: 'page-title' }, '🚗 ' + C.name), h('div', { class: 'row' }, C.enabled ? h('button', { onclick: () => api('POST', '/api/car/refresh', {}).then(() => toast('Aktualisiere …')).catch(fail) }, '↻ Aktualisieren') : null, h('button', { onclick: carDialog }, '⚙ Konfigurieren'))));
-    if (!C.enabled) { el.append(h('div', { class: 'empty', style: 'margin-top:14px' }, 'Leapmotor ist nicht eingerichtet.')); return; }
-    if (C.error) el.append(h('div', { class: 'card', style: 'margin-top:12px;border-color:var(--bad)' }, h('b', { style: 'color:var(--bad)' }, 'Fehler: '), C.error));
-    const s = C.status;
-    if (!s) { el.append(h('div', { class: 'empty', style: 'margin-top:12px' }, 'Noch keine Daten …')); }
-    else {
-      el.append(h('div', { class: 'grid wide', style: 'margin-top:12px' },
-        h('div', { class: 'card' }, h('div', { class: 'big' }, s.soc == null ? '–' : `${fmtNum(s.soc, 0)} %`), h('div', { class: 'bar', style: 'margin:8px 0' }, h('i', { style: `width:${Math.max(0, Math.min(100, s.soc || 0))}%` })),
-          h('div', { class: 'hint' }, `Reichweite ${s.range == null ? '–' : fmtNum(s.range, 0) + ' km'}`), s.charging ? h('div', { class: 'pill on', style: 'margin-top:6px' }, `lädt${s.chargePower ? ' · ' + fmtNum(s.chargePower) + ' kW' : ''}`) : null),
-        h('div', { class: 'card kv' },
-          h('span', {}, 'Verriegelung'), h('span', {}, s.locked == null ? '–' : s.locked ? '🔒 verriegelt' : '🔓 offen'),
-          h('span', {}, 'Klima'), h('span', {}, s.acOn == null ? '–' : s.acOn ? 'an' : 'aus'),
-          h('span', {}, 'Innen / Außen'), h('span', {}, `${fmtNum(s.interiorTemp)} / ${fmtNum(s.outdoorTemp)} °C`),
-          h('span', {}, 'Kilometerstand'), h('span', {}, s.odometer == null ? '–' : `${fmtNum(s.odometer, 0)} km`),
-          h('span', {}, 'Ladestecker'), h('span', {}, s.pluggedIn == null ? '–' : s.pluggedIn ? 'angesteckt' + (s.chargeLimit ? ` · Limit ${s.chargeLimit} %` : '') : 'nicht angesteckt'),
-          h('span', {}, 'Reifen'), h('span', {}, s.tiresOk == null ? '–' : s.tiresOk ? 'OK' : '⚠ prüfen'),
-          h('span', {}, 'Standort'), h('span', {}, s.address || (s.lat != null && s.lon != null ? `${fmtNum(s.lat, 5)}, ${fmtNum(s.lon, 5)}` : '–')),
-          s.distHome != null ? h('span', {}, 'Von Zuhause') : null, s.distHome != null ? h('span', {}, s.distHome < 0.15 ? 'zuhause' : `${fmtNum(s.distHome, 1)} km`) : null,
-          h('span', {}, 'Stand'), h('span', {}, fmtTime(s.ts))),
-        s.tires && Object.values(s.tires).some((v) => v != null) ? h('div', { class: 'card' }, h('h3', { style: 'margin:0 0 8px' }, 'Reifendruck'), tireView(s)) : null,
-        s.lat != null && s.lon != null ? h('div', { class: 'card mapcard' }, tileMap(s.lat, s.lon), s.address ? h('div', { class: 'hint', style: 'margin-top:8px' }, '📍 ' + s.address) : null) : null));
-    }
-    el.append(h('h2', {}, 'Fernsteuerung'), h('div', { class: 'row' }, Object.entries(C.commands).map(([k, l]) => h('button', {
-      onclick: () => { if (['unlock', 'open_trunk'].includes(k) && !confirm(`„${l}“ wirklich senden?`)) return; api('POST', '/api/car/command', { command: k }).then(() => toast(l + ' gesendet')).catch(fail); },
-    }, l))));
-  },
-};
-
 // ---------- Geofence ----------
 function geoDialog() {
   const persons = JSON.parse(JSON.stringify(S.geofence.persons));
@@ -388,5 +306,5 @@ PAGES.geo = {
 };
 
 // Reihenfolge der Navigation
-for (const k of ['dash', 'dev', 'auto', 'heat', 'car', 'geo', 'set']) { const p = PAGES[k]; delete PAGES[k]; PAGES[k] = p; }
+for (const k of ['dash', 'dev', 'auto', 'heat', 'geo', 'set']) { const p = PAGES[k]; delete PAGES[k]; PAGES[k] = p; }
 

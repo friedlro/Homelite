@@ -19,7 +19,7 @@ try:
     from leapmotor.api import LeapmotorApiClient
 except Exception as e:  # noqa: BLE001
     sys.exit("Client nicht ladbar: %r" % e)
-certs = os.path.join(here, "leapmotor", "certs")
+certs = os.environ.get("LEAP_CERT_DIR") or os.path.join(here, "leapmotor", "certs")
 print("Zertifikate:", [f for f in os.listdir(certs)])
 if len(sys.argv) < 3:
     sys.exit("Aufruf mit E-Mail und Passwort für den Login-Test")

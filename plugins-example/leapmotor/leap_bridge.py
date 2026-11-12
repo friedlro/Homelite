@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Zeilenbasierte JSON-Brücke zwischen HomeLite (Node) und dem mitgelieferten
-Leapmotor-Client (lib/leapmotor, Basis: github.com/kerniger/leapmotor-ha, MIT).
+Leapmotor-Client (Ordner leapmotor, Basis: github.com/kerniger/leapmotor-ha, MIT).
 
-Die App-Zertifikate (markoceri/leapmotor-certs) liegen unter lib/leapmotor/certs.
+Die App-Zertifikate (markoceri/leapmotor-certs) liegen im Datenordner des Plugins (cfg.certDir) bzw. leapmotor/certs.
 
 Protokoll: pro Zeile ein JSON-Objekt auf stdin
-  {"id": 1, "cmd": "status"|<Befehl>, "cfg": {username, password, pin, certPath, keyPath, vin}}
+  {"id": 1, "cmd": "status"|<Befehl>, "cfg": {username, password, pin, certPath, keyPath, certDir, vin}}
 Antwort pro Zeile auf stdout: {"id": 1, "ok": true, ...} oder {"id": 1, "ok": false, "error": "..."}
 Logausgaben gehen nach stderr.
 """
@@ -53,7 +53,7 @@ client_key = None
 
 def ensure(cfg):
     global client, client_key
-    key = json.dumps([cfg.get(k) for k in ("username", "password", "pin", "certPath", "keyPath")])
+    key = json.dumps([cfg.get(k) for k in ("username", "password", "pin", "certPath", "keyPath", "certDir")])
     if client is None or key != client_key:
         if client is not None:
             try:
@@ -64,7 +64,7 @@ def ensure(cfg):
             username=cfg.get("username"),
             password=cfg.get("password"),
             operation_password=cfg.get("pin") or None,
-            static_cert_dir=CERT_DIR,
+            static_cert_dir=(cfg.get("certDir") or CERT_DIR),
             history_timezone="Europe/Vienna",
         )
         cp, kp = (cfg.get("certPath") or "").strip(), (cfg.get("keyPath") or "").strip()

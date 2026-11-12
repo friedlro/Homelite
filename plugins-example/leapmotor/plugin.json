@@ -1,0 +1,27 @@
+{
+  "id": "leapmotor",
+  "name": "Leapmotor",
+  "version": "1.0.0",
+  "description": "Leapmotor-Auto (T03, C10 …) über die Leapmotor-Cloud (inoffiziell): Ladestand, Reichweite, Reifendruck, Standort mit Karte, Sensoren als Geräte und Fernbefehle (Klima, Verriegeln, Vorheizen …). Früher fest in HomeLite eingebaut.",
+  "author": "HomeLite (Client nach kerniger/leapmotor-ha)",
+  "icon": "🚗",
+  "api": 1,
+  "minCore": "1.26.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "Auto", "icon": "🚗" },
+  "config": [
+    { "key": "name", "label": "Anzeigename", "type": "text", "default": "Leapmotor" },
+    { "key": "username", "label": "Leapmotor-App E-Mail", "type": "text" },
+    { "key": "password", "label": "Passwort", "type": "password" },
+    { "key": "pin", "label": "Fahrzeug-PIN (nur für Fernbefehle)", "type": "password" },
+    { "key": "vin", "label": "VIN (optional, leer = erstes Fahrzeug)", "type": "text" },
+    { "key": "pollMinutes", "label": "Abfrage alle … Minuten (mind. 2)", "type": "number", "default": 10 },
+    { "key": "certPath", "label": "Eigenes Zertifikat (optional, Pfad)", "type": "text", "help": "Leer = App-Zertifikate des Plugins (Seite „Auto“ → Zertifikate laden)." },
+    { "key": "keyPath", "label": "Eigener Schlüssel (optional, Pfad)", "type": "text" },
+    { "key": "room", "label": "Raum für die Geräte (optional)", "type": "text", "default": "" }
+  ],
+  "changelog": {
+    "1.0.0": "Leapmotor ist jetzt ein Plugin (vorher fest in HomeLite). Zugangsdaten und Zertifikate werden beim Update übernommen; Geräte (Ladestand, Reichweite, …), KI-Werkzeuge get_car/car_command, Automations-Aktion „Leapmotor“ bleiben."
+  }
+}

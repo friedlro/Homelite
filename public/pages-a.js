@@ -90,7 +90,7 @@ async function importDialog() {
 }
 
 // ---------- Dashboard (frei bearbeitbar) ----------
-const DASH_WIDGETS = { scenes: '▶ Szenen', presence: '👥 Anwesenheit', car: '🚗 Auto', heating: '🌡 Heizung', energy: '⚡ Energie', weather: '🌤 Wetter', favs: '★ Favoriten', rest: '▦ Weitere Geräte' };
+const DASH_WIDGETS = { scenes: '▶ Szenen', presence: '👥 Anwesenheit', heating: '🌡 Heizung', energy: '⚡ Energie', weather: '🌤 Wetter', favs: '★ Favoriten', rest: '▦ Weitere Geräte' };
 let dashEdit = false;
 let dashDraft = null;
 
@@ -106,7 +106,7 @@ function effectiveBlocks() {
 }
 
 function defaultBlocks() {
-  const b = ['scenes', 'presence', 'car', 'heating', 'energy', 'weather', 'favs'].map((kind) => ({ kind, ref: '' }));
+  const b = ['scenes', 'presence', 'heating', 'energy', 'weather', 'favs'].map((kind) => ({ kind, ref: '' }));
   for (const r of S.rooms) b.push({ kind: 'room', ref: r });
   b.push({ kind: 'rest', ref: '' });
   return b.map((x, i) => ({ id: 'b' + i, ...x }));
@@ -117,7 +117,7 @@ const blockLabel = (b) => (b.kind === 'room' ? '🏷 ' + b.ref : b.kind === 'dev
 function renderBlock(b, edit) {
   const sec = (title, ds) => (ds.length ? { kind: 'section', el: h('div', {}, h('h2', {}, title), h('div', { class: 'grid' }, ds.map(tile))) } : null);
   const vis = (d) => !d.hide;
-  const BMOD = { presence: 'geo', car: 'car', heating: 'heating', energy: 'energy', weather: 'ecowitt' };
+  const BMOD = { presence: 'geo', heating: 'heating', energy: 'energy', weather: 'ecowitt' };
   if (BMOD[b.kind] && !modOn(BMOD[b.kind])) return null;
   switch (b.kind) {
     case 'scenes': {
@@ -128,13 +128,6 @@ function renderBlock(b, edit) {
     case 'presence':
       if (!S.presence.length) return null;
       return { kind: 'widget', el: h('div', { class: 'card' }, h('h3', {}, 'Anwesenheit'), h('div', { class: 'kv' }, S.presence.flatMap((p) => [h('span', {}, p.name), h('span', {}, p.known ? (p.home ? '🏠 zuhause' : '🚶 unterwegs') : 'unbekannt')]))) };
-    case 'car': {
-      if (!(S.car.enabled && S.car.status)) return null;
-      const c = S.car.status;
-      return { kind: 'widget', el: h('div', { class: 'card tile click', onclick: () => go('car') }, h('h3', {}, '🚗 ' + S.car.name),
-        h('div', { class: 'big' }, c.soc == null ? '–' : `${fmtNum(c.soc, 0)} %`),
-        h('div', { class: 'sub' }, `${c.range == null ? '–' : fmtNum(c.range, 0)} km · ${c.locked ? 'verriegelt' : 'offen'}${c.charging ? ' · lädt' : ''}`)) };
-    }
     case 'heating':
       if (!S.heating.rooms.length) return null;
       return { kind: 'widget', el: h('div', { class: 'card tile click', onclick: () => go('heat') }, h('h3', {}, '🌡 Heizung'),
