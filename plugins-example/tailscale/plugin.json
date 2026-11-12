@@ -1,0 +1,23 @@
+{
+  "id": "tailscale",
+  "name": "Tailscale",
+  "version": "1.0.0",
+  "description": "Tailscale im Blick: Status dieses Rechners, alle Geräte im Tailnet (online/offline, IP, Verbindungsart), ausgewählte Geräte als Anwesenheits-/Erreichbarkeits-Sensoren und eine Prüfung von Serve/Funnel – mit Warnung, wenn HomeLite oder Teile davon aus dem Internet erreichbar sind.",
+  "author": "HomeLite",
+  "icon": "🛡️",
+  "api": 1,
+  "minCore": "1.27.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "Tailscale", "icon": "🛡️" },
+  "config": [
+    { "key": "bin", "label": "Programm", "type": "text", "default": "tailscale", "help": "Name oder Pfad des tailscale-Programms (Linux: tailscale, macOS: /Applications/Tailscale.app/Contents/MacOS/Tailscale)." },
+    { "key": "interval", "label": "Abfrage alle … Sekunden", "type": "number", "default": 30, "help": "10–600." },
+    { "key": "watch", "label": "Geräte als Sensoren (Namen, Komma-getrennt)", "type": "text", "default": "", "help": "Rechnername wie in Tailscale, z. B. iphone-roland, nas. Pro Name entsteht ein Gerät „Tailscale <Name>“ (an = online) für Automationen und Verlauf. „*“ = alle." },
+    { "key": "notifyFunnel", "label": "Warnung bei Funnel (Internet-Freigabe)", "type": "bool", "default": true, "help": "Push-Nachricht, sobald Funnel neu aktiv wird oder sich die freigegebenen Pfade ändern." },
+    { "key": "notifyOffline", "label": "Warnung, wenn ein überwachtes Gerät offline geht", "type": "bool", "default": false }
+  ],
+  "changelog": {
+    "1.0.0": "Erste Version: Status, Geräteliste, Sensoren, Serve-/Funnel-Prüfung mit Warnung, KI-Werkzeug tailscale_status."
+  }
+}

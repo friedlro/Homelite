@@ -49,6 +49,7 @@ Dauerbetrieb (systemd), Raspberry Pi und Updates: [docs/INSTALLATION.md](docs/IN
 | `muellkalender` | Müllkalender (CITIES-App) |
 | `erreichbarkeit` | Erreichbarkeitsprüfung von Geräten/Adressen |
 | `duckdns` | DuckDNS-Client |
+| `tailscale` | Tailscale: Status, Geräte im Tailnet, Sensoren, Serve-/Funnel-Prüfung mit Warnung bei Internet-Freigabe |
 | `leapmotor` | Leapmotor-Auto über die Leapmotor-Cloud (inoffiziell): Ladestand, Reichweite, Reifendruck, Standort mit Karte, Sensoren als Geräte, Fernbefehle, Automations-Aktion, KI-Werkzeuge; früher fest eingebaut, Daten werden beim Update übernommen |
 
 Der Bereich „Verfügbare Plugins“ (Einstellungen → Erweiterungen) listet alle Plugins des Repositories zur Installation mit einem Klick. Fertige SD-Karten-Images für Orange Pi One und Raspberry Pi 2+: siehe [docs/INSTALLATION.md](docs/INSTALLATION.md).
@@ -75,7 +76,7 @@ Firmware für eigene Geräte, die mit HomeLite zusammenarbeiten (getrennt von de
 
 ## Sicherheit
 Login mit Passwort und signiertem Cookie, MCP und Webhooks nur mit geheimem Token. HomeLite gehört ins Heimnetz; für Zugriff von außen
-ein VPN (z. B. Tailscale) oder einen Reverse-Proxy mit HTTPS verwenden. Plugins und Flows laufen mit den Rechten des HomeLite-Dienstes.
+ein VPN (z. B. Tailscale) oder einen Reverse-Proxy mit HTTPS verwenden. Von außen (Internet, Funnel, Tunnel) erreichbar sind nur die per Schlüssel geschützten Pfade `/mcp`, `/hook`, `/trigger` und `/where.html`; dazu Anfragenbegrenzung und Scanner-Sperre – Details in [docs/SICHERHEIT.md](docs/SICHERHEIT.md). Plugins und Flows laufen mit den Rechten des HomeLite-Dienstes.
 Persönliche Daten (`data/`, `import/ha-migration.json`) sind per `.gitignore` ausgeschlossen.
 
 ## Lizenz

@@ -665,6 +665,19 @@ PAGES.set = {
         h('button', { onclick: () => api('POST', '/api/logout', {}).then(showLogin) }, 'Abmelden'), ' ',
         h('button', { title: 'Meldet alle Geräte und Browser ab (z. B. nach Verlust eines Handys)', onclick: () => { if (confirm('Wirklich alle Geräte und Browser abmelden?')) api('POST', '/api/logout-all', {}).then(showLogin).catch(fail); } }, 'Überall abmelden'))));
 
+    { // Schutz vor Zugriffen von außen
+      const sec = S.security || { lockExternal: true, extraPaths: [], blocked: 0 };
+      const lock = h('input', { type: 'checkbox', checked: sec.lockExternal });
+      const extra = h('textarea', { style: 'min-height:60px', placeholder: '/meinpfad/' }, (sec.extraPaths || []).join('\n'));
+      el.append(h('h2', {}, 'Schutz vor Zugriffen von außen'), h('div', { class: 'card' },
+        h('p', { class: 'hint', style: 'margin-top:0' }, 'Anfragen aus dem Internet (z. B. über Tailscale Funnel, Cloudflare Tunnel oder Portfreigabe) erreichen nur die per Schlüssel geschützten Pfade /mcp, /hook, /trigger und die Handy-Seite /where.html. Oberfläche und API sind nur im Heimnetz, Tailnet oder lokal erreichbar. Zusätzlich: höchstens 120 Anfragen pro Minute und Adresse, Sperre für Scanner, Meldung bei Anmeldung von außen.'),
+        h('label', { class: 'row' }, lock, ' Von außen nur Schlüssel-Pfade erlauben (empfohlen)'),
+        sec.envOverride ? h('p', { class: 'hint' }, '⚠ Per Umgebungsvariable HOMELITE_ALLOW_EXTERNAL=1 ausgeschaltet.') : null,
+        h('label', { class: 'hint', style: 'display:block;margin-top:10px' }, 'Weitere von außen erlaubte Pfade (einer pro Zeile, Ordner mit / am Ende, z. B. /hook-meinplugin/)'), extra,
+        h('p', { class: 'hint' }, `Abgewiesene Anfragen seit Start: ${sec.blocked || 0}` + (sec.lastBlocked ? ` · zuletzt ${sec.lastBlocked.ip} → ${sec.lastBlocked.path}` : '')),
+        h('div', { class: 'row', style: 'margin-top:10px' }, h('button', { class: 'primary', onclick: () => api('PUT', '/api/security', { lockExternal: lock.checked, extraPaths: extra.value.split('\n').map((x) => x.trim()).filter(Boolean) }).then((r) => { S.security = r; toast('Gespeichert'); }).catch(fail) }, 'Speichern'))));
+    }
+
     el.append(h('h2', {}, 'HomeLite unterstützen'), h('div', { class: 'card' },
       h('p', { class: 'hint', style: 'margin-top:0' }, 'HomeLite ist kostenlos und ohne Werbung. Wenn es dir gefällt, freut sich der Entwickler über eine kleine Spende – freiwillig.'),
       h('a', { class: 'btn primary', href: 'https://paypal.me/RolandFriedl', target: '_blank', rel: 'noopener noreferrer', style: 'display:inline-block;text-decoration:none' }, '☕ Spenden via PayPal')));

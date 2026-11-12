@@ -1,5 +1,9 @@
 # Änderungen
 
+## 1.27.0
+- **Schutz vor Zugriffen von außen (neu, standardmäßig an):** Anfragen aus dem Internet (z. B. Tailscale Funnel, Cloudflare Tunnel, Portfreigabe) erreichen nur noch `/mcp`, `/hook`, `/trigger` und `/where.html`; Oberfläche, Anmeldung und API sind von außen nicht erreichbar („Nicht gefunden“). Dazu: 120 Anfragen/Minute je Adresse, Sperre für Scanner (30 unbekannte Pfade → 10 Minuten), Protokoll und Push bei Anmeldung von außen, Anfrage-Zeitlimit 60 s, höchstens 400 Verbindungen. Einstellbar unter Einstellungen → Allgemein (auch weitere Pfade), Notfall `HOMELITE_ALLOW_EXTERNAL=1`. Neues Modul `lib/guard.js`. **Achtung:** Wer die Oberfläche bisher über Funnel/Tunnel von außen genutzt hat, muss die Sperre ausschalten oder das Tailnet nutzen. Lokal mit simulierten Funnel-/Proxy-Anfragen geprüft.
+- **Plugin „Tailscale“ 1.0.0:** Status, Geräte im Tailnet, Sensoren für gewählte Geräte, Serve-/Funnel-Prüfung mit Warnung, KI-Werkzeug `tailscale_status`. Mit einem simulierten `tailscale`-Programm geprüft, nicht mit einer echten Tailscale-Installation.
+
 ## 1.26.3
 - **Batteriezustand in den Kacheln:** Geräte mit Batterie zeigen oben in der Kachel „🔋 87 %“ (ab 20 % rot) bzw. bei Geräten, die nur Stufen melden, „niedrig/mittel/voll“. Allgemein für jedes Gerät mit `battery`/`batteryState` im Zustand (Plugin-API `devices.setState`). **Tuya 1.0.2** liefert den Wert aus `battery_percentage`, `battery`, `residual_electricity`, `battery_level` bzw. `battery_state`, `va_battery`. Nur mit simulierten Daten geprüft, nicht mit echten Tuya-Geräten.
 

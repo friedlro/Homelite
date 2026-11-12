@@ -284,7 +284,7 @@ function model() {
     energyCfg: { ...c.energy, victron: { ...c.energy.victron, pass: undefined, hasPass: !!c.energy.victron.pass } }, energy: energy.live(), victron: victron.status(),
     mcp: { token: c.mcp.token, allowControl: c.mcp.allowControl, allowUnlock: c.mcp.allowUnlock, allowAutomations: c.mcp.allowAutomations },
     broker: broker.snapshot(),
-    matter: matter.status(), shellyfw: shellyFw.snapshot(), coiot: coiot.snapshot(), plugins: plugins.snapshot(),
+    matter: matter.status(), shellyfw: shellyFw.snapshot(), security: guard.status(), coiot: coiot.snapshot(), plugins: plugins.snapshot(),
     modules: c.modules, moduleInfo: Object.fromEntries(Object.entries(MODULES).map(([k, v]) => [k, { label: v[0], desc: v[1] }])),
     appletv: appletv.snapshot(), findmy: findmy.snapshot(),
     ecowitt: { ...ecowitt.status(), ip: c.ecowitt.ip, interval: c.ecowitt.interval },
@@ -311,6 +311,7 @@ function clientIp(req) {
   if (/^(::1|127\.|::ffff:127\.)/.test(ra)) { const x = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim(); if (x && x.length < 50) return x; }
   return ra;
 }
+const guard = require('./lib/guard')({ cfg: () => store.cfg, clientIp });
 // Fehlversuche je Adresse und Bereich (Login, Webhook-Schlüssel): nach „max“ Fehlern 10 Minuten Sperre
 function limited(req, scope, max) {
   const k = scope + '|' + clientIp(req); const f = fails.get(k);
@@ -454,6 +455,17 @@ route('PUT', '/api/rooms', ({ body }) => {
   return { ok: true };
 });
 
+route('PUT', '/api/security', ({ body }) => {   // Schutz vor Zugriffen von außen
+  const s = cfg().security || (cfg().security = { lockExternal: true, extraPaths: [] });
+  if (body.lockExternal !== undefined) s.lockExternal = !!body.lockExternal;
+  if (Array.isArray(body.extraPaths)) {
+    s.extraPaths = body.extraPaths.map((x) => String(x).trim()).filter(Boolean).slice(0, 20);
+    if (s.extraPaths.some((x) => !/^\/[\w./-]{0,80}$/.test(x) || x === '/' || x.startsWith('/api/login'))) throw bad('Pfade müssen mit / beginnen (z. B. /meinhook/); „/“ und /api/login sind nicht erlaubt');
+  }
+  store.save();
+  log('info', `Sicherheit: Außen-Sperre ${s.lockExternal ? 'an' : 'AUS'}`);
+  return guard.status();
+});
 route('POST', '/api/logout-all', () => {   // alle Sitzungen (alle Geräte/Browser) ungültig machen
   cfg().auth.secret = crypto.randomBytes(32).toString('hex'); store.save();
   log('info', 'Sicherheit: alle Sitzungen abgemeldet');
@@ -1048,6 +1060,15 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   const p = url.pathname;
   try {
+    // Zugriffe von außen (Internet/Funnel): nur Schlüssel-Pfade, Anfragenbegrenzung, Scanner-Sperre
+    const g = guard.classify(req);
+    if (g.external) {
+      if (limited(req, 'scan', 30) || guard.rateExceeded(g.ip)) { res.writeHead(429, { 'Retry-After': '600', 'Content-Type': 'text/plain' }); res.end('Zu viele Anfragen'); return undefined; }
+      if (guard.locked() && !guard.allowedPath(p)) {
+        failed(req, 'scan', 30); guard.noteBlocked(g.ip, p);
+        res.writeHead(404, { 'Content-Type': 'text/plain', ...SEC }); res.end('Nicht gefunden'); return undefined;
+      }
+    }
     if (p === '/hook') return await hook(req, res, url);
     if (p === '/trigger') return await trigger(req, res, url);
     if (p === '/mcp' || p.startsWith('/mcp/') || p.startsWith('/mcp-plugin/')) { if (await mcp.handle(req, res, url, (r) => readBody(r), on('mcp'))) return undefined; }
@@ -1078,6 +1099,7 @@ const server = http.createServer(async (req, res) => {
         throw new HttpError(401, 'Passwort falsch');
       }
       fails.delete('login|' + clientIp(req));
+      if (g.external) { log('warn', `Sicherheit: Anmeldung von außen (${g.ip})`); notify('HomeLite: Anmeldung von außen', `Erfolgreiche Anmeldung von ${g.ip} (nicht aus dem Heim- oder Tailscale-Netz).`).catch(() => {}); }
       const exp = Date.now() + 30 * 86400000;
       const secure = req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : '';
       return send(res, 200, { ok: true }, { 'Set-Cookie': `hl=${sign(exp)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=2592000${secure}`, ...(secure ? { 'Strict-Transport-Security': 'max-age=15552000' } : {}) });
@@ -1132,7 +1154,7 @@ setInterval(() => { if (on('energy')) energy.tick(); }, 10000);
 setInterval(() => backup.tick().catch(() => {}), 30000);
 setInterval(() => { engine.onTick(); runHeating(); }, 20000);
 
-server.headersTimeout = 20000; server.maxHeadersCount = 100;
+server.headersTimeout = 20000; server.maxHeadersCount = 100; server.requestTimeout = 60000; server.keepAliveTimeout = 5000; server.maxConnections = 400;
 server.listen(PORT, HOST, () => {
   console.log(`HomeLite läuft auf http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
   devices.start();

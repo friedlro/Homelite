@@ -152,6 +152,10 @@ Der Client in `plugins-example/leapmotor/leapmotor/` stammt aus [kerniger/leapmo
 
 HomeLite nutzt automatisch `.venv/bin/python3` im Projektordner (sonst `$PYTHON`, sonst `python3`). Bei Problemen zeigt `LEAP_CERT_DIR=/opt/homelite/data/plugin-data/leapmotor/certs /opt/homelite/.venv/bin/python3 /opt/homelite/data/plugins/leapmotor/leap_diag.py <E-Mail> <Passwort> [PIN]` Schritt für Schritt, was fehlt oder abgelehnt wird.
 
+## Tailscale (Plugin)
+
+Plugin **„Tailscale“** (`plugins-example/tailscale`, Anleitung dort: `LIESMICH.md`): zeigt Status, Geräte im Tailnet (online/offline, Verbindungsart), legt für gewünschte Geräte Sensoren „Tailscale <Name>“ an und prüft **Serve/Funnel**. Ist Funnel aktiv, warnt die Seite rot und schickt eine Push-Nachricht, sobald Funnel neu aktiv wird oder sich Pfade ändern. Nur lesend; braucht das installierte `tailscale` und Rechte darauf (HomeLite als root oder `sudo tailscale set --operator=<benutzer>`). KI-Werkzeug: `tailscale_status`. Siehe auch „Schutz vor Zugriffen von außen“ in docs/SICHERHEIT.md.
+
 ## Eingebauter MQTT-Broker
 
 *Einstellungen → Erweiterungen → „Eingebauter MQTT-Broker“* einschalten: HomeLite startet einen eigenen MQTT-Server (MQTT 3.1/3.1.1, Port 1883, QoS 0/1, Retained-Werte, Last-Will, Wildcards) – ein separater Mosquitto ist nicht mehr nötig. Ohne Zusatzpakete.

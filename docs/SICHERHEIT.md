@@ -7,8 +7,16 @@
 - **Browser:** strenge Content-Security-Policy, kein Einbetten in fremde Seiten, API nimmt nur JSON an (Schutz vor Cross-Site-Anfragen).
 - **Dateien:** Archive (Update, Plugin, Backup) werden vor dem Entpacken auf Pfade außerhalb des Ziels und Verknüpfungen geprüft; die Datenbank ist nur für den Dienstbenutzer lesbar.
 
+## Schutz vor Zugriffen von außen (ab 1.27.0, standardmäßig an)
+- **Nur Schlüssel-Pfade von außen:** Anfragen aus dem Internet (nicht aus LAN, Tailnet 100.64.0.0/10, lokal oder IPv6-ULA; erkannt an der Client-Adresse und am Header `Tailscale-Funnel-Request`) erreichen nur `/mcp`, `/hook`, `/trigger` und die Handy-Seite `/where.html`. Oberfläche, Anmeldung und API antworten von außen mit „Nicht gefunden“. Das gilt für Tailscale Funnel, Cloudflare Tunnel und Portfreigaben, solange der Proxy auf demselben Rechner läuft (Header `X-Forwarded-For` wird nur von dort akzeptiert).
+- **Begrenzung:** höchstens 120 Anfragen pro Minute und Adresse von außen; wer 30 Pfade abfragt, die es nicht gibt (Scanner), wird 10 Minuten gesperrt.
+- **Meldung:** erfolgreiche Anmeldung von außen erzeugt Protokolleintrag und Push.
+- **Server:** Zeitlimit für Anfragen (60 s), höchstens 400 gleichzeitige Verbindungen.
+- **Einstellung:** Einstellungen → Allgemein → „Schutz vor Zugriffen von außen“ (ausschalten, weitere Pfade freigeben). Notfall: Umgebungsvariable `HOMELITE_ALLOW_EXTERNAL=1` hebt die Sperre auf.
+- **Grenze:** Läuft der Reverse-Proxy auf einem *anderen* Rechner im LAN, sieht HomeLite nur dessen private Adresse und kann „außen“ nicht erkennen – dann den Proxy selbst auf die erlaubten Pfade beschränken (oder das Plugin Tailscale mit Serve statt Funnel nutzen).
+
 ## Was du tun solltest
-1. **Port 3100 nie direkt ins Internet freigeben.** Zugriff von außen über VPN (Tailscale, WireGuard) oder einen Reverse-Proxy mit HTTPS.
+1. **Port 3100 nie direkt ins Internet freigeben** (die Außen-Sperre ist ein zweiter Schutz, kein Ersatz). Zugriff von außen über VPN (Tailscale, WireGuard) oder einen Reverse-Proxy mit HTTPS.
 2. **HTTPS im Heimnetz**, wenn andere im WLAN sind: Reverse-Proxy (Caddy, nginx) vor HomeLite; ohne HTTPS geht das Passwort im Klartext übers Netz.
 3. **Starkes Passwort** für HomeLite, eigenes Passwort für MQTT (kein anonymer Zugriff am Broker).
 4. **Plugins nur aus vertrauenswürdiger Quelle.** Ein Plugin läuft mit allen Rechten von HomeLite; das SSH-Plugin kann Befehle auf anderen Rechnern ausführen.
