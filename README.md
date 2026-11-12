@@ -84,3 +84,13 @@ MIT (siehe `package.json`).
 ## Unterstützen
 
 HomeLite ist kostenlos und ohne Werbung. Wenn es dir gefällt, freut sich der Entwickler über eine freiwillige Spende: [paypal.me/RolandFriedl](https://paypal.me/RolandFriedl) (auch in HomeLite unter Einstellungen → Allgemein).
+
+### Einrichtung und individuelle Plugins
+
+Du möchtest HomeLite nicht selbst aufsetzen oder brauchst die Anbindung eines bestimmten Geräts? Auf Anfrage gibt es gegen Bezahlung:
+
+- **Einrichtung und Migration** – Installation auf Heimserver oder Raspberry Pi, Umstieg von Home Assistant
+- **Individuelle Plugins** – Anbindung deines Geräts oder Dienstes; das Plugin wird danach offen in diesem Repository veröffentlicht
+- **Support** – Hilfe bei Fehlersuche und Automationen auf Stundenbasis
+
+Anfragen bitte über ein [GitHub-Issue](https://github.com/friedlro/Homelite/issues/new) mit dem Titel „Anfrage".
