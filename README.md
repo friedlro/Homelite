@@ -50,6 +50,7 @@ Dauerbetrieb (systemd), Raspberry Pi und Updates: [docs/INSTALLATION.md](docs/IN
 | `erreichbarkeit` | Erreichbarkeitsprüfung von Geräten/Adressen |
 | `duckdns` | DuckDNS-Client |
 | `tailscale` | Tailscale: Status, Geräte im Tailnet, Sensoren, Serve-/Funnel-Prüfung mit Warnung bei Internet-Freigabe |
+| `bmw` | BMW/MINI über BMW CarData: Ladestand, Reichweite, Laden, Türen, Standort mit Karte, Reifen, Service und alle Werte wie in der App (nur lesend) |
 | `leapmotor` | Leapmotor-Auto über die Leapmotor-Cloud (inoffiziell): Ladestand, Reichweite, Reifendruck, Standort mit Karte, Sensoren als Geräte, Fernbefehle, Automations-Aktion, KI-Werkzeuge; früher fest eingebaut, Daten werden beim Update übernommen |
 
 Der Bereich „Verfügbare Plugins“ (Einstellungen → Erweiterungen) listet alle Plugins des Repositories zur Installation mit einem Klick. Fertige SD-Karten-Images für Orange Pi One und Raspberry Pi 2+: siehe [docs/INSTALLATION.md](docs/INSTALLATION.md).

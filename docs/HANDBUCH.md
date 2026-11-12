@@ -156,6 +156,10 @@ HomeLite nutzt automatisch `.venv/bin/python3` im Projektordner (sonst `$PYTHON`
 
 Plugin **„Tailscale“** (`plugins-example/tailscale`, Anleitung dort: `LIESMICH.md`): zeigt Status, Geräte im Tailnet (online/offline, Verbindungsart), legt für gewünschte Geräte Sensoren „Tailscale <Name>“ an und prüft **Serve/Funnel**. Ist Funnel aktiv, warnt die Seite rot und schickt eine Push-Nachricht, sobald Funnel neu aktiv wird oder sich Pfade ändern. Nur lesend; braucht das installierte `tailscale` und Rechte darauf (HomeLite als root oder `sudo tailscale set --operator=<benutzer>`). KI-Werkzeug: `tailscale_status`. Siehe auch „Schutz vor Zugriffen von außen“ in docs/SICHERHEIT.md.
 
+## BMW (Plugin)
+
+Plugin **„BMW“** (`plugins-example/bmw`, Einrichtung in `LIESMICH.md`): bindet BMW/MINI über **BMW CarData** an. Seite „BMW“ zeigt Ladestand, Reichweite, Laden/Stecker, Verriegelung, offene Türen/Klappen, Reifendruck, Standort mit Karte, Tank, Service und alle weiteren Werte; dazu Sensoren für Automationen und das KI-Werkzeug `bmw_status`. Anmeldung per Gerätecode (Seite → „Bei BMW anmelden“), Werte kommen live per BMW-Datenstrom. **Nur lesend** (keine Fernbefehle), BMW sendet nur Änderungen, und es erscheinen nur die im BMW-Portal ausgewählten Datenpunkte. Mit simulierter BMW-Schnittstelle geprüft, nicht mit einem echten Konto.
+
 ## Eingebauter MQTT-Broker
 
 *Einstellungen → Erweiterungen → „Eingebauter MQTT-Broker“* einschalten: HomeLite startet einen eigenen MQTT-Server (MQTT 3.1/3.1.1, Port 1883, QoS 0/1, Retained-Werte, Last-Will, Wildcards) – ein separater Mosquitto ist nicht mehr nötig. Ohne Zusatzpakete.

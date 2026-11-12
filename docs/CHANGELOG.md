@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.27.2
+- **Neues Plugin „BMW“ 1.0.0** (BMW CarData): Anmeldung per Gerätecode + PKCE, Live-Datenstrom (MQTT, Token-Erneuerung, automatischer Neuaufbau), tägliche REST-Stammdaten (Kontingent geschützt), Seite mit Batterie/Laden, Tank, Sicherheit, Reifen, Standort mit OSM-Karte, Service und allen Rohwerten (gruppiert, eingedeutscht), Sensoren/Binärgeräte für Automationen, KI-Werkzeug `bmw_status`. Nur lesend. Mit simulierter BMW-Schnittstelle und simuliertem Datenstrom geprüft, nicht mit einem echten BMW-Konto.
+
 ## 1.27.1
 - **Tailscale Funnel wird bei der Außen-Sperre akzeptiert:** Anfragen über Funnel (Header `Tailscale-Funnel-Request` vom lokalen tailscaled) zählen nicht mehr als „außen“, die Oberfläche ist über die Funnel-Adresse erreichbar. Anfragenbegrenzung, Fehlversuch-Sperre und Meldung bei Anmeldung (jetzt mit Hinweis „über Tailscale Funnel“) gelten weiter. Neue Einstellung „Tailscale Funnel akzeptieren“ (Standard an) unter Einstellungen → Allgemein. Lokal mit simulierten Funnel-Anfragen geprüft.
 

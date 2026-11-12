@@ -1,0 +1,22 @@
+{
+  "id": "bmw",
+  "name": "BMW",
+  "version": "1.0.0",
+  "description": "BMW (und MINI) über BMW CarData: Ladestand, Reichweite, Laden, Türen/Fenster/Schloss, Reifen, Standort mit Karte, Tank, Service und alle weiteren Werte – übersichtlich wie in der App. Live per BMW-Datenstrom, Geräte/Sensoren für Automationen, KI-Werkzeug bmw_status. Nur lesend.",
+  "author": "HomeLite",
+  "icon": "🚙",
+  "api": 1,
+  "minCore": "1.27.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "BMW", "icon": "🚙" },
+  "config": [
+    { "key": "clientId", "label": "CarData-Client-ID", "type": "text", "default": "", "help": "Aus dem BMW-Kundenportal (MyBMW → Mein Profil → Fahrzeug → BMW CarData → Client-ID erstellen). Details: LIESMICH.md." },
+    { "key": "vin", "label": "Fahrgestellnummer (optional)", "type": "text", "default": "", "help": "Nur nötig, wenn mehrere Fahrzeuge verknüpft sind und nur eines angezeigt werden soll." },
+    { "key": "restDaily", "label": "REST-Abfrage der Stammdaten (Modell, Bild) täglich", "type": "bool", "default": true, "help": "Verbraucht 2 von 50 erlaubten Abfragen pro Tag." },
+    { "key": "mapZoom", "label": "Kartenzoom", "type": "number", "default": 15, "help": "10–18." }
+  ],
+  "changelog": {
+    "1.0.0": "Erste Version: Anmeldung per Gerätecode, Live-Datenstrom (MQTT), App-ähnliche Seite, Sensoren, KI-Werkzeug."
+  }
+}
