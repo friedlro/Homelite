@@ -1,5 +1,10 @@
 # Änderungen
 
+## 1.27.3
+- **README auf Englisch neu geschrieben**, mit Haftungsausschluss, Markenhinweis und Hinweis zu inoffiziellen Schnittstellen; **LICENSE-Datei (MIT)** ergänzt.
+- **Import neutral benannt:** „Aus Datei importieren“ statt des bisherigen Namens; die Importdatei heißt jetzt `import/migration.json` (der frühere Dateiname wird weiterhin gelesen).
+- **Plugin „Flows“ 1.0.1:** heißt nur noch „Flows“; Vergleiche mit anderen Produkten aus Oberfläche und Dokumentation entfernt.
+
 ## 1.27.2
 - **Neues Plugin „BMW“ 1.0.0** (BMW CarData): Anmeldung per Gerätecode + PKCE, Live-Datenstrom (MQTT, Token-Erneuerung, automatischer Neuaufbau), tägliche REST-Stammdaten (Kontingent geschützt), Seite mit Batterie/Laden, Tank, Sicherheit, Reifen, Standort mit OSM-Karte, Service und allen Rohwerten (gruppiert, eingedeutscht), Sensoren/Binärgeräte für Automationen, KI-Werkzeug `bmw_status`. Nur lesend. Mit simulierter BMW-Schnittstelle und simuliertem Datenstrom geprüft, nicht mit einem echten BMW-Konto.
 
@@ -97,7 +102,7 @@
 - Plugin-Installation „Von Adresse“ (GitHub): akzeptiert jetzt auch Ordner-Adressen wie `https://github.com/friedlro/Homelite/tree/main/plugins-example/philips-hue`; bei einem Repository mit mehreren Plugins erscheint eine Liste statt eines Fehlers, Nicht-Archive werden verständlich gemeldet.
 
 ## 1.21.0
-- **Neu: Plugin „Flows“ 1.0.0** – visueller Editor (Node-RED/n8n-Stil), ca. 35 Knoten, Ausdrücke `{{ }}`, Fehlerbehandlung mit Wiederholung, Unterflows, Verlauf, eigene Knoten, KI-Werkzeuge `flows_*`.
+- **Neu: Plugin „Flows“ 1.0.0** – visueller Editor, ca. 35 Knoten, Ausdrücke `{{ }}`, Fehlerbehandlung mit Wiederholung, Unterflows, Verlauf, eigene Knoten, KI-Werkzeuge `flows_*`.
 - Plugin-API: `api.mqtt`, `api.http` (öffentlicher Webhook `/hook/<plugin>/<token>/…`), `api.expose/use/onUse` (Plugin-zu-Plugin), `api.sun()`.
 
 ## 1.20.4 – 1.20.1 (Energie)

@@ -1,6 +1,6 @@
 # SIOCS Heizung (Plugin)
 
-Bindet eine Fernwärme-Übergabestation mit **SIOCS-Webportal** (SCHNEID, Regler MR-12) in HomeLite ein. Portiert aus der Home-Assistant-App [friedlro/ha-siocs-heizung](https://github.com/friedlro/ha-siocs-heizung) (MIT). Das Portal hat keine offene Schnittstelle, deshalb bedient ein Chromium-Browser (Playwright) es wie ein Mensch.
+Bindet eine Fernwärme-Übergabestation mit **SIOCS-Webportal** (SCHNEID, Regler MR-12) in HomeLite ein. Portiert aus [friedlro/ha-siocs-heizung](https://github.com/friedlro/ha-siocs-heizung) (MIT). Das Portal hat keine offene Schnittstelle, deshalb bedient ein Chromium-Browser (Playwright) es wie ein Mensch.
 
 > Inoffiziell, ohne Gewähr. Befehle wirken auf die echte Anlage. Prüfe, ob automatisierter Zugriff beim Betreiber erlaubt ist, und frage nicht öfter ab als nötig.
 

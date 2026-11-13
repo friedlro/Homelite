@@ -23,7 +23,7 @@ Die Anmeldung gilt, bis BMW sie beendet (Refresh-Token). Das Plugin erneuert die
 
 ## Hinweise
 
-- Pro BMW-Konto ist nur **eine** Stromverbindung erlaubt. Läuft derselbe Zugang zusätzlich in einem anderen Programm (z. B. Home Assistant), trennen sich beide gegenseitig.
+- Pro BMW-Konto ist nur **eine** Stromverbindung erlaubt. Läuft derselbe Zugang zusätzlich in einem anderen Programm, trennen sich beide gegenseitig.
 - Ausgewählte Datenpunkte werden anhand ihres Namens zugeordnet (z. B. `…batteryManagement.header` = Ladestand). Unbekannte Werte erscheinen unter „Alle Werte“ mit ihrem Originalnamen, Texte wie `CHARGINGACTIVE` sind eingedeutscht.
 - Kartenkacheln kommen von openstreetmap.org (dein Browser lädt sie).
 - Umgebungsvariablen nur für Tests: `BMW_AUTH_BASE`, `BMW_API_BASE`, `BMW_MQTT_URL`.

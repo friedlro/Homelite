@@ -3,6 +3,7 @@ data/
 .venv/
 __pycache__/
 *.log
+import/migration.json
 import/ha-migration.json
 .DS_Store
 plugins-example/leapmotor/leapmotor/certs/*.pem

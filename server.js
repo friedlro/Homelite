@@ -786,9 +786,9 @@ route('POST', '/api/matter/remove', async ({ body }) => {
   return { ok: true, removed: ids.size };
 });
 
-// Import aus Home Assistant (vorbereitete Datei import/ha-migration.json)
-route('GET', '/api/import/ha', () => importer.preview());
-route('POST', '/api/import/ha', () => importer.run());
+// Import aus Datei (vorbereitete Datei import/migration.json)
+route('GET', '/api/import/file', () => importer.preview());
+route('POST', '/api/import/file', () => importer.run());
 
 // Heizung
 route('PUT', '/api/heating', ({ body }) => {

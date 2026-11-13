@@ -238,7 +238,7 @@ add({
 });
 
 add({
-  type: 'switch', label: 'Weiche', category: 'Logik', icon: '🚦', desc: 'Leitet je nach Wert auf verschiedene Ausgänge (wie Node-RED „switch“).', outputs: 1, dyn: { list: 'rules', elseKey: 'else' },
+  type: 'switch', label: 'Weiche', category: 'Logik', icon: '🚦', desc: 'Leitet je nach Wert auf verschiedene Ausgänge.', outputs: 1, dyn: { list: 'rules', elseKey: 'else' },
   fields: [
     { key: 'prop', label: 'Wert', type: 'text', raw: true, default: 'payload', placeholder: 'payload  oder  {{ payload.modus }}' },
     { key: 'rules', label: 'Ausgänge', type: 'list', addLabel: '+ Ausgang', default: [{ op: 'eq', right: '' }], item: [
@@ -451,7 +451,7 @@ add({
 });
 
 add({
-  type: 'merge', label: 'Zweige vereinen', category: 'Daten', icon: '⛙', desc: 'Wartet, bis ALLE verbundenen Eingänge eine Nachricht geliefert haben, und gibt sie gemeinsam aus (wie n8n „Merge“).',
+  type: 'merge', label: 'Zweige vereinen', category: 'Daten', icon: '⛙', desc: 'Wartet, bis ALLE verbundenen Eingänge eine Nachricht geliefert haben, und gibt sie gemeinsam aus.',
   fields: [
     { key: 'as', label: 'Ergebnis', type: 'select', options: { object: 'Objekt (Name des Quell-Knotens → Wert)', array: 'Liste (in Ankunftsreihenfolge)', first: 'nur die erste Nachricht' }, default: 'object' },
     { key: 'timeout', label: 'Spätestens nach … Sekunden mit dem Vorhandenen weitermachen (0 = nur vollständig)', type: 'number', default: 0 },

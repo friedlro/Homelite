@@ -1,4 +1,4 @@
-# Flows – visuelle Automationen (Node-RED- und n8n-Stil)
+# Flows – visuelle Automationen
 
 Für alles, was eine einfache Regel nicht kann: Verzweigungen, Schleifen, Warten auf Ereignisse, mehrere Quellen
 zusammenführen, Webhooks, HTTP-Abfragen, Fehlerbehandlung und Unterflows.

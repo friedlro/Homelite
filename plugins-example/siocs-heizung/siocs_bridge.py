@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Zeilenbasierte JSON-Brücke zwischen HomeLite (Node) und dem SIOCS-Webportal (SCHNEID, Regler MR-12).
 
-Portiert aus der Home-Assistant-App friedlro/ha-siocs-heizung (MIT). Das Portal hat keine offene
+Portiert aus friedlro/ha-siocs-heizung (MIT). Das Portal hat keine offene
 Schnittstelle: ein Chromium-Browser (Playwright) bedient es wie ein Mensch.
 
 stdin  (je Zeile): {"cmd":"config","url":..,"username":..,"password":..,"poll":60}
@@ -428,7 +428,7 @@ async def close_dialog():
 
 
 async def applier():
-    """Setzt nur den jeweils neuesten Wunsch um; schnelles Klicken in HA stapelt sich sonst."""
+    """Setzt nur den jeweils neuesten Wunsch um; schnelles Klicken in der Oberfläche stapelt sich sonst."""
     while True:
         await wake.wait()
         wake.clear()

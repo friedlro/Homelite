@@ -1,6 +1,6 @@
 'use strict';
-// Flow-Engine: Nachrichten (msg) laufen von Knoten zu Knoten (Node-RED) – mit Ausdrücken {{ }}, Fehlerbehandlung,
-// Wiederholungen, parallelen Zweigen, Unterflows und Ausführungsverlauf (n8n).
+// Flow-Engine: Nachrichten (msg) laufen von Knoten zu Knoten – mit Ausdrücken {{ }}, Fehlerbehandlung,
+// Wiederholungen, parallelen Zweigen, Unterflows und Ausführungsverlauf.
 const expr = require('./expr');
 
 const MAX_STEPS = 5000;

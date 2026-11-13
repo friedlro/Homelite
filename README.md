@@ -3,96 +3,148 @@
 </p>
 
 <p align="center">
-  <a href="https://paypal.me/RolandFriedl"><img alt="Spenden via PayPal" src="https://img.shields.io/badge/Spenden-PayPal-0070ba?logo=paypal&logoColor=white"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
+  <img alt="Node.js 22+" src="https://img.shields.io/badge/node-%E2%89%A5%2022-339933?logo=nodedotjs&logoColor=white">
+  <a href="https://paypal.me/RolandFriedl"><img alt="Donate via PayPal" src="https://img.shields.io/badge/donate-PayPal-0070ba?logo=paypal&logoColor=white"></a>
 </p>
 
-Leichte, eigenständige Hausautomatisierung in **Node.js** – gedacht als schlanke alternative zu Home Assistant auf einem
-Heimserver oder Raspberry Pi (ab Pi 2). Keine Cloud-Pflicht, keine Build-Schritte, Daten in einer SQLite-Datei.
+# HomeLite
 
-## Funktionen
-- **Geräte:** MQTT (mit eingebautem Broker), Shelly (Gen1 CoIoT, Gen2+), HTTP-Sensoren, Matter (z. B. SwitchBot), Apple TV (Status), Ecowitt-Wetterstation, Taupunkt-Berechnung, virtuelle Geräte
-- **Automationen:** Auslöser, Bedingungen (UND/ODER, „ausgelöst durch“), Modi, Sonnenauf-/-untergang, Webhooks
-- **Flows (Plugin):** visueller Editor im Stil von Node-RED und n8n für komplexe Abläufe – siehe [docs/FLOWS.md](docs/FLOWS.md)
-- **Energie:** Victron & Co., Tages-/Monatswerte, Netzbezug-Spitzen in Viertelstunden mit Kurzspitzen und 5-Tage-Rückblick
-- **Heizung, Geofence mit dem iPhone, „Wo ist?“-Karte;** Auto (Leapmotor) als Plugin
-- **KI-Zugriff (MCP):** Claude kann Geräte lesen/steuern und Automationen entwerfen (neue Automationen und Flows starten immer ausgeschaltet)
-- **Plugins:** Erweiterungen ohne Systemupdate – [docs/PLUGINS.md](docs/PLUGINS.md)
-- **Komfort:** Dashboard bearbeiten, Verlauf, Backup/Wiederherstellung, Update per Klick, Übernahme aus Home Assistant
+**Lightweight, self-hosted home automation in Node.js.** Runs on a home server or a Raspberry Pi (Pi 2 and newer). No cloud account required, no build step, all data in a single SQLite file.
 
-## Schnellstart
-Voraussetzung: Node.js ≥ 22.
+<!--
+  SCREENSHOTS – add the files, then remove this comment block around the table.
+
+| Dashboard | Energy | Flow editor |
+|---|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Energy](docs/screenshots/energy.png) | ![Flow editor](docs/screenshots/flows.png) |
+-->
+
+## Why HomeLite
+
+- **Small footprint** – one Node.js process, one SQLite file, starts in seconds, runs on a Raspberry Pi 2
+- **Local first** – works entirely inside your home network; cloud services are optional and only used by plugins you enable
+- **Nothing to compile** – `npm install`, `node server.js`, done
+- **Extensible** – plugins add devices, pages and automation actions without a system update
+- **AI-ready** – built-in MCP server so an AI assistant can read and control devices and draft automations
+
+## Features
+
+- **Devices:** MQTT (built-in broker included), Shelly (Gen1 CoIoT, Gen2+), HTTP sensors, Matter, media player status, weather stations, dew point calculation, virtual devices
+- **Automations:** triggers, conditions (AND/OR, "triggered by"), modes, sunrise/sunset, webhooks
+- **Flows (plugin):** visual node-based editor for complex sequences – see [docs/FLOWS.md](docs/FLOWS.md)
+- **Energy:** PV, battery and grid, daily and monthly totals, quarter-hour grid peaks with a 5-day review
+- **Heating, phone geofencing, "Where is?" map**
+- **AI access (MCP):** an MCP-capable assistant can read and control devices and draft automations. Automations and flows created this way always start **disabled**.
+- **Plugins:** extensions without a system update – [docs/PLUGINS.md](docs/PLUGINS.md)
+- **Comfort:** editable dashboard, history, backup and restore, one-click update
+
+## Quick start
+
+Requires Node.js 22 or newer.
+
 ```bash
-git clone https://github.com/friedlro/homelite.git
-cd homelite
+git clone https://github.com/friedlro/Homelite.git
+cd Homelite
 npm install --omit=dev
 node server.js          # http://<server>:3100
 ```
-Das erste Login-Passwort steht beim ersten Start in der Konsole bzw. im Log (`journalctl -u homelite | grep -i passwort`).
-Dauerbetrieb (systemd), Raspberry Pi und Updates: [docs/INSTALLATION.md](docs/INSTALLATION.md).
+
+The initial login password is printed to the console (or log) on first start:
+`journalctl -u homelite | grep -i passwort`
+
+Running as a service (systemd), Raspberry Pi images and updates: [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
 ## Plugins (`plugins-example/`)
-| Plugin | Zweck |
+
+Plugins are optional. Nothing in this list is active until you install and enable it.
+
+| Plugin | Purpose |
 |---|---|
-| `esp32-display` | ESP32 mit Display (z. B. Waveshare): Seiten/Kacheln in HomeLite, nur Änderungen per MQTT-Textprotokoll, Tippen zurück. Mit Firmware für ESP32 und gängige SPI-Displays (Waveshare 3.5", ILI9341, ILI9486, ILI9488, ST7796, ST7789, CYD; PlatformIO) inkl. Bildschirmschoner mit Uhr: [firmware/esp32-display](firmware/esp32-display/README.md) |
-| `tomons-wallbox` | Tomons / Inateck Mobile Wallbox über die Tomons-Cloud (inoffiziell, experimentell): Leistung, Energie, Kabelstatus, Ladestrom-Grenze |
-| `flows` | Visueller Flow-Editor (Node-RED/n8n-Stil), Webhooks, MQTT, Unterflows, Verlauf, eigene Knoten |
-| `tuya` | Tuya / Smart Life, lokal (LAN) mit Cloud-Fallback |
-| `alarmzentrale` | Alarmanlage: Sensoren und Sirenen frei wählbar, Zuhause/Abwesend, Verzögerungen, PIN, Protokoll |
-| `tapo-kamera` | TP-Link Tapo Kameras lokal (ONVIF/RTSP): Bewegung/Person als Geräte, Standbild, Live-Ansicht, Schwenken und Positionen |
-| `zigbee2mqtt` | Zigbee über Zigbee2MQTT (Sonoff ZBDongle-E/-P, ConBee II …): Geräte automatisch anlegen, anlernen/umbenennen/entfernen, Einrichtungs-Assistent |
-| `zwave` | Z-Wave über zwave-js-server (Z-Wave JS UI): Schalter, Dimmer, Schlösser, Thermostate, Sensoren, Taster; Geräte anlernen/entfernen |
-| `siocs-heizung` | Fernwärme-Heizung über das SIOCS-Webportal (Sensoren, Betriebsart, Korrektur, Heizzeiten) |
-| `claude` | Claude-Assistent im Chat (über Claude-Abo via Claude Code CLI), kann Automationen anlegen |
-| `systemmonitor` | CPU, RAM, Temperatur, Datenträger des Servers inkl. Warnungen |
-| `ssh` | SSH-Zugriff für den KI-Zugriff |
-| `philips-hue` | Hue-Bridge |
-| `muellkalender` | Müllkalender (CITIES-App) |
-| `erreichbarkeit` | Erreichbarkeitsprüfung von Geräten/Adressen |
-| `duckdns` | DuckDNS-Client |
-| `tailscale` | Tailscale: Status, Geräte im Tailnet, Sensoren, Serve-/Funnel-Prüfung mit Warnung bei Internet-Freigabe |
-| `bmw` | BMW/MINI über BMW CarData: Ladestand, Reichweite, Laden, Türen, Standort mit Karte, Reifen, Service und alle Werte wie in der App (nur lesend) |
-| `leapmotor` | Leapmotor-Auto über die Leapmotor-Cloud (inoffiziell): Ladestand, Reichweite, Reifendruck, Standort mit Karte, Sensoren als Geräte, Fernbefehle, Automations-Aktion, KI-Werkzeuge; früher fest eingebaut, Daten werden beim Update übernommen |
+| `flows` | Visual flow editor: webhooks, MQTT, sub-flows, execution history, custom nodes |
+| `zigbee2mqtt` | Zigbee devices via a Zigbee2MQTT instance: auto-discovery, pairing, renaming, setup assistant |
+| `zwave` | Z-Wave via zwave-js-server: switches, dimmers, locks, thermostats, sensors, buttons |
+| `tuya` | Tuya / Smart Life devices, local (LAN) with cloud fallback |
+| `philips-hue` | Hue bridge |
+| `tapo-kamera` | Tapo cameras, local only (ONVIF/RTSP): motion and person detection as devices, snapshot, live view, pan/tilt presets |
+| `alarmzentrale` | Alarm logic: freely selectable sensors and sirens, home/away, delays, PIN, log |
+| `esp32-display` | ESP32 with an SPI touch display as a wall panel; firmware included: [firmware/esp32-display](firmware/esp32-display/README.md) |
+| `bmw` | BMW/MINI vehicle data via the manufacturer's official customer data interface (read-only) |
+| `leapmotor` | Leapmotor vehicle data and remote commands. **Unofficial, experimental** – see notice below |
+| `tomons-wallbox` | Tomons mobile wallbox: power, energy, cable state, charge current limit. **Unofficial, experimental** – see notice below |
+| `siocs-heizung` | District heating controller via its web portal: sensors, operating mode, schedules |
+| `claude` | Chat assistant inside HomeLite, using a locally installed Claude Code CLI and your own account |
+| `ssh` | SSH access for the AI integration |
+| `systemmonitor` | CPU, RAM, temperature and disk usage of the server, with warnings |
+| `tailscale` | Tailscale status, devices in the tailnet, warning when something is exposed to the internet |
+| `muellkalender` | Waste collection calendar |
+| `erreichbarkeit` | Reachability checks for devices and addresses |
+| `duckdns` | DuckDNS client |
 
-Der Bereich „Verfügbare Plugins“ (Einstellungen → Erweiterungen) listet alle Plugins des Repositories zur Installation mit einem Klick. Fertige SD-Karten-Images für Orange Pi One und Raspberry Pi 2+: siehe [docs/INSTALLATION.md](docs/INSTALLATION.md).
+Install: *Settings → Extensions → Plugins* (file or URL), or copy the folder to `data/plugins/<id>`. The "Available plugins" section lists everything in this repository for one-click installation and shows updates when a newer version exists.
 
-Installation: Einstellungen → Erweiterungen → Plugins (Datei oder URL) oder Ordner nach `data/plugins/<id>` kopieren. Neue Plugin-Versionen werden dort mit „⬆ Update“ und Link zur Quelle angezeigt. Standard-Quelle für Updates und Plugins ist das GitHub-Repository `https://github.com/friedlro/homelite`; ein GitLite-Repository ist als Quelle ebenfalls möglich (dafür muss `git` auf dem Gerät installiert sein).
+### Notice on unofficial integrations
+
+Plugins marked **unofficial** talk to services for which the manufacturer provides no public, documented interface. They are provided for private interoperability with devices and accounts **you own**, and:
+
+- they are not endorsed, supported or approved by the respective manufacturer,
+- they may stop working at any time,
+- using them may be restricted by the terms of service of the respective provider – checking this, and the decision to use them, is your responsibility,
+- they ship without any credentials, certificates or keys; you supply your own.
 
 ## Firmware (`firmware/`)
-Firmware für eigene Geräte, die mit HomeLite zusammenarbeiten (getrennt von den Plugins, wird nicht mit ihnen installiert).
 
-| Ordner | Zweck |
+Firmware for your own devices that work with HomeLite. Separate from plugins and not installed with them.
+
+| Folder | Purpose |
 |---|---|
-| [`firmware/esp32-display`](firmware/esp32-display/README.md) | ESP32 + gängige SPI-Displays (PlatformIO, eine Umgebung je Controller: Waveshare 3.5" RPi LCD, ILI9341, CYD/ESP32-2432S028R, ILI9488, ILI9486, ST7796, ST7789) für das Plugin `esp32-display`: Seiten und Kacheln aus HomeLite, Tippen schaltet, Bildschirmschoner mit wanderndem Datum und Uhrzeit |
+| [`firmware/esp32-display`](firmware/esp32-display/README.md) | ESP32 with common SPI displays (PlatformIO, one environment per controller: ILI9341, ILI9486, ILI9488, ST7796, ST7789) for the `esp32-display` plugin: pages and tiles from HomeLite, touch to switch, screensaver with clock |
 
-## Dokumentation
-| Datei | Inhalt |
+## Documentation
+
+The documentation is currently written in German.
+
+| File | Content |
 |---|---|
-| [docs/INSTALLATION.md](docs/INSTALLATION.md) | Installation, systemd, Raspberry Pi, Update, Backup |
-| [docs/SICHERHEIT.md](docs/SICHERHEIT.md) | Schutzmaßnahmen, Empfehlungen, Betrieb ohne root |
-| [docs/HANDBUCH.md](docs/HANDBUCH.md) | Ausführliches Handbuch zu allen Funktionen |
-| [docs/FLOWS.md](docs/FLOWS.md) | Flow-Plugin: Knoten, Ausdrücke, Fehlerbehandlung, Erweiterung |
-| [docs/PLUGINS.md](docs/PLUGINS.md) | Plugin-API (Server, Oberfläche, MQTT, Webhook, MCP) |
-| [docs/ARCHITEKTUR.md](docs/ARCHITEKTUR.md) | Aufbau des Codes und Datenflüsse |
-| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Änderungen je Version |
+| [docs/INSTALLATION.md](docs/INSTALLATION.md) | Installation, systemd, Raspberry Pi, update, backup |
+| [docs/SICHERHEIT.md](docs/SICHERHEIT.md) | Security measures, recommendations, running without root |
+| [docs/HANDBUCH.md](docs/HANDBUCH.md) | Full manual for all features |
+| [docs/FLOWS.md](docs/FLOWS.md) | Flow plugin: nodes, expressions, error handling, extending |
+| [docs/PLUGINS.md](docs/PLUGINS.md) | Plugin API (server, UI, MQTT, webhook, MCP) |
+| [docs/ARCHITEKTUR.md](docs/ARCHITEKTUR.md) | Code structure and data flows |
+| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Changes per version |
 
-## Sicherheit
-Login mit Passwort und signiertem Cookie, MCP und Webhooks nur mit geheimem Token. HomeLite gehört ins Heimnetz; für Zugriff von außen
-ein VPN (z. B. Tailscale) oder einen Reverse-Proxy mit HTTPS verwenden. Von außen (Internet, Tunnel, Portfreigabe) erreichbar sind nur die per Schlüssel geschützten Pfade `/mcp`, `/hook`, `/trigger` und `/where.html` (Tailscale Funnel wird akzeptiert, abschaltbar); dazu Anfragenbegrenzung und Scanner-Sperre – Details in [docs/SICHERHEIT.md](docs/SICHERHEIT.md). Plugins und Flows laufen mit den Rechten des HomeLite-Dienstes.
-Persönliche Daten (`data/`, `import/ha-migration.json`) sind per `.gitignore` ausgeschlossen.
+## Security
 
-## Lizenz
-MIT (siehe `package.json`).
+Password login with a signed cookie; MCP and webhooks require a secret token. HomeLite belongs inside your home network. For remote access use a VPN or a reverse proxy with HTTPS. Only the key-protected paths `/mcp`, `/hook`, `/trigger` and `/where.html` answer requests from outside, with rate limiting and scanner blocking – details in [docs/SICHERHEIT.md](docs/SICHERHEIT.md).
 
-## Unterstützen
+Plugins and flows run with the permissions of the HomeLite service. Install only plugins you trust.
 
-HomeLite ist kostenlos und ohne Werbung. Wenn es dir gefällt, freut sich der Entwickler über eine freiwillige Spende: [paypal.me/RolandFriedl](https://paypal.me/RolandFriedl) (auch in HomeLite unter Einstellungen → Allgemein).
+Personal data (`data/`) is excluded from the repository via `.gitignore`.
 
-### Einrichtung und individuelle Plugins
+## Disclaimer
 
-Du möchtest HomeLite nicht selbst aufsetzen oder brauchst die Anbindung eines bestimmten Geräts? Auf Anfrage gibt es gegen Bezahlung:
+HomeLite is a private open-source project, provided **"as is", without warranty of any kind**, as stated in the [MIT License](LICENSE).
 
-- **Einrichtung und Migration** – Installation auf Heimserver oder Raspberry Pi, Umstieg von Home Assistant
-- **Individuelle Plugins** – Anbindung deines Geräts oder Dienstes; das Plugin wird danach offen in diesem Repository veröffentlicht
-- **Support** – Hilfe bei Fehlersuche und Automationen auf Stundenbasis
+- **Not a safety or security product.** HomeLite, including the alarm, lock, heating, vehicle and charging functions, is not certified and must not be relied on to protect people or property. Do not use it as the only safeguard for anything where a failure could cause damage or injury.
+- **Mains voltage and vehicles.** Have electrical installations done by a qualified electrician. You are responsible for every command sent to your devices, heating system, vehicle or charger.
+- **Privacy.** If you use cameras, location tracking or presence detection, you are responsible for complying with the data protection laws that apply to you, including informing other people in your household and visitors.
+- **Third-party services.** You are responsible for complying with the terms of the services and accounts you connect.
 
-Anfragen bitte über ein [GitHub-Issue](https://github.com/friedlro/Homelite/issues/new) mit dem Titel „Anfrage".
+## Trademarks
+
+All product names, brands and trademarks mentioned in this repository belong to their respective owners. They are used only to describe compatibility. HomeLite is an independent project and is **not affiliated with, endorsed by or sponsored by** any of these companies or projects.
+
+## Third-party code
+
+Some plugins bundle third-party open-source components under their own licenses. The license texts and notices are kept in the respective plugin folders (`NOTICE.md`, `LICENSE-*`).
+
+## License
+
+[MIT](LICENSE) © Roland Friedl
+
+## Support the project
+
+HomeLite is free and has no ads. If you find it useful, a voluntary donation is welcome: [paypal.me/RolandFriedl](https://paypal.me/RolandFriedl). Donations are voluntary and do not entitle you to support or any other service.
+
+Bug reports and ideas: [GitHub Issues](https://github.com/friedlro/Homelite/issues).

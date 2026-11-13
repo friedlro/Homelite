@@ -1,7 +1,7 @@
 {
   "id": "flows",
-  "name": "Flows (Node-RED & n8n Stil)",
-  "version": "1.0.0",
+  "name": "Flows",
+  "version": "1.0.1",
   "description": "Visueller Flow-Editor für komplexe Automationen: Knoten per Maus verbinden, Ausdrücke {{ }}, Verzweigungen, Schleifen, Warten auf Geräte, Fehlerbehandlung mit Wiederholung, Unterflows, Webhooks, MQTT, HTTP und Ausführungsverlauf. Erweiterbar durch eigene Knoten.",
   "author": "HomeLite",
   "icon": "🕸",
