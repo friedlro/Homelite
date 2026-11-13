@@ -12,13 +12,11 @@
 
 **Lightweight, self-hosted home automation in Node.js.** Runs on a home server or a Raspberry Pi (Pi 2 and newer). No cloud account required, no build step, all data in a single SQLite file.
 
-<!--
-  SCREENSHOTS – add the files, then remove this comment block around the table.
-
 | Dashboard | Energy | Flow editor |
 |---|---|---|
 | ![Dashboard](docs/screenshots/dashboard.png) | ![Energy](docs/screenshots/energy.png) | ![Flow editor](docs/screenshots/flows.png) |
--->
+
+<sub>Screenshots show invented demo data.</sub>
 
 ## Why HomeLite
 
