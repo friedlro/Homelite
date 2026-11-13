@@ -114,7 +114,7 @@
           h('td', {}, catLabel(t.category)), h('td', { class: 'hint' }, summary(t)), h('td', {}, connCell(t, L)),
           h('td', {}, t.linked.length ? t.linked.map((id) => (HL.dev(id) || {}).name).filter(Boolean).join(', ') : ph.has(t.name) ? h('span', { class: 'pill warn' }, 'Platzhalter vorhanden') : '–'),
           h('td', {}, h('button', { class: 'sm', onclick: () => linkDialog(t) }, t.linked.length ? '+ weiterer Wert' : 'Übernehmen'))))))));
-      nodes.push(h('p', { class: 'hint' }, 'Tipp: Platzhalter aus dem Datei-Import werden mit gleichnamigen Tuya-Geräten vorbelegt – deine Automationen funktionieren danach sofort.'));
+      nodes.push(h('p', { class: 'hint' }, 'Tipp: Platzhalter aus dem HA-Import werden mit gleichnamigen Tuya-Geräten vorbelegt – deine Automationen funktionieren danach sofort.'));
     }
     fill(el, ...nodes);
   }

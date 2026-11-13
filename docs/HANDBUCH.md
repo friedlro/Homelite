@@ -60,9 +60,9 @@ WantedBy=multi-user.target
 4. **Heizung**: pro Raum ein Thermostat (z. B. Zigbee-Heizkörperventil) **oder** ein Schalter plus Temperatursensor (Zweipunktregelung ±0,3 °C), Komfort-/Absenktemperatur und Zeitfenster. Bei „niemand zuhause“ wird automatisch abgesenkt. ± im Raum = 2 Std. Boost.
 5. **Push-Nachrichten**: Aktion „Push-Nachricht“ nutzt [ntfy](https://ntfy.sh) (kostenlose iPhone-App, auch selbst hostbar) – Topic unter *Einstellungen* eintragen und in der App abonnieren.
 
-## Import aus Datei
+## HA-Import
 
-*Einstellungen → Aus Datei importieren* (oder Knopf bei leerem Dashboard) legt die Räume, Geräte und Automationen aus `import/migration.json` an. Der Import ist wiederholbar und legt nichts doppelt an.
+*Einstellungen → HA-Import* (oder Knopf bei leerem Dashboard) legt die Räume, Geräte und Automationen aus `import/migration.json` an. Der Import ist wiederholbar und legt nichts doppelt an.
 
 - Tasmota-Geräte werden über die MAC erkannt, sobald der Broker die `tasmota/discovery/…`-Meldung liefert (bis dahin „wartet“).
 - Shelly-Geräte: IP eintragen (Gerät bearbeiten), dann sind sie aktiv.
@@ -258,7 +258,7 @@ server.js          HTTP-API, SSE, Geofence-Hook
 lib/devices.js     MQTT, Shelly, HTTP, virtuell; Discovery, Steuerung
 lib/engine.js      Automationen (Trigger, Modi, Wenn/Dann)
 lib/sun.js         Sonnenauf-/untergang
-lib/importer.js    Import aus Datei (import/migration.json)
+lib/importer.js    HA-Import (import/migration.json)
 lib/heating.js     Heizlogik
 lib/presence.js    Personen, Zonen, Events
 lib/updater.js     Software-Update per Klick
@@ -289,7 +289,7 @@ Einrichtung: Seite **Geräte** → Abschnitt „Shelly CoIoT“ → **Einrichten
 
 Neue Bedingungen für Automationen: **Ausgelöst durch** (prüft die optionale *Kennung* eines Geräte-Auslösers, z. B. „fernbedienung“), **ODER** (mindestens eine der enthaltenen Bedingungen) und **UND**. Damit lassen sich Automationen mit mehreren Auslösern und gemischten Bedingungen 1:1 abbilden. Beispiel: *Fernsehlicht aus* – Taste „Aus“ oder über 500 lx schalten immer aus, sonst nur wenn keine Präsenz **und** Apple TV aus.
 
-Der Import („Aus Datei importieren“) löst Geräte jetzt auch über ihren exakten Namen auf und kann ältere, feiner aufgeteilte Automationen ersetzen (Feld `replaces`). Die zwei Automationen **Fernsehlicht ein** und **Fernsehlicht aus** (inkl. „AppleTv WZ Status“) kommen deaktiviert an.
+Der Import („HA-Import“) löst Geräte jetzt auch über ihren exakten Namen auf und kann ältere, feiner aufgeteilte Automationen ersetzen (Feld `replaces`). Die zwei Automationen **Fernsehlicht ein** und **Fernsehlicht aus** (inkl. „AppleTv WZ Status“) kommen deaktiviert an.
 
 ## Plugins
 Erweiterungen lassen sich ohne Systemupdate als Plugin installieren (Einstellungen → Erweiterungen → Plugins, Datei oder URL). Plugins liegen in `data/plugins` und überstehen Updates. Details und API: [PLUGINS.md](PLUGINS.md). Beispiele: `plugins-example/erreichbarkeit`, `plugins-example/duckdns` (DuckDNS-Client), `plugins-example/claude` (Claude-Assistent im Chat), `plugins-example/flows` (visueller Flow-Editor), `plugins-example/systemmonitor` (CPU/RAM/Temperatur des Servers), `plugins-example/ssh` (SSH für den KI-Zugriff), `plugins-example/philips-hue` (Hue-Bridge), `plugins-example/muellkalender` (Müllkalender, CITIES-App).

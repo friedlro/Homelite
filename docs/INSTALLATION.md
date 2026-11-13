@@ -41,7 +41,7 @@ Einstellungen → Erweiterungen → Plugins → „Von Adresse installieren“, 
 `https://github.com/friedlro/Homelite/tree/main/plugins-example/philips-hue` (Ordner eines Plugins) oder die Adresse eines Repositorys, das genau ein Plugin im Hauptordner enthält.
 
 ## Erster Start
-Das Start-Passwort steht im Log. Danach: Einstellungen → Passwort ändern, Räume und Geräte anlegen, ggf. Import aus Datei (Handbuch).
+Das Start-Passwort steht im Log. Danach: Einstellungen → Passwort ändern, Räume und Geräte anlegen, ggf. HA-Import (Handbuch).
 
 ## Update
 - Per Klick: Einstellungen → Update (Standard-Quelle: GitHub-Repository `https://github.com/friedlro/homelite`; als eigene Quelle geht auch ein GitLite-Repository, dafür ist `sudo apt install git` nötig, weil GitLite kein Archiv anbietet und HomeLite die Dateien per `git clone --depth 1` holt). Vorher `data/` sichern (Einstellungen → Backup).

@@ -786,7 +786,7 @@ route('POST', '/api/matter/remove', async ({ body }) => {
   return { ok: true, removed: ids.size };
 });
 
-// Import aus Datei (vorbereitete Datei import/migration.json)
+// HA-Import (vorbereitete Datei import/migration.json)
 route('GET', '/api/import/file', () => importer.preview());
 route('POST', '/api/import/file', () => importer.run());
 

@@ -66,11 +66,11 @@ function tile(d) {
   }
 }
 
-// ---------- Import aus Datei ----------
+// ---------- HA-Import ----------
 async function importDialog() {
   let pv;
   try { pv = await api('GET', '/api/import/file'); } catch (e) { return fail(e); }
-  modal('Aus Datei importieren', h('div', {},
+  modal('HA-Import', h('div', {},
     h('p', { style: 'margin-top:0' }, `Die Importdatei enthält ${pv.devices} Geräte und ${pv.automations} Automationen (davon neu: ${pv.newDevices} Geräte, ${pv.newAutomations} Automationen). Bereits importierte Einträge werden nicht doppelt angelegt.`),
     h('ul', { class: 'hint' }, [
       h('li', {}, 'Zigbee2MQTT-Geräte sind sofort einsatzbereit (Broker unter „Einstellungen“ eintragen).'),
@@ -205,7 +205,7 @@ PAGES.dash = {
     if (dashEdit) { dashEditView(el); return; }
     if (!S.devices.length) {
       el.append(h('div', { class: 'empty', style: 'margin-top:16px' }, h('p', {}, 'Noch keine Geräte.'),
-        h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'primary', onclick: () => go('dev') }, 'Geräte hinzufügen'), h('button', { onclick: importDialog }, 'Aus Datei importieren'))));
+        h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'primary', onclick: () => go('dev') }, 'Geräte hinzufügen'), h('button', { onclick: importDialog }, 'HA-Import'))));
       return;
     }
     const blocks = effectiveBlocks();
@@ -414,7 +414,7 @@ PAGES.dev = {
         })))) : h('div', { class: 'empty' }, 'Keine Treffer.'));
     }
     el.append(h('div', { class: 'row sb' }, h('h2', { class: 'page-title' }, `Geräte (${S.devices.length})`),
-      h('div', { class: 'row' }, h('button', { onclick: importDialog }, '⇪ Importieren'), h('button', { class: 'primary', onclick: addDialog }, '+ Hinzufügen'))));
+      h('div', { class: 'row' }, h('button', { onclick: importDialog }, '⇪ HA-Import'), h('button', { class: 'primary', onclick: addDialog }, '+ Hinzufügen'))));
     if (!S.devices.length) { el.append(h('div', { class: 'empty', style: 'margin-top:12px' }, 'Noch keine Geräte.')); return; }
     if (pend) el.append(h('div', { class: 'banner', style: 'margin-top:12px' }, h('span', {}, `⚠ ${pend} Geräte sind noch nicht verbunden.`), filt === 'pending' ? null : h('button', { class: 'sm', onclick: () => { localStorage.setItem('hl_devfilter', 'pending'); renderPage(); } }, 'Nur diese anzeigen')));
     el.append(h('div', { class: 'row', style: 'margin:14px 0' },
@@ -642,7 +642,7 @@ PAGES.set = {
 
     el.append(h('h2', {}, 'Import'), h('div', { class: 'card' },
       h('p', { class: 'hint', style: 'margin-top:0' }, 'Übernimmt die vorbereiteten Geräte und Automationen aus der Importdatei (import/migration.json). Mehrfaches Ausführen legt nichts doppelt an.'),
-      h('button', { onclick: importDialog }, '⇪ Aus Datei importieren …')));
+      h('button', { onclick: importDialog }, '⇪ HA-Import …')));
 
     const nu = h('input', { value: S.notify.url });
     const nt = h('input', { value: S.notify.topic, placeholder: 'mein-geheimes-topic' });

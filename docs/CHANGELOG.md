@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.27.4
+- **Import heißt jetzt „HA-Import“** (Oberfläche und Dokumentation).
+
 ## 1.27.3
 - **README auf Englisch neu geschrieben**, mit Haftungsausschluss, Markenhinweis und Hinweis zu inoffiziellen Schnittstellen; **LICENSE-Datei (MIT)** ergänzt.
 - **Import neutral benannt:** „Aus Datei importieren“ statt des bisherigen Namens; die Importdatei heißt jetzt `import/migration.json` (der frühere Dateiname wird weiterhin gelesen).
