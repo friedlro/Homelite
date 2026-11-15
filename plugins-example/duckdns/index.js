@@ -52,6 +52,9 @@ module.exports = (api) => {
   }
   const snap = () => ({ ...st, domains: domains(api.config()).map((d) => d + '.duckdns.org') });
 
+  // Für andere Plugins (z. B. WireGuard): api.use('duckdns').domains() / .ip()
+  api.expose({ domains: () => snap().domains, ip: () => st.ip || '' });
+
   api.route('GET', 'status', () => ({ status: snap() }));
   api.route('POST', 'update', async () => { await update(); return { ok: st.ok === true, status: snap() }; });
 

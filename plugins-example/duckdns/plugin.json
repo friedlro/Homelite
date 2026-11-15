@@ -1,7 +1,7 @@
 {
   "id": "duckdns",
   "name": "DuckDNS",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Hält deine DuckDNS-Adresse(n) auf dem aktuellen Stand der öffentlichen IP (IPv4/IPv6). Zeigt Status, IP und letzte Änderung; meldet IP-Wechsel.",
   "author": "HomeLite",
   "icon": "🦆",
@@ -58,6 +58,7 @@
     }
   ],
   "changelog": {
-    "1.0.0": "Aktueller Stand."
+    "1.0.0": "Aktueller Stand.",
+    "1.1.0": "Stellt Domains und öffentliche IP für andere Plugins bereit (WireGuard)."
   }
 }

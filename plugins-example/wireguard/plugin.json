@@ -1,0 +1,27 @@
+{
+  "id": "wireguard",
+  "name": "WireGuard",
+  "version": "1.0.0",
+  "description": "Eigener WireGuard-VPN-Server: Benutzer mit Rechten (Heimnetz, Internet, andere Geräte, einzelne Ziele), Zugangspunkte/Geräte mit Schlüsseln, Download der Client-Konfiguration, Verbindungsstatus. Die Adresse kommt aus dem DuckDNS-Plugin.",
+  "author": "HomeLite",
+  "icon": "🔐",
+  "api": 1,
+  "minCore": "1.27.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "WireGuard", "icon": "🔐" },
+  "config": [
+    { "key": "iface", "label": "Schnittstelle", "type": "text", "default": "wg0", "help": "Name der WireGuard-Schnittstelle (a-z, 0-9, _ -)." },
+    { "key": "port", "label": "UDP-Port", "type": "number", "default": 51820, "help": "Im Router per Portweiterleitung (UDP) auf diesen Rechner freigeben." },
+    { "key": "subnet", "label": "VPN-Netz", "type": "text", "default": "10.8.0.0/24", "help": "Der Server bekommt die erste Adresse (.1), Geräte ab .2." },
+    { "key": "lan", "label": "Heimnetz (CIDR)", "type": "text", "default": "192.168.50.0/24", "help": "Das Netz, auf das Benutzer mit dem Recht „Heimnetz“ zugreifen dürfen." },
+    { "key": "dns", "label": "DNS für Clients", "type": "text", "default": "", "help": "Leer = Router/Rechner im Heimnetz ist nicht bekannt; z. B. 192.168.50.1 oder 1.1.1.1." },
+    { "key": "endpoints", "label": "Weitere Zugangspunkte (Adresse[:Port], kommagetrennt)", "type": "text", "default": "", "help": "Zusätzlich zu den DuckDNS-Domains, z. B. vpn.meinedomain.at oder eine feste IP." },
+    { "key": "wan", "label": "Ausgehende Schnittstelle (optional)", "type": "text", "default": "", "help": "Nur nötig, wenn die automatische Erkennung nicht passt (z. B. eth0). Wird für die Internetfreigabe der Clients genutzt." },
+    { "key": "mtu", "label": "MTU", "type": "number", "default": 1380, "help": "1280–1500." },
+    { "key": "autostart", "label": "Schnittstelle beim Start einrichten", "type": "bool", "default": true, "help": "Schreibt /etc/wireguard/<Name>.conf, startet die Schnittstelle und setzt die Firewall-Regeln." }
+  ],
+  "changelog": {
+    "1.0.0": "Erste Version: Benutzer, Rechte, Zugangspunkte, Client-Konfiguration, Status, Sensoren, KI-Werkzeug."
+  }
+}

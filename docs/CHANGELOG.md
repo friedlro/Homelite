@@ -1,5 +1,9 @@
 # Änderungen
 
+## 1.27.5
+- **Neues Plugin „WireGuard“ 1.0.0:** VPN-Server mit Benutzern, Rechten (Heimnetz / Internet / andere Geräte / einzelne Ziele:Port), Geräten als Zugangspunkten, Download der Client-Konfiguration, Verbindungsstatus, Sensoren und KI-Werkzeug `wireguard_status`. Rechte per iptables-Kette durchgesetzt. Schlüssel werden ohne Zusatzprogramme erzeugt.
+- **Plugin „DuckDNS“ 1.1.0:** stellt Domains und öffentliche IP anderen Plugins bereit.
+
 ## 1.27.4
 - **Import heißt jetzt „HA-Import“** (Oberfläche und Dokumentation).
 

@@ -68,6 +68,7 @@ Plugins are optional. Nothing in this list is active until you install and enabl
 | `alarmzentrale` | Alarm logic: freely selectable sensors and sirens, home/away, delays, PIN, log |
 | `esp32-display` | ESP32 with an SPI touch display as a wall panel; firmware included: [firmware/esp32-display](firmware/esp32-display/README.md) |
 | `bmw` | BMW/MINI vehicle data via the manufacturer's official customer data interface (read-only) |
+| `wireguard` | WireGuard-VPN-Server: Benutzer, Rechte, Geräte/Zugangspunkte, Download der Client-Konfiguration, Adresse aus DuckDNS |
 | `leapmotor` | Leapmotor vehicle data and remote commands. **Unofficial, experimental** – see notice below |
 | `tomons-wallbox` | Tomons mobile wallbox: power, energy, cable state, charge current limit. **Unofficial, experimental** – see notice below |
 | `siocs-heizung` | District heating controller via its web portal: sensors, operating mode, schedules |
