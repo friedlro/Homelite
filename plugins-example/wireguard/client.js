@@ -3,7 +3,7 @@
   const { h, fill, toast, fail, modal, fld } = HL;
   let M = null;
   const box = () => document.getElementById('wg-box');
-  const call = (m, sub, body) => HL.api('wireguard', m, sub, body || {});
+  const call = (m, sub, body) => HL.api('wireguard', m, sub, m === 'GET' ? undefined : (body || {}));
   const bytes = (n) => (n > 1e9 ? (n / 1e9).toFixed(2) + ' GB' : n > 1e6 ? (n / 1e6).toFixed(1) + ' MB' : n > 1e3 ? (n / 1e3).toFixed(0) + ' kB' : n + ' B');
   const ago = (t) => { if (!t) return 'noch nie'; const s = Math.round((Date.now() - t) / 1000); return s < 90 ? `vor ${s} s` : s < 5400 ? `vor ${Math.round(s / 60)} min` : s < 172800 ? `vor ${Math.round(s / 3600)} h` : `vor ${Math.round(s / 86400)} Tagen`; };
   const act = (p) => p.then((r) => { if (r && r.users) { M = r; draw(); } return r; }).catch(fail);

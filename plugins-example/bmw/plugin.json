@@ -1,7 +1,7 @@
 {
   "id": "bmw",
   "name": "BMW",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "BMW (und MINI) über BMW CarData: Ladestand, Reichweite, Laden, Türen/Fenster/Schloss, Reifen, Standort mit Karte, Tank, Service und alle weiteren Werte – übersichtlich wie in der App. Live per BMW-Datenstrom, Geräte/Sensoren für Automationen, KI-Werkzeug bmw_status. Nur lesend.",
   "author": "HomeLite",
   "icon": "🚙",
@@ -17,6 +17,7 @@
     { "key": "mapZoom", "label": "Kartenzoom", "type": "number", "default": 15, "help": "10–18." }
   ],
   "changelog": {
+    "1.0.1": "Fehler behoben: Seite blieb leer („Request with GET/HEAD method cannot have body“).",
     "1.0.0": "Erste Version: Anmeldung per Gerätecode, Live-Datenstrom (MQTT), App-ähnliche Seite, Sensoren, KI-Werkzeug."
   }
 }

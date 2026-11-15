@@ -3,7 +3,7 @@
   const { h, fill, toast, fail, fmtTime } = HL;
   let M = null;
   const box = () => document.getElementById('ts-box');
-  const call = (m, sub) => HL.api('tailscale', m, sub, {});
+  const call = (m, sub) => HL.api('tailscale', m, sub, m === 'GET' ? undefined : {});
 
   function draw() {
     const el = box(); if (!el || !M) return;

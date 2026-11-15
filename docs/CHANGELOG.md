@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.27.6
+- **Fehler behoben:** Die Seiten der Plugins WireGuard, BMW und Tailscale blieben leer mit der Meldung „Request with GET/HEAD method cannot have body“ (GET-Abfragen schickten einen Inhalt mit). Plugin-Versionen je 1.0.1.
+
 ## 1.27.5
 - **Neues Plugin „WireGuard“ 1.0.0:** VPN-Server mit Benutzern, Rechten (Heimnetz / Internet / andere Geräte / einzelne Ziele:Port), Geräten als Zugangspunkten, Download der Client-Konfiguration, Verbindungsstatus, Sensoren und KI-Werkzeug `wireguard_status`. Rechte per iptables-Kette durchgesetzt. Schlüssel werden ohne Zusatzprogramme erzeugt.
 - **Plugin „DuckDNS“ 1.1.0:** stellt Domains und öffentliche IP anderen Plugins bereit.

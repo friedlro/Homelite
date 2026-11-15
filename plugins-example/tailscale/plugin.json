@@ -1,7 +1,7 @@
 {
   "id": "tailscale",
   "name": "Tailscale",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Tailscale im Blick: Status dieses Rechners, alle Geräte im Tailnet (online/offline, IP, Verbindungsart), ausgewählte Geräte als Anwesenheits-/Erreichbarkeits-Sensoren und eine Prüfung von Serve/Funnel – mit Warnung, wenn HomeLite oder Teile davon aus dem Internet erreichbar sind.",
   "author": "HomeLite",
   "icon": "🛡️",
@@ -18,6 +18,7 @@
     { "key": "notifyOffline", "label": "Warnung, wenn ein überwachtes Gerät offline geht", "type": "bool", "default": false }
   ],
   "changelog": {
+    "1.0.1": "Fehler behoben: Seite blieb leer („Request with GET/HEAD method cannot have body“).",
     "1.0.0": "Erste Version: Status, Geräteliste, Sensoren, Serve-/Funnel-Prüfung mit Warnung, KI-Werkzeug tailscale_status."
   }
 }

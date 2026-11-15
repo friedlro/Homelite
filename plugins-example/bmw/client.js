@@ -3,7 +3,7 @@
   const { h, fill, toast, fail, fmtTime } = HL;
   let M = null, sel = null;
   const box = () => document.getElementById('bmw-box');
-  const call = (m, sub) => HL.api('bmw', m, sub, {});
+  const call = (m, sub) => HL.api('bmw', m, sub, m === 'GET' ? undefined : {});
 
   const EN = { CLOSED: 'geschlossen', OPEN: 'offen', OPENED: 'offen', AJAR: 'angelehnt', TILT: 'gekippt', INTERMEDIATE: 'teilweise offen', LOCKED: 'verriegelt', SECURED: 'gesichert', UNLOCKED: 'entriegelt', SELECTIVELOCKED: 'teilw. verriegelt',
     CHARGINGACTIVE: 'lädt', CHARGING: 'lädt', CHARGINGENDED: 'beendet', CHARGINGPAUSED: 'pausiert', NOCHARGING: 'lädt nicht', CHARGINGERROR: 'Fehler', CHARGINGCOMPLETED: 'abgeschlossen', CHARGINGINITIALIZED: 'startet', CHARGINGINTERRUPTED: 'unterbrochen',
