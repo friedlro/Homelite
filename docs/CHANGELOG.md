@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.27.7
+- **Fehler behoben (Automationen):** Ein Geräte-Auslöser mit „für N Sekunden“, aber ohne Zielwert (weder „wird zu“ noch „über/unter“) hat nie ausgelöst – z. B. bei „Fernsehlicht Aus“ (Präsenz/Helligkeit für 120 s). Jetzt bedeutet das „Zustand bleibt N Sekunden unverändert“; jede Änderung startet die Zeit neu. Mit der Engine in einer Testumgebung geprüft.
+
 ## 1.27.6
 - **Fehler behoben:** Die Seiten der Plugins WireGuard, BMW und Tailscale blieben leer mit der Meldung „Request with GET/HEAD method cannot have body“ (GET-Abfragen schickten einen Inhalt mit). Plugin-Versionen je 1.0.1.
 
