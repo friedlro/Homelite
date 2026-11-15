@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.27.8
+- **Apple TV:** „Pausiert“ überstimmt ein gemeldetes „aus“ nicht mehr. Der letzte Zustand „pausiert“ bleibt nach dem Ausschalten oft stehen und hielt den Status dauerhaft auf „an“ (Automationen wie „Fernsehlicht aus“ liefen nicht). Nur laufende Wiedergabe (läuft/lädt/spult) gilt weiter als „an“, auch wenn der Companion-Dienst „aus“ meldet. Mit der Statuslogik geprüft, nicht mit einem echten Apple TV.
+
 ## 1.27.7
 - **Fehler behoben (Automationen):** Ein Geräte-Auslöser mit „für N Sekunden“, aber ohne Zielwert (weder „wird zu“ noch „über/unter“) hat nie ausgelöst – z. B. bei „Fernsehlicht Aus“ (Präsenz/Helligkeit für 120 s). Jetzt bedeutet das „Zustand bleibt N Sekunden unverändert“; jede Änderung startet die Zeit neu. Mit der Engine in einer Testumgebung geprüft.
 
