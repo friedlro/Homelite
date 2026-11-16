@@ -66,6 +66,28 @@ function tile(d) {
   }
 }
 
+// ---------- Tasmota im Netz suchen ----------
+async function tasmotaScanDialog() {
+  const body = h('div', {}, h('p', { class: 'hint', style: 'margin-top:0' }, 'Sucht im Heimnetz alle Tasmota-Geräte (Weboberfläche, Port 80). Das dauert etwa 10–30 Sekunden.'));
+  const out = h('div');
+  body.append(out);
+  const run = async () => {
+    out.replaceChildren(h('div', { class: 'hint' }, '⏳ Suche läuft …'));
+    let r; try { r = await api('POST', '/api/tasmota/scan', {}); } catch (e) { out.replaceChildren(h('div', { class: 'hint' }, '✗ ' + e.message)); return; }
+    const rows = r.items.map((t) => h('tr', {},
+      h('td', {}, h('code', {}, t.ip)),
+      h('td', {}, t.auth ? h('i', {}, 'Passwort nötig') : [t.name, h('div', { class: 'hint' }, t.topic)]),
+      h('td', {}, t.auth ? '' : `${t.relays}× · ${t.version || ''}`),
+      h('td', {}, t.rssi != null ? t.rssi + ' %' : ''),
+      h('td', {}, t.auth ? '' : t.devices.length ? (t.direct ? '✓ direkt verbunden' : h('button', { class: 'sm', onclick: async (e) => { try { const x = await api('POST', '/api/tasmota/link', { ip: t.ip, topic: t.topic }); toast(`${x.linked.length} Gerät(e) direkt verbunden`); e.target.replaceWith(document.createTextNode('✓ direkt verbunden')); await reload(); } catch (err) { fail(err); } } }, 'Direkt verbinden')) : h('span', { class: 'hint' }, 'nicht in HomeLite')),
+      h('td', { class: 'hint' }, (t.devices || []).join(', '))));
+    out.replaceChildren(h('div', { style: 'margin:6px 0' }, `${r.items.length} Tasmota-Gerät(e) gefunden`), h('div', { style: 'overflow-x:auto' }, h('table', {}, h('thead', {}, h('tr', {}, ['IP', 'Gerät', 'Relais · Firmware', 'WLAN', 'HomeLite', 'Geräte'].map((x) => h('th', {}, x)))), h('tbody', {}, rows))),
+      h('p', { class: 'hint' }, 'Nur eigene Tasmota-Geräte mit Topic aus HomeLite lassen sich „direkt verbinden“. Geräte ohne Antwort sind ausgeschaltet, nicht im Netz oder haben die Weboberfläche abgeschaltet.'));
+  };
+  modal('Tasmota-Geräte suchen', body, [{ label: 'Erneut suchen', onClick: () => { run(); return false; } }, { label: 'Schließen', primary: true }]);
+  run();
+}
+
 // ---------- HA-Import ----------
 async function importDialog() {
   let pv;
@@ -433,7 +455,7 @@ PAGES.dev = {
         })))) : h('div', { class: 'empty' }, 'Keine Treffer.'));
     }
     el.append(h('div', { class: 'row sb' }, h('h2', { class: 'page-title' }, `Geräte (${S.devices.length})`),
-      h('div', { class: 'row' }, h('button', { onclick: importDialog }, '⇪ HA-Import'), h('button', { class: 'primary', onclick: addDialog }, '+ Hinzufügen'))));
+      h('div', { class: 'row' }, h('button', { onclick: tasmotaScanDialog }, '🔎 Tasmota suchen'), h('button', { onclick: importDialog }, '⇪ HA-Import'), h('button', { class: 'primary', onclick: addDialog }, '+ Hinzufügen'))));
     if (!S.devices.length) { el.append(h('div', { class: 'empty', style: 'margin-top:12px' }, 'Noch keine Geräte.')); return; }
     if (pend) el.append(h('div', { class: 'banner', style: 'margin-top:12px' }, h('span', {}, `⚠ ${pend} Geräte sind noch nicht verbunden.`), filt === 'pending' ? null : h('button', { class: 'sm', onclick: () => { localStorage.setItem('hl_devfilter', 'pending'); renderPage(); } }, 'Nur diese anzeigen')));
     el.append(h('div', { class: 'row', style: 'margin:14px 0' },

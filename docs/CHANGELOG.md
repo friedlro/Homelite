@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.28.1
+- **Tasmota im Netz suchen:** Neuer Knopf „🔎 Tasmota suchen“ auf der Geräteseite sucht alle Tasmota-Geräte im Heimnetz (IP, Name, Topic, Relais, Firmware, WLAN-Stärke) und gleicht sie mit den HomeLite-Geräten ab. Gefundene Geräte lassen sich mit einem Klick „direkt verbinden“ (IP wird bei allen zugehörigen Geräten hinterlegt). Geräte mit gesetztem Web-Passwort werden als „Passwort nötig“ gelistet. Mit einem simulierten Tasmota-Gerät geprüft.
+
 ## 1.28.0
 - **Tasmota direkt verbinden:** Bei MQTT-Tasmota-Geräten lässt sich unter „Gerät bearbeiten“ die IP-Adresse (optional Web-Benutzer/Passwort) eintragen. HomeLite schaltet und liest das Gerät dann direkt per HTTP (`/cm?cmnd=…`, alle 10 s, Dimmer inklusive) und braucht dafür keinen MQTT-Broker; schlägt das fehl, wird weiter MQTT benutzt. Mit „Verbindung prüfen“ wird das Gerät abgefragt, die IP wird aus der Tasmota-Discovery vorgeschlagen. Mit einem simulierten Tasmota-Gerät geprüft, nicht mit echter Hardware.
 

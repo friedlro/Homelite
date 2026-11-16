@@ -547,6 +547,31 @@ route('POST', '/api/shelly/find', async () => {   // Shellys per MAC unter neuer
   const r = await devices.findShellies('manuell', true);
   return { ok: true, ...r, withMac: devices.list.filter((d) => d.driver === 'shelly' && d.mac).length, withoutMac: devices.list.filter((d) => d.driver === 'shelly' && !d.mac).length };
 });
+// Alle Tasmota-Geräte im Netz suchen und mit den HomeLite-Geräten abgleichen
+let tasScanning = false;
+route('POST', '/api/tasmota/scan', async () => {
+  if (tasScanning) throw bad('Die Suche läuft noch');
+  tasScanning = true;
+  try {
+    const items = await require('./lib/netfind').scanTasmota();
+    return {
+      items: items.map((it) => {
+        const mine = it.topic ? store.cfg.devices.filter((d) => d.driver === 'mqtt' && d.cmd && String(d.cmd.topic || '').startsWith(`cmnd/${it.topic}/`)) : [];
+        return { ...it, devices: mine.map((d) => d.name), direct: mine.length > 0 && mine.every((d) => d.direct && d.direct.ip === it.ip) };
+      }),
+    };
+  } finally { tasScanning = false; }
+});
+// Gefundenes Tasmota-Gerät für alle zugehörigen HomeLite-Geräte „direkt verbinden“
+route('POST', '/api/tasmota/link', ({ body }) => {
+  const ip = str(body.ip, 100), topic = str(body.topic, 120);
+  if (!/^[\w.:-]+$/.test(ip) || !topic) throw bad('IP und Topic nötig');
+  const mine = store.cfg.devices.filter((d) => d.driver === 'mqtt' && d.cmd && String(d.cmd.topic || '').startsWith(`cmnd/${topic}/`));
+  if (!mine.length) throw bad('Kein HomeLite-Gerät mit diesem Tasmota-Topic');
+  for (const d of mine) d.direct = { ip, user: str(body.user, 60), pass: body.pass ? str(body.pass, 100) : (d.direct && d.direct.pass) || '' };
+  store.save();
+  return { ok: true, linked: mine.map((d) => d.name) };
+});
 route('POST', '/api/tasmota/probe', async ({ body }) => {
   const ip = str(body.ip, 100);
   if (!/^[\w.:-]+$/.test(ip)) throw bad('Ungültige IP');

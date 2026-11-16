@@ -166,7 +166,7 @@ Plugin **„WireGuard“** (`plugins-example/wireguard`, Anleitung dort: `LIESMI
 
 ## Tasmota direkt verbinden
 
-Ist ein Tasmota-Gerät über MQTT nicht erreichbar (z. B. „Stiege“ bleibt ohne Zustand), kann HomeLite es direkt ansprechen: *Geräte → Gerät bearbeiten → „Tasmota direkt verbinden“* – IP-Adresse eintragen (wird aus der Tasmota-Meldung vorgeschlagen), bei gesetztem WebPassword Benutzer und Passwort, „Verbindung prüfen“, speichern. Schalten und Zustand laufen dann per HTTP; fällt das aus, nutzt HomeLite weiter MQTT. Dem Gerät sollte im Router eine feste IP zugewiesen sein.
+Ist ein Tasmota-Gerät über MQTT nicht erreichbar (z. B. „Stiege“ bleibt ohne Zustand), kann HomeLite es direkt ansprechen: *Geräte → Gerät bearbeiten → „Tasmota direkt verbinden“* – IP-Adresse eintragen (wird aus der Tasmota-Meldung vorgeschlagen), bei gesetztem WebPassword Benutzer und Passwort, „Verbindung prüfen“, speichern. Schalten und Zustand laufen dann per HTTP; fällt das aus, nutzt HomeLite weiter MQTT. Dem Gerät sollte im Router eine feste IP zugewiesen sein. Alle Tasmota-Geräte im Netz findet *Geräte → „🔎 Tasmota suchen“*; dort lassen sie sich auch gleich direkt verbinden.
 
 ## Eingebauter MQTT-Broker
 
