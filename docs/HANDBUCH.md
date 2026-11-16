@@ -164,6 +164,10 @@ Plugin **„BMW“** (`plugins-example/bmw`, Einrichtung in `LIESMICH.md`): bind
 
 Plugin **„WireGuard“** (`plugins-example/wireguard`, Anleitung dort: `LIESMICH.md`): eigener VPN-Server. Benutzer mit Rechten (Heimnetz, Internet, andere Geräte, einzelne Ziele), Geräte/Zugangspunkte mit automatisch erzeugten Schlüsseln, **Download der Client-Konfiguration** als `.conf`. Die Adresse liefert das DuckDNS-Plugin (ab 1.1.0). Rechte werden serverseitig per Firewall durchgesetzt. Braucht `wireguard` und `iptables` auf dem Rechner und eine UDP-Portweiterleitung im Router. Mit simulierten Befehlen geprüft, nicht auf echter Hardware.
 
+## Tasmota direkt verbinden
+
+Ist ein Tasmota-Gerät über MQTT nicht erreichbar (z. B. „Stiege“ bleibt ohne Zustand), kann HomeLite es direkt ansprechen: *Geräte → Gerät bearbeiten → „Tasmota direkt verbinden“* – IP-Adresse eintragen (wird aus der Tasmota-Meldung vorgeschlagen), bei gesetztem WebPassword Benutzer und Passwort, „Verbindung prüfen“, speichern. Schalten und Zustand laufen dann per HTTP; fällt das aus, nutzt HomeLite weiter MQTT. Dem Gerät sollte im Router eine feste IP zugewiesen sein.
+
 ## Eingebauter MQTT-Broker
 
 *Einstellungen → Erweiterungen → „Eingebauter MQTT-Broker“* einschalten: HomeLite startet einen eigenen MQTT-Server (MQTT 3.1/3.1.1, Port 1883, QoS 0/1, Retained-Werte, Last-Will, Wildcards) – ein separater Mosquitto ist nicht mehr nötig. Ohne Zusatzpakete.

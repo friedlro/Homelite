@@ -261,6 +261,9 @@ function deviceDialog(d, onSaved, initial) {
     scale: h('input', { type: 'number', step: 'any', value: o.scale ?? 1 }),
     interval: h('input', { type: 'number', min: 10, value: o.interval ?? 60 }),
     unit: h('input', { value: o.unit || '' }),
+    dip: h('input', { value: (o.direct && o.direct.ip) || '', placeholder: o.tasIp || '192.168.50.60' }),
+    duser: h('input', { value: (o.direct && o.direct.user) || '', placeholder: 'admin' }),
+    dpass: h('input', { type: 'password', placeholder: o.direct && o.direct.hasPass ? '(unverändert)' : 'optional', autocomplete: 'new-password' }),
   };
   const gen = sel({ 0: 'automatisch erkennen', 1: 'Gen 1', 2: 'Gen 2/3' }, o.gen ?? 0, (v) => { o.gen = Number(v); });
   function draw() {
@@ -276,6 +279,20 @@ function deviceDialog(d, onSaved, initial) {
       const keep = ['stateTopics', 'paths', 'cmd', 'get', 'onValue', 'unit', 'brightnessMax'];
       adv = h('textarea', { class: 'full', style: 'min-height:220px' }, JSON.stringify(Object.fromEntries(keep.filter((k) => o[k] !== undefined && o[k] !== '' && !(Array.isArray(o[k]) && !o[k].length)).map((k) => [k, o[k]])), null, 2));
       box.append(adv, h('div', { class: 'hint full' }, MQTT_HELP));
+      if (!isNew && /^cmnd\/[^/]+\/POWER\d*$/i.test((o.cmd && o.cmd.topic) || '')) {
+        const res = h('div', { class: 'hint full' }, o.tasIp && !(o.direct && o.direct.ip) ? `Vorschlag aus der Tasmota-Meldung: ${o.tasIp}` : '');
+        box.append(h('h3', { class: 'full', style: 'margin:14px 0 0' }, 'Tasmota direkt verbinden (ohne MQTT)'),
+          h('div', { class: 'hint full' }, 'HomeLite schaltet und liest das Gerät dann direkt per HTTP über seine IP-Adresse. Ist es so nicht erreichbar, wird weiter MQTT genutzt. Leer lassen = nur MQTT.'),
+          fld('IP / Hostname des Tasmota-Geräts', f.dip), fld('Web-Benutzer (nur wenn WebPassword gesetzt)', f.duser), fld('Web-Passwort', f.dpass),
+          h('div', { class: 'row full' }, h('button', { class: 'sm', onclick: async () => {
+            const ip = f.dip.value.trim() || o.tasIp || ''; if (!ip) { toast('Erst die IP eintragen', true); return; }
+            try {
+              const r = await api('POST', '/api/tasmota/probe', { ip, user: f.duser.value, pass: f.dpass.value, id: d && d.id });
+              if (!f.dip.value.trim()) f.dip.value = ip;
+              res.textContent = `✓ Erreichbar: ${r.name}${r.topic ? ` (Topic ${r.topic})` : ''}, ${r.relays.length || 1} Relais, ` + Object.entries(r.power).map(([k, v]) => `${k} ${v}`).join(', ');
+            } catch (e) { res.textContent = '✗ ' + e.message; }
+          } }, 'Verbindung prüfen')), res);
+      }
     }
   }
   draw();
@@ -289,7 +306,7 @@ function deviceDialog(d, onSaved, initial) {
       label: 'Speichern', primary: true,
       onClick: async () => {
         const payload = { ...o, name: name.value.trim() || 'Gerät' };
-        delete payload.pending; delete payload.hasPass;
+        delete payload.pending; delete payload.hasPass; delete payload.tasIp; if (o.driver !== 'mqtt') delete payload.direct;
         if (o.driver === 'shelly') {
           Object.assign(payload, { ip: f.ip.value.trim(), channel: Number(f.ch.value) || 0, gen: o.gen ?? 0, user: f.user.value });
           if (f.pass.value) payload.pass = f.pass.value; else delete payload.pass;
@@ -300,6 +317,8 @@ function deviceDialog(d, onSaved, initial) {
           let j;
           try { j = JSON.parse(adv.value); } catch { toast('JSON ungültig', true); return false; }
           Object.assign(payload, j);
+          if (f.dip.value.trim()) payload.direct = { ip: f.dip.value.trim(), user: f.duser.value.trim(), ...(f.dpass.value ? { pass: f.dpass.value } : {}) };
+          else if (d && d.direct) payload.direct = null;
           if (j.stateTopics && j.stateTopics.length) payload.pending = false;
         }
         if (d && d.pending && (payload.ip || payload.url || (payload.stateTopics && payload.stateTopics.length))) payload.pending = false; else if (d && d.pending) payload.pending = true;

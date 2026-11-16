@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.28.0
+- **Tasmota direkt verbinden:** Bei MQTT-Tasmota-Geräten lässt sich unter „Gerät bearbeiten“ die IP-Adresse (optional Web-Benutzer/Passwort) eintragen. HomeLite schaltet und liest das Gerät dann direkt per HTTP (`/cm?cmnd=…`, alle 10 s, Dimmer inklusive) und braucht dafür keinen MQTT-Broker; schlägt das fehl, wird weiter MQTT benutzt. Mit „Verbindung prüfen“ wird das Gerät abgefragt, die IP wird aus der Tasmota-Discovery vorgeschlagen. Mit einem simulierten Tasmota-Gerät geprüft, nicht mit echter Hardware.
+
 ## 1.27.8
 - **Apple TV:** „Pausiert“ überstimmt ein gemeldetes „aus“ nicht mehr. Der letzte Zustand „pausiert“ bleibt nach dem Ausschalten oft stehen und hielt den Status dauerhaft auf „an“ (Automationen wie „Fernsehlicht aus“ liefen nicht). Nur laufende Wiedergabe (läuft/lädt/spult) gilt weiter als „an“, auch wenn der Companion-Dienst „aus“ meldet. Mit der Statuslogik geprüft, nicht mit einem echten Apple TV.
 

@@ -194,6 +194,14 @@ function cleanDevice(d, old = {}) {
     out.onValue = str(d.onValue ?? old.onValue, 40);
     out.unit = str(d.unit ?? old.unit, 12);
     out.brightnessMax = num(d.brightnessMax ?? old.brightnessMax, 100);
+    // Tasmota direkt per HTTP (optional): { ip, user, pass } – leere IP = aus
+    const dr = d.direct !== undefined ? d.direct : old.direct;
+    if (isObj(dr) && str(dr.ip, 100)) {
+      const dip = str(dr.ip, 100).trim();
+      if (!/^[\w.:-]+$/.test(dip)) throw bad('Ungültige IP/Hostname');
+      const op = isObj(old.direct) ? old.direct : {};
+      out.direct = { ip: dip, user: str(dr.user, 60), pass: dr.pass === undefined || dr.pass === null ? op.pass || '' : str(dr.pass, 100) };
+    }
   } else if (driver === 'shelly') {
     const ip = str(d.ip ?? old.ip, 100);
     if (ip && !/^[\w.:-]+$/.test(ip)) throw bad('Ungültige IP/Hostname');
@@ -274,7 +282,7 @@ const byName = (a, b) => collator.compare(String(a.name || ''), String(b.name ||
 function model() {
   const c = cfg();
   return {
-    devices: c.devices.map((d) => ({ ...d, pass: undefined, hasPass: !!d.pass, pending: devices.isPending(d) })).sort(byName), rooms: c.rooms,
+    devices: c.devices.map((d) => ({ ...d, pass: undefined, hasPass: !!d.pass, direct: d.direct ? { ip: d.direct.ip, user: d.direct.user, hasPass: !!d.direct.pass } : undefined, tasIp: devices.tasmotaIpOf(d), pending: devices.isPending(d) })).sort(byName), rooms: c.rooms,
     automations: c.automations.map((a) => ({ ...a, lastRun: engine.lastRun.get(a.id) || null })).sort(byName),
     mqtt: { ...mqttInfo(), url: c.mqtt.url, user: c.mqtt.user, hasPass: !!c.mqtt.pass, z2mBase: c.mqtt.z2mBase, tasmotaGroup: c.mqtt.tasmotaGroup },
     notify: c.notify,
@@ -538,6 +546,13 @@ route('POST', '/api/shelly/fw/update', async ({ body }) => {
 route('POST', '/api/shelly/find', async () => {   // Shellys per MAC unter neuer IP wiederfinden
   const r = await devices.findShellies('manuell', true);
   return { ok: true, ...r, withMac: devices.list.filter((d) => d.driver === 'shelly' && d.mac).length, withoutMac: devices.list.filter((d) => d.driver === 'shelly' && !d.mac).length };
+});
+route('POST', '/api/tasmota/probe', async ({ body }) => {
+  const ip = str(body.ip, 100);
+  if (!/^[\w.:-]+$/.test(ip)) throw bad('Ungültige IP');
+  let pass = str(body.pass, 100);
+  if (!pass && body.id) { const dv = store.cfg.devices.find((x) => x.id === body.id); if (dv && dv.direct && dv.direct.ip === ip) pass = dv.direct.pass || ''; }
+  try { return await devices.probeTasmota(ip, str(body.user, 60), pass); } catch (e) { throw bad('Tasmota nicht erreichbar: ' + e.message); }
 });
 route('POST', '/api/shelly/probe', async ({ body }) => {
   const ip = str(body.ip, 100);
