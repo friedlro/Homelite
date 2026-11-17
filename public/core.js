@@ -136,10 +136,15 @@ function loadPluginAssets() {
 }
 
 function renderNav() {
+  const keep = $('#nav').scrollLeft;
   $('#nav').replaceChildren(
     h('div', { class: 'brand-side' }, h('img', { class: 'logo', src: 'icon.svg', alt: '' }), 'HomeLite'),
     ...Object.entries(PAGES).filter(([k]) => navVisible(k) || k === page).map(([k, p]) => h('button', { class: k === page ? 'act' : '', onclick: () => go(k), title: p.label },
       h('span', { class: 'ni' }, p.icon || '•'), h('span', { class: 'nl' }, p.short || p.label))));
+  // Untere Leiste (Handy): Scrollposition behalten und den aktiven Eintrag sichtbar halten
+  const nav = $('#nav'); nav.scrollLeft = keep;
+  const act = nav.querySelector('button.act');
+  if (act && nav.scrollWidth > nav.clientWidth) { const l = act.offsetLeft; if (l < nav.scrollLeft + 8 || l + act.offsetWidth > nav.scrollLeft + nav.clientWidth - 8) nav.scrollLeft = l - (nav.clientWidth - act.offsetWidth) / 2; }
 }
 
 function renderPage() {

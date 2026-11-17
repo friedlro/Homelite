@@ -319,7 +319,7 @@ function costHistoryCard() {
     const kc = (kwh, cost) => (kwh ? (cost === null ? 'Preis fehlt' : eur(cost)) : '–');
     fill(box,
       h('div', { class: 'chipbar', style: 'margin-bottom:8px' }, [['day', 'Täglich'], ['week', 'Wöchentlich'], ['month', 'Monatlich'], ['year', 'Jährlich']].map(([k, l]) => h('button', { class: 'fchip ' + (wbPeriod === k ? 'act' : ''), onclick: () => { wbPeriod = k; localStorage.setItem('hl_wbperiod', k); load(); } }, l))),
-      h('div', { style: 'overflow-x:auto' }, h('table', { style: 'width:100%' },
+      h('div', { style: 'overflow-x:auto' }, h('table', { class: 'costtab', style: 'width:100%' },
         h('thead', {}, h('tr', {}, h('th', {}, 'Zeitraum'), h('th', {}, ''), h('th', { style: 'text-align:right' }, '⬇ Netz gesamt kWh'), h('th', { style: 'text-align:right' }, 'Kosten'), h('th', { style: 'text-align:right' }, '− 🚗 Wallbox kWh'), h('th', { style: 'text-align:right' }, 'Kosten'), h('th', { style: 'text-align:right' }, '= 🏠 Haus kWh'), h('th', { style: 'text-align:right' }, 'Kosten'))),
         h('tbody', {}, d.rows.map((r) => h('tr', {}, h('td', {}, r.label), h('td', { style: 'width:18%' }, h('span', { class: 'bar', style: 'display:block' }, h('i', { style: `width:${Math.round((r.gkwh / mx) * 100)}%` }))),
           R('', r.gkwh ? fmtNum(r.gkwh, 2) : '–'), R('', kc(r.gkwh, r.gcost)), R('', r.kwh ? fmtNum(r.kwh, 2) : '–'), R('', kc(r.kwh, r.cost)), R('font-weight:600', r.hkwh ? fmtNum(r.hkwh, 2) : '–'), R('font-weight:600', kc(r.hkwh, r.hcost))))),

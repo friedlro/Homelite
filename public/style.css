@@ -286,3 +286,82 @@ code, .mono { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px;
 .hrow .hi { flex: none; width: 22px; text-align: center; }
 .hrow .hm { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 560px) { .hrow .ht { width: 54px; } }
+
+/* ---------- Smartphone & Tablet: Feinschliff ---------- */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overflow-x: hidden; }
+img, svg, video { max-width: 100%; }
+header, main { padding-left: max(var(--pad-x, 24px), env(safe-area-inset-left)); padding-right: max(var(--pad-x, 24px), env(safe-area-inset-right)); }
+
+/* Tablet hochkant: drei Spalten statt zwei, größere Kacheln */
+@media (min-width: 600px) and (max-width: 899px) {
+  .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  :root { --pad-x: 20px; }
+  main { padding-top: 20px; padding-bottom: 110px; }
+  #nav .nl { font-size: 12px; }
+  .modal { padding: 24px; }
+}
+
+@media (max-width: 899px) {
+  :root { --pad-x: 14px; }
+  /* iOS zoomt in Eingabefelder unter 16 px hinein – das verhindern */
+  input, select, textarea { font-size: 16px; }
+  /* Untere Leiste: weiches Auslaufen zeigt, dass sie weiter scrollt */
+  #nav { scroll-snap-type: x proximity; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+  #nav::-webkit-scrollbar { display: none; }
+  #nav button { scroll-snap-align: center; min-width: 58px; }
+  #nav button.act { scroll-margin: 0 40px; }
+  th, td { padding: 9px 6px; }
+  .chips { margin-left: auto; }
+  .row.sb { gap: 8px; }
+  .cons { grid-template-columns: minmax(70px, 120px) 1fr auto; gap: 8px; }
+  .wmap { height: 320px; }
+  .flow-svg { max-height: 300px; }
+}
+
+/* Touch-Geräte: Tippflächen mindestens ~40 px */
+@media (pointer: coarse) {
+  button, .btn { min-height: 40px; }
+  button.sm { min-height: 34px; padding: 6px 12px; }
+  .fchip { min-height: 36px; }
+  .switch, .tile .sw { touch-action: manipulation; }
+  input[type=checkbox], input[type=radio] { width: 20px; height: 20px; }
+  .days label { padding: 6px 10px; }
+  button, a, select { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+}
+
+/* Kleine Telefone */
+@media (max-width: 380px) {
+  :root { --pad-x: 10px; }
+  .grid { gap: 8px; }
+  .card { padding: 12px; }
+  .tile .val { font-size: 19px; }
+  .big { font-size: 26px; }
+  .modal { padding: 16px; border-radius: 18px; }
+  .modal .foot { bottom: -16px; margin-bottom: -16px; padding-bottom: 16px; }
+  #nav button { min-width: 50px; }
+}
+
+/* Telefon quer: Kopfzeile scrollt mit, damit Platz bleibt */
+@media (max-height: 500px) and (max-width: 1000px) {
+  header { position: static; }
+  #overlay { padding-top: 8px; }
+  .modal { max-height: 96vh; }
+  main { padding-bottom: 80px; }
+}
+
+/* Tabellen als Karten auf schmalen Bildschirmen (Klasse „stack“) */
+@media (max-width: 640px) {
+  table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; width: 100%; }
+  table.stack thead { display: none; }
+  table.stack tr { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  table.stack tr:last-child { border-bottom: 0; }
+  table.stack td { border: 0; padding: 2px 0; }
+  table.stack td[data-l]:not(:empty)::before { content: attr(data-l) ": "; color: var(--muted); font-size: 12px; }
+  table.stack td.nm { font-weight: 600; font-size: 15px; }
+  table.stack td.nm::before { content: none; }
+  table.stack td.hide-s { display: none; }
+  table.stack td.act { padding-top: 6px; }
+  /* Kostentabelle (Energie) enger setzen */
+  table.costtab th, table.costtab td { padding: 7px 4px; font-size: 12px; }
+}

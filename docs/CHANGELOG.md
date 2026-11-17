@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.29.4
+- **Oberfläche für Smartphone und Tablet überarbeitet:** Tablet hochkant zeigt drei Kachelspalten; Eingabefelder haben mindestens 16 px (kein automatisches Hineinzoomen auf dem iPhone); Tippflächen auf Touch-Geräten sind größer; Rand und Kopfzeile beachten die Notch (Querformat). Die untere Leiste behält ihre Scrollposition und zeigt den aktiven Eintrag. Die Geräteliste wird auf dem Handy als Kartenliste statt als abgeschnittene Tabelle dargestellt (Quelle ausgeblendet), die Kostentabelle der Energie-Seite ist enger gesetzt. Im Querformat auf dem Handy scrollt die Kopfzeile mit. In Chromium mit Handy- und Tablet-Größen geprüft, nicht auf echten Geräten.
+
 ## 1.29.3
 - **Energie: Wallbox vom Netzbezug abgezogen:** Die Wallbox ist im Netzbezug enthalten. Die Kostentabelle zeigt jetzt „Netz gesamt − Wallbox = Haus“ (kWh und Kosten, je Tag gerechnet, nie unter 0). Die Kacheln im Block „Stromkosten“ zeigen den Haus-Verbrauch ohne Wallbox (Netz gesamt steht im Hinweis). Nur mit simulierten Werten geprüft.
 

@@ -444,12 +444,12 @@ PAGES.dev = {
       : d.driver === 'http' ? h('code', {}, d.url ? 'http' : 'http (URL fehlt)') : d.driver === 'virtual' ? h('code', {}, 'virtuell') : d.driver === 'plugin' ? h('code', {}, 'plugin ' + d.plugin) : h('code', {}, (d.stateTopics || [])[0] || (d.tasmota ? `tasmota ${d.tasmota.mac}` : '–')));
     function drawTable() {
       const list = S.devices.filter((d) => (filt === 'pending' ? d.pending : true) && (!q || `${d.name} ${d.room} ${d.note || ''}`.toLowerCase().includes(q)));
-      tableBox.replaceChildren(list.length ? h('div', { class: 'card', style: 'overflow-x:auto;padding:6px 14px' }, h('table', {},
+      tableBox.replaceChildren(list.length ? h('div', { class: 'card', style: 'overflow-x:auto;padding:6px 14px' }, h('table', { class: 'stack' },
         h('thead', {}, h('tr', {}, ['Name', 'Raum', 'Typ', 'Quelle', 'Zustand', ''].map((t) => h('th', {}, t)))),
         h('tbody', {}, list.map((d) => {
           const s = st(d.id);
-          return h('tr', {}, h('td', {}, (d.fav ? '★ ' : '') + d.name), h('td', {}, d.room || '–'), h('td', {}, TYPE_LABEL[d.type] || d.type),
-            h('td', {}, sourceOf(d)), h('td', {}, stateOf(d, s)), h('td', {}, h('div', { class: 'row', style: 'flex-wrap:nowrap' },
+          return h('tr', {}, h('td', { class: 'nm' }, (d.fav ? '★ ' : '') + d.name), h('td', { 'data-l': 'Raum' }, d.room || '–'), h('td', { 'data-l': 'Typ' }, TYPE_LABEL[d.type] || d.type),
+            h('td', { class: 'hide-s' }, sourceOf(d)), h('td', { 'data-l': 'Zustand' }, stateOf(d, s)), h('td', { class: 'act' }, h('div', { class: 'row', style: 'flex-wrap:nowrap' },
               h('button', { class: 'sm', onclick: () => deviceDialog(d) }, 'Bearbeiten'),
               h('button', { class: 'sm danger', onclick: () => { if (confirm(`„${d.name}“ löschen?`)) api('DELETE', `/api/devices/${d.id}`).then(reload).catch(fail); } }, 'Löschen'))));
         })))) : h('div', { class: 'empty' }, 'Keine Treffer.'));
