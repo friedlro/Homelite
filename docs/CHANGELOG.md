@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.29.3
+- **Energie: Wallbox vom Netzbezug abgezogen:** Die Wallbox ist im Netzbezug enthalten. Die Kostentabelle zeigt jetzt „Netz gesamt − Wallbox = Haus“ (kWh und Kosten, je Tag gerechnet, nie unter 0). Die Kacheln im Block „Stromkosten“ zeigen den Haus-Verbrauch ohne Wallbox (Netz gesamt steht im Hinweis). Nur mit simulierten Werten geprüft.
+
 ## 1.29.2
 - **Energie: Kosten des Netzbezugs:** Neuer Block „💶 Stromkosten“ mit Netzbezug (kWh) und Kosten für heute, Monat und Jahr. Die Kostentabelle ist jetzt **täglich / wöchentlich / monatlich / jährlich** filterbar und zeigt Netzbezug und Wallbox nebeneinander (kWh, Kosten, Summe). Es gilt derselbe Strompreis wie bei der Wallbox (Dialog „💶 Strompreis“, je Tag der gültige Preis). Der Netzbezug stammt aus den bestehenden Bezugswerten (Netz-Sensor nötig) und enthält auch den Wallbox-Strom, soweit er nicht aus PV kommt – die Spalten nicht addieren. Nur mit simulierten Werten geprüft.
 

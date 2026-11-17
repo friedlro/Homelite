@@ -320,11 +320,12 @@ function costHistoryCard() {
     fill(box,
       h('div', { class: 'chipbar', style: 'margin-bottom:8px' }, [['day', 'Täglich'], ['week', 'Wöchentlich'], ['month', 'Monatlich'], ['year', 'Jährlich']].map(([k, l]) => h('button', { class: 'fchip ' + (wbPeriod === k ? 'act' : ''), onclick: () => { wbPeriod = k; localStorage.setItem('hl_wbperiod', k); load(); } }, l))),
       h('div', { style: 'overflow-x:auto' }, h('table', { style: 'width:100%' },
-        h('thead', {}, h('tr', {}, h('th', {}, 'Zeitraum'), h('th', {}, ''), h('th', { style: 'text-align:right' }, '⬇ Netz kWh'), h('th', { style: 'text-align:right' }, 'Kosten'), h('th', { style: 'text-align:right' }, '🚗 Wallbox kWh'), h('th', { style: 'text-align:right' }, 'Kosten'))),
-        h('tbody', {}, d.rows.map((r) => h('tr', {}, h('td', {}, r.label), h('td', { style: 'width:22%' }, h('span', { class: 'bar', style: 'display:block' }, h('i', { style: `width:${Math.round((r.gkwh / mx) * 100)}%` }))),
-          R('', r.gkwh ? fmtNum(r.gkwh, 2) : '–'), R('', kc(r.gkwh, r.gcost)), R('', r.kwh ? fmtNum(r.kwh, 2) : '–'), R('', kc(r.kwh, r.cost))))),
-        h('tfoot', {}, h('tr', {}, h('th', {}, 'Summe'), h('th', {}), h('th', { style: 'text-align:right' }, fmtNum(d.gridTotal.kwh, 2)), h('th', { style: 'text-align:right' }, d.gridTotal.cost === null ? '–' : eur(d.gridTotal.cost)), h('th', { style: 'text-align:right' }, fmtNum(d.total.kwh, 2)), h('th', { style: 'text-align:right' }, d.total.cost === null ? '–' : eur(d.total.cost)))))),
-      h('div', { class: 'hint', style: 'margin-top:6px' }, 'Der Netzbezug enthält auch den Strom der Wallbox, soweit er nicht aus der PV-Anlage kommt – beide Spalten nicht addieren.'));
+        h('thead', {}, h('tr', {}, h('th', {}, 'Zeitraum'), h('th', {}, ''), h('th', { style: 'text-align:right' }, '⬇ Netz gesamt kWh'), h('th', { style: 'text-align:right' }, 'Kosten'), h('th', { style: 'text-align:right' }, '− 🚗 Wallbox kWh'), h('th', { style: 'text-align:right' }, 'Kosten'), h('th', { style: 'text-align:right' }, '= 🏠 Haus kWh'), h('th', { style: 'text-align:right' }, 'Kosten'))),
+        h('tbody', {}, d.rows.map((r) => h('tr', {}, h('td', {}, r.label), h('td', { style: 'width:18%' }, h('span', { class: 'bar', style: 'display:block' }, h('i', { style: `width:${Math.round((r.gkwh / mx) * 100)}%` }))),
+          R('', r.gkwh ? fmtNum(r.gkwh, 2) : '–'), R('', kc(r.gkwh, r.gcost)), R('', r.kwh ? fmtNum(r.kwh, 2) : '–'), R('', kc(r.kwh, r.cost)), R('font-weight:600', r.hkwh ? fmtNum(r.hkwh, 2) : '–'), R('font-weight:600', kc(r.hkwh, r.hcost))))),
+        h('tfoot', {}, h('tr', {}, h('th', {}, 'Summe'), h('th', {}),
+          ...[d.gridTotal, d.total, d.houseTotal].flatMap((t) => [h('th', { style: 'text-align:right' }, fmtNum(t.kwh, 2)), h('th', { style: 'text-align:right' }, t.cost === null ? '–' : eur(t.cost))]))))),
+      h('div', { class: 'hint', style: 'margin-top:6px' }, 'Der Netzbezug enthält den Wallbox-Strom. „Haus“ = Netz gesamt abzüglich Wallbox (je Tag, nie unter 0) – das ist der Stromverbrauch ohne Auto.'));
   };
   const load = async () => {
     if (wbHist[wbPeriod] && Date.now() - wbHist[wbPeriod].ts < 30000) { draw(wbHist[wbPeriod].d); return; }
@@ -339,10 +340,11 @@ function gridCostBlock() {
   const g = S.energy && S.energy.gridCosts; if (!g) return null;
   const pr = g.price;
   const tile = (name, x) => statTile(name, fmtK(x.kwh), x.priced ? eur(x.cost) : (pr === null ? 'Preis fehlt' : ''));
+  const hs = g.house;
   return h('div', {},
     h('div', { class: 'row sb' }, h('h2', {}, '💶 Stromkosten'), h('button', { class: 'sm', onclick: tariffDialog }, '💶 Strompreis')),
-    h('div', { class: 'grid', style: 'margin-bottom:10px' }, tile('⬇ Netzbezug heute', g.today), tile('Dieser Monat', g.month), tile('Dieses Jahr', g.year)),
-    h('div', { class: 'hint', style: 'margin-bottom:8px' }, pr === null ? 'Noch kein Strompreis hinterlegt – „💶 Strompreis“ wählen, dann werden die Kosten angezeigt.' : `Strompreis aktuell ${eurKwh(pr)} (für Netzbezug und Wallbox).`));
+    h('div', { class: 'grid', style: 'margin-bottom:10px' }, tile('🏠 Haus heute (ohne Wallbox)', hs.today), tile('Dieser Monat', hs.month), tile('Dieses Jahr', hs.year)),
+    h('div', { class: 'hint', style: 'margin-bottom:8px' }, pr === null ? 'Noch kein Strompreis hinterlegt – „💶 Strompreis“ wählen, dann werden die Kosten angezeigt.' : `Strompreis aktuell ${eurKwh(pr)}. Haus = Netzbezug abzüglich Wallbox. Netz gesamt: heute ${fmtK(g.today.kwh)} / Monat ${fmtK(g.month.kwh)} / Jahr ${fmtK(g.year.kwh)}.`));
 }
 
 // Wallbox: Verbrauch in kWh und Kosten
