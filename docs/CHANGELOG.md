@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.29.0
+- **Energie: Wallbox mit Verbrauch und Kosten:** Die Energie-Seite zeigt den Wallbox-Verbrauch in kWh (heute / 7 bzw. 30 Tage / Monat / Jahr, aus der Wallbox-Leistung mitgezählt) und die Kosten. Die Wallbox des Plugins „Tomons Wallbox“ wird automatisch erkannt, andere Leistungs-Sensoren lassen sich unter „⚙ Quellen“ wählen. Neuer Dialog **💶 Strompreis**: Preis pro kWh mit Gültigkeitsbeginn – ändert sich der Preis, wird ein neuer Eintrag ab Stichtag angelegt, frühere Tage behalten ihren Preis. Gezählt wird ab dem Update (keine nachträglichen Werte). Mit simulierten Messwerten geprüft.
+
 ## 1.28.1
 - **Tasmota im Netz suchen:** Neuer Knopf „🔎 Tasmota suchen“ auf der Geräteseite sucht alle Tasmota-Geräte im Heimnetz (IP, Name, Topic, Relais, Firmware, WLAN-Stärke) und gleicht sie mit den HomeLite-Geräten ab. Gefundene Geräte lassen sich mit einem Klick „direkt verbinden“ (IP wird bei allen zugehörigen Geräten hinterlegt). Geräte mit gesetztem Web-Passwort werden als „Passwort nötig“ gelistet. Mit einem simulierten Tasmota-Gerät geprüft.
 

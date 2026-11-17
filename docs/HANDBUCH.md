@@ -168,6 +168,10 @@ Plugin **„WireGuard“** (`plugins-example/wireguard`, Anleitung dort: `LIESMI
 
 Ist ein Tasmota-Gerät über MQTT nicht erreichbar (z. B. „Stiege“ bleibt ohne Zustand), kann HomeLite es direkt ansprechen: *Geräte → Gerät bearbeiten → „Tasmota direkt verbinden“* – IP-Adresse eintragen (wird aus der Tasmota-Meldung vorgeschlagen), bei gesetztem WebPassword Benutzer und Passwort, „Verbindung prüfen“, speichern. Schalten und Zustand laufen dann per HTTP; fällt das aus, nutzt HomeLite weiter MQTT. Dem Gerät sollte im Router eine feste IP zugewiesen sein. Alle Tasmota-Geräte im Netz findet *Geräte → „🔎 Tasmota suchen“*; dort lassen sie sich auch gleich direkt verbinden.
 
+## Energie: Wallbox-Verbrauch und Kosten
+
+Auf der Energie-Seite zeigt der Block **🚗 Wallbox** die geladene Energie (kWh) für heute, 7/30 Tage, Monat und Jahr sowie die Kosten. Die Wallbox des Tomons-Plugins wird automatisch verwendet (Sensor „Wallbox Leistung“); andere Wallboxen oder Zähler wählst du unter *⚙ Quellen → Wallbox-Leistung*. Den **Strompreis** (€/kWh) legst du mit *💶 Strompreis* fest: jeder Eintrag gilt ab seinem Datum bis zum nächsten. Bei einer Preisänderung (z. B. zum Jahreswechsel) neuen Eintrag ab Stichtag anlegen – alte Tage behalten ihren Preis. kWh werden ab der Aktivierung mitgezählt, frühere Ladungen sind nicht enthalten.
+
 ## Eingebauter MQTT-Broker
 
 *Einstellungen → Erweiterungen → „Eingebauter MQTT-Broker“* einschalten: HomeLite startet einen eigenen MQTT-Server (MQTT 3.1/3.1.1, Port 1883, QoS 0/1, Retained-Werte, Last-Will, Wildcards) – ein separater Mosquitto ist nicht mehr nötig. Ohne Zusatzpakete.

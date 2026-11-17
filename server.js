@@ -690,6 +690,7 @@ route('PUT', '/api/energy/config', ({ body }) => {
   const c = cfg().energy;
   const ids = (a) => (Array.isArray(a) ? a.filter((x) => cfg().devices.some((d) => d.id === x)).slice(0, 30) : []);
   c.pv = ids(body.pv); c.grid = ids(body.grid); c.battery = ids(body.battery); c.house = ids(body.house); c.consumers = ids(body.consumers);
+  if (Array.isArray(body.wallbox)) c.wallbox = ids(body.wallbox);
   c.gridInvert = !!body.gridInvert; c.batteryInvert = !!body.batteryInvert;
   if (body.peakLimit !== undefined) { const v = Number(body.peakLimit); c.peakLimit = isFinite(v) && v > 0 ? Math.min(Math.round(v * 100) / 100, 1000) : 0; }
   c.soc = cfg().devices.some((d) => d.id === body.soc) ? body.soc : '';
@@ -697,6 +698,21 @@ route('PUT', '/api/energy/config', ({ body }) => {
   store.save();
   energy.tick();
   return { ok: true };
+});
+// Strompreis (€/kWh) je Gültigkeitsbeginn – ändert sich der Preis, einfach einen neuen Eintrag ab Datum anlegen
+route('PUT', '/api/energy/tariff', ({ body }) => {
+  const arr = Array.isArray(body.tariff) ? body.tariff : [];
+  const out = [];
+  for (const t of arr.slice(0, 60)) {
+    const from = str(t && t.from, 10); const price = Number(t && t.price);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || isNaN(Date.parse(from))) throw bad('Datum ungültig (JJJJ-MM-TT)');
+    if (!isFinite(price) || price < 0 || price > 10) throw bad('Preis ungültig (0–10 €/kWh)');
+    out.push({ from, price: Math.round(price * 10000) / 10000 });
+  }
+  if (new Set(out.map((x) => x.from)).size !== out.length) throw bad('Ein Datum ist doppelt eingetragen');
+  cfg().energy.tariff = out.sort((a, b) => (a.from < b.from ? -1 : 1));
+  store.save(); energy.tick();
+  return { ok: true, tariff: cfg().energy.tariff };
 });
 route('POST', '/api/energy/victron/discover', async ({ body }) => {
   const v = cfg().energy.victron;

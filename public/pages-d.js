@@ -287,10 +287,48 @@ function multiPick(title, devs, set, single) {
   return box;
 }
 
+const eur = (v) => (v === null || v === undefined || isNaN(v) ? '–' : `${fmtNum(v, 2)} €`);
+const eurKwh = (v) => (v === null || v === undefined ? '–' : `${Number(v).toLocaleString('de-AT', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} €/kWh`);
+
+// Strompreis je Gültigkeitsbeginn (ändert sich z. B. jährlich): Preis gilt ab dem Datum bis zum nächsten Eintrag
+function tariffDialog() {
+  const rows = ((S.energy && S.energy.wallbox && S.energy.wallbox.tariff) || S.energyCfg.tariff || []).map((t) => ({ ...t }));
+  if (!rows.length) rows.push({ from: new Date().getFullYear() + '-01-01', price: '' });
+  const box = h('div');
+  const draw = () => fill(box, rows.map((r, i) => h('div', { class: 'row', style: 'gap:8px;margin:6px 0;align-items:center' },
+    h('span', { class: 'hint' }, 'ab'), h('input', { type: 'date', value: r.from, onchange: (e) => { r.from = e.target.value; } }),
+    h('input', { type: 'number', step: '0.0001', min: 0, value: r.price, placeholder: '0,3290', style: 'width:110px', onchange: (e) => { r.price = e.target.value; } }), h('span', { class: 'hint' }, '€/kWh'),
+    rows.length > 1 ? h('button', { class: 'sm danger', onclick: () => { rows.splice(i, 1); draw(); } }, '🗑') : null)),
+    h('button', { class: 'sm', onclick: () => { rows.push({ from: new Date().toISOString().slice(0, 10), price: '' }); draw(); } }, '➕ Neuer Preis ab Datum'));
+  draw();
+  modal('Strompreis', h('div', {}, h('p', { class: 'hint', style: 'margin-top:0' }, 'Preis pro kWh inkl. aller Abgaben (brutto). Jeder Eintrag gilt ab seinem Datum bis zum nächsten. Ändert sich der Preis, einfach einen neuen Eintrag ab dem Stichtag hinzufügen – bisherige Tage behalten ihren Preis.'), box),
+  [{ label: 'Abbrechen' }, { label: 'Speichern', primary: true, onClick: async () => {
+    await api('PUT', '/api/energy/tariff', { tariff: rows.filter((r) => r.from && r.price !== '').map((r) => ({ from: r.from, price: Number(String(r.price).replace(',', '.')) })) });
+    toast('Strompreis gespeichert'); Object.keys(energyCache).forEach((k) => delete energyCache[k]); await reload();
+  } }]);
+}
+
+// Wallbox: Verbrauch in kWh und Kosten
+function wallboxCard(range, data) {
+  const w = S.energy && S.energy.wallbox; if (!w) return null;
+  const pr = w.price;
+  let a; let lab;
+  if (range !== 'today' && data && data.days) { a = { kwh: data.days.reduce((x, d) => x + (d.wb || 0), 0), cost: data.days.every((d) => !d.wb || d.wbCost !== null) ? data.days.reduce((x, d) => x + (d.wbCost || 0), 0) : null }; lab = range === '30' ? '30 Tage' : '7 Tage'; }
+  else { a = { kwh: w.today.kwh, cost: w.today.priced ? w.today.cost : null }; lab = 'Heute'; }
+  const per = (t) => ({ kwh: t.kwh, cost: t.priced ? t.cost : null });
+  const m = per(w.month); const y = per(w.year);
+  const tile = (name, x) => statTile(name, fmtK(x.kwh), x.cost === null ? (pr === null ? 'Preis fehlt' : '') : eur(x.cost));
+  return h('div', {},
+    h('div', { class: 'row sb' }, h('h2', {}, '🚗 Wallbox'), h('button', { class: 'sm', onclick: tariffDialog }, '💶 Strompreis')),
+    h('div', { class: 'grid', style: 'margin-bottom:10px' }, tile(lab, a), range === 'today' || true ? tile('Dieser Monat', m) : null, tile('Dieses Jahr', y),
+      statTile('Aktuell', w.w === null ? '–' : w.w > 5 ? `${fmtNum(w.w / 1000, 2)} kW` : 'bereit', w.meter !== null ? `Zählerstand ${fmtNum(w.meter, 1)} kWh` : '')),
+    h('div', { class: 'hint' }, pr === null ? 'Noch kein Strompreis hinterlegt – oben „💶 Strompreis“ wählen, dann werden die Kosten angezeigt.' : `Strompreis aktuell ${eurKwh(pr)}. kWh werden ab Aktivierung aus der Wallbox-Leistung mitgezählt.`));
+}
+
 function energyConfigDialog() {
   const c = S.energyCfg;
   const cand = S.devices.filter((d) => d.type === 'sensor' || ((d.type === 'switch' || d.type === 'light') && d.driver !== 'virtual'));
-  const sets = { pv: new Set(c.pv), grid: new Set(c.grid), battery: new Set(c.battery), house: new Set(c.house), consumers: new Set(c.consumers), soc: new Set(c.soc ? [c.soc] : []) };
+  const sets = { wallbox: new Set(c.wallbox || []), pv: new Set(c.pv), grid: new Set(c.grid), battery: new Set(c.battery), house: new Set(c.house), consumers: new Set(c.consumers), soc: new Set(c.soc ? [c.soc] : []) };
   const o = { gridInvert: c.gridInvert, batteryInvert: c.batteryInvert };
   const limit = h('input', { type: 'number', min: 0, step: '0.1', value: c.peakLimit || '', placeholder: 'z. B. 5 (leer = keine Grenze)', style: 'width:100%' });
   const body = h('div', {},
@@ -301,11 +339,12 @@ function energyConfigDialog() {
     multiPick('🔋 Batterie-Ladestand (%)', cand, sets.soc, true),
     multiPick('🏠 Hausverbrauch (optional)', cand, sets.house),
     multiPick('🔌 Einzelverbraucher (Shelly, Steckdosen …)', cand, sets.consumers),
+    multiPick('🚗 Wallbox-Leistung (leer = Tomons-Wallbox automatisch)', cand, sets.wallbox),
     h('div', { class: 'field' }, h('label', {}, '📈 Leistungsgrenze für Viertelstunden-Spitzen (kW, optional)'), limit,
       h('p', { class: 'hint' }, 'Wird im Diagramm als Linie eingezeichnet; Spitzen darüber werden rot markiert.')));
   modal('Energie-Quellen', body, [{ label: 'Abbrechen' }, {
     label: 'Speichern', primary: true, onClick: async () => {
-      await api('PUT', '/api/energy/config', { pv: [...sets.pv], grid: [...sets.grid], battery: [...sets.battery], house: [...sets.house], consumers: [...sets.consumers], soc: [...sets.soc][0] || '', gridInvert: o.gridInvert, batteryInvert: o.batteryInvert, peakLimit: limit.value === '' ? 0 : Number(limit.value), victron: { keepalive: c.victron.keepalive } });
+      await api('PUT', '/api/energy/config', { wallbox: [...sets.wallbox], pv: [...sets.pv], grid: [...sets.grid], battery: [...sets.battery], house: [...sets.house], consumers: [...sets.consumers], soc: [...sets.soc][0] || '', gridInvert: o.gridInvert, batteryInvert: o.batteryInvert, peakLimit: limit.value === '' ? 0 : Number(limit.value), victron: { keepalive: c.victron.keepalive } });
       toast('Gespeichert');
       Object.keys(energyCache).forEach((k) => delete energyCache[k]);
       await reload();
@@ -381,6 +420,7 @@ PAGES.energy = {
       statTile('Eigenverbrauch', t.selfUse === null ? '–' : t.selfUse + ' %', 'Anteil Erzeugung selbst genutzt')));
     if (data) el.append(chartCard(data)); else el.append(h('div', { class: 'card hint' }, 'Lade Verlauf …'));
     if (data && data.peaks) el.append(peakCard(data.peaks));
+    { const wc = wallboxCard(energyRange, data); if (wc) el.append(wc); }
     if (e.consumers.length) {
       const mx = Math.max(0.01, ...e.consumers.map((c) => c.kwh));
       el.append(h('h2', {}, 'Einzelverbraucher (heute)'), h('div', { class: 'card' }, e.consumers.slice().sort((a, b) => b.kwh - a.kwh).map((c) => h('div', { class: 'cons' },
