@@ -172,6 +172,8 @@ Ist ein Tasmota-Gerät über MQTT nicht erreichbar (z. B. „Stiege“ bleibt oh
 
 Auf der Energie-Seite zeigt der Block **🚗 Wallbox** die geladene Energie (kWh) für heute, 7/30 Tage, Monat und Jahr sowie die Kosten. Die Wallbox des Tomons-Plugins wird automatisch verwendet (Sensor „Wallbox Leistung“); andere Wallboxen oder Zähler wählst du unter *⚙ Quellen → Wallbox-Leistung*. Den **Strompreis** (€/kWh) legst du mit *💶 Strompreis* fest: jeder Eintrag gilt ab seinem Datum bis zum nächsten. Bei einer Preisänderung (z. B. zum Jahreswechsel) neuen Eintrag ab Stichtag anlegen – alte Tage behalten ihren Preis. Unter dem Block lassen sich kWh und Kosten **täglich, wöchentlich, monatlich und jährlich** umschalten. kWh werden ab der Aktivierung mitgezählt, frühere Ladungen sind nicht enthalten.
 
+**Netzbezug-Kosten:** Unter „💶 Stromkosten“ stehen Netzbezug und Kosten für heute, Monat und Jahr. Die Tabelle darunter lässt sich auf täglich, wöchentlich, monatlich oder jährlich umschalten und zeigt Netzbezug und Wallbox nebeneinander. Es gilt der unter „💶 Strompreis“ hinterlegte Preis (gleicher Preis für beides). Voraussetzung ist ein konfigurierter Netz-Sensor; der Netzbezug enthält den Wallbox-Strom, die Spalten daher nicht addieren.
+
 ## Eingebauter MQTT-Broker
 
 *Einstellungen → Erweiterungen → „Eingebauter MQTT-Broker“* einschalten: HomeLite startet einen eigenen MQTT-Server (MQTT 3.1/3.1.1, Port 1883, QoS 0/1, Retained-Werte, Last-Will, Wildcards) – ein separater Mosquitto ist nicht mehr nötig. Ohne Zusatzpakete.

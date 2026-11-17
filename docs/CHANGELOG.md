@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.29.2
+- **Energie: Kosten des Netzbezugs:** Neuer Block „💶 Stromkosten“ mit Netzbezug (kWh) und Kosten für heute, Monat und Jahr. Die Kostentabelle ist jetzt **täglich / wöchentlich / monatlich / jährlich** filterbar und zeigt Netzbezug und Wallbox nebeneinander (kWh, Kosten, Summe). Es gilt derselbe Strompreis wie bei der Wallbox (Dialog „💶 Strompreis“, je Tag der gültige Preis). Der Netzbezug stammt aus den bestehenden Bezugswerten (Netz-Sensor nötig) und enthält auch den Wallbox-Strom, soweit er nicht aus PV kommt – die Spalten nicht addieren. Nur mit simulierten Werten geprüft.
+
 ## 1.29.1
 - **Wallbox-Kosten nach Zeitraum:** Auf der Energie-Seite lassen sich kWh und Kosten der Wallbox **täglich** (30 Tage), **wöchentlich** (12 Wochen, Mo–So), **monatlich** (12 Monate) und **jährlich** als Tabelle mit Balken und Summe umschalten. Jeder Tag wird mit dem an diesem Tag gültigen Strompreis gerechnet. Die Tageswerte werden bis zu 400 Tage aufbewahrt.
 
