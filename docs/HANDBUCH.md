@@ -170,7 +170,7 @@ Ist ein Tasmota-Gerät über MQTT nicht erreichbar (z. B. „Stiege“ bleibt oh
 
 ## Energie: Wallbox-Verbrauch und Kosten
 
-Auf der Energie-Seite zeigt der Block **🚗 Wallbox** die geladene Energie (kWh) für heute, 7/30 Tage, Monat und Jahr sowie die Kosten. Die Wallbox des Tomons-Plugins wird automatisch verwendet (Sensor „Wallbox Leistung“); andere Wallboxen oder Zähler wählst du unter *⚙ Quellen → Wallbox-Leistung*. Den **Strompreis** (€/kWh) legst du mit *💶 Strompreis* fest: jeder Eintrag gilt ab seinem Datum bis zum nächsten. Bei einer Preisänderung (z. B. zum Jahreswechsel) neuen Eintrag ab Stichtag anlegen – alte Tage behalten ihren Preis. kWh werden ab der Aktivierung mitgezählt, frühere Ladungen sind nicht enthalten.
+Auf der Energie-Seite zeigt der Block **🚗 Wallbox** die geladene Energie (kWh) für heute, 7/30 Tage, Monat und Jahr sowie die Kosten. Die Wallbox des Tomons-Plugins wird automatisch verwendet (Sensor „Wallbox Leistung“); andere Wallboxen oder Zähler wählst du unter *⚙ Quellen → Wallbox-Leistung*. Den **Strompreis** (€/kWh) legst du mit *💶 Strompreis* fest: jeder Eintrag gilt ab seinem Datum bis zum nächsten. Bei einer Preisänderung (z. B. zum Jahreswechsel) neuen Eintrag ab Stichtag anlegen – alte Tage behalten ihren Preis. Unter dem Block lassen sich kWh und Kosten **täglich, wöchentlich, monatlich und jährlich** umschalten. kWh werden ab der Aktivierung mitgezählt, frühere Ladungen sind nicht enthalten.
 
 ## Eingebauter MQTT-Broker
 

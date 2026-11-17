@@ -304,8 +304,31 @@ function tariffDialog() {
   modal('Strompreis', h('div', {}, h('p', { class: 'hint', style: 'margin-top:0' }, 'Preis pro kWh inkl. aller Abgaben (brutto). Jeder Eintrag gilt ab seinem Datum bis zum nächsten. Ändert sich der Preis, einfach einen neuen Eintrag ab dem Stichtag hinzufügen – bisherige Tage behalten ihren Preis.'), box),
   [{ label: 'Abbrechen' }, { label: 'Speichern', primary: true, onClick: async () => {
     await api('PUT', '/api/energy/tariff', { tariff: rows.filter((r) => r.from && r.price !== '').map((r) => ({ from: r.from, price: Number(String(r.price).replace(',', '.')) })) });
-    toast('Strompreis gespeichert'); Object.keys(energyCache).forEach((k) => delete energyCache[k]); await reload();
+    toast('Strompreis gespeichert'); Object.keys(energyCache).forEach((k) => delete energyCache[k]); Object.keys(wbHist).forEach((k) => delete wbHist[k]); await reload();
   } }]);
+}
+
+// Kosten und kWh der Wallbox nach Zeitraum (täglich / wöchentlich / monatlich / jährlich)
+let wbPeriod = localStorage.getItem('hl_wbperiod') || 'month';
+const wbHist = {};
+function wbHistoryCard() {
+  const box = h('div', { class: 'card', style: 'margin-bottom:10px' });
+  const draw = (d) => {
+    const mx = Math.max(0.01, ...d.rows.map((r) => r.kwh));
+    fill(box,
+      h('div', { class: 'chipbar', style: 'margin-bottom:8px' }, [['day', 'Täglich'], ['week', 'Wöchentlich'], ['month', 'Monatlich'], ['year', 'Jährlich']].map(([k, l]) => h('button', { class: 'fchip ' + (wbPeriod === k ? 'act' : ''), onclick: () => { wbPeriod = k; localStorage.setItem('hl_wbperiod', k); load(); } }, l))),
+      h('div', { style: 'overflow-x:auto' }, h('table', { style: 'width:100%' },
+        h('thead', {}, h('tr', {}, ['Zeitraum', '', 'kWh', 'Kosten'].map((x, i) => h('th', { style: i > 1 ? 'text-align:right' : '' }, x)))),
+        h('tbody', {}, d.rows.map((r) => h('tr', {}, h('td', {}, r.label), h('td', { style: 'width:35%' }, h('span', { class: 'bar', style: 'display:block' }, h('i', { style: `width:${Math.round((r.kwh / mx) * 100)}%` }))),
+          h('td', { style: 'text-align:right' }, r.kwh ? fmtNum(r.kwh, 2) : '–'), h('td', { style: 'text-align:right' }, r.kwh ? (r.cost === null ? 'Preis fehlt' : eur(r.cost)) : '–')))),
+        h('tfoot', {}, h('tr', {}, h('th', {}, 'Summe'), h('th', {}), h('th', { style: 'text-align:right' }, fmtNum(d.total.kwh, 2)), h('th', { style: 'text-align:right' }, d.total.cost === null ? '–' : eur(d.total.cost)))))));
+  };
+  const load = async () => {
+    if (wbHist[wbPeriod] && Date.now() - wbHist[wbPeriod].ts < 30000) { draw(wbHist[wbPeriod].d); return; }
+    try { const d = await api('GET', '/api/energy/wallbox?period=' + wbPeriod); wbHist[wbPeriod] = { ts: Date.now(), d }; draw(d); } catch (e) { fill(box, h('div', { class: 'hint' }, e.message)); }
+  };
+  load();
+  return box;
 }
 
 // Wallbox: Verbrauch in kWh und Kosten
@@ -322,6 +345,7 @@ function wallboxCard(range, data) {
     h('div', { class: 'row sb' }, h('h2', {}, '🚗 Wallbox'), h('button', { class: 'sm', onclick: tariffDialog }, '💶 Strompreis')),
     h('div', { class: 'grid', style: 'margin-bottom:10px' }, tile(lab, a), range === 'today' || true ? tile('Dieser Monat', m) : null, tile('Dieses Jahr', y),
       statTile('Aktuell', w.w === null ? '–' : w.w > 5 ? `${fmtNum(w.w / 1000, 2)} kW` : 'bereit', w.meter !== null ? `Zählerstand ${fmtNum(w.meter, 1)} kWh` : '')),
+    wbHistoryCard(),
     h('div', { class: 'hint' }, pr === null ? 'Noch kein Strompreis hinterlegt – oben „💶 Strompreis“ wählen, dann werden die Kosten angezeigt.' : `Strompreis aktuell ${eurKwh(pr)}. kWh werden ab Aktivierung aus der Wallbox-Leistung mitgezählt.`));
 }
 

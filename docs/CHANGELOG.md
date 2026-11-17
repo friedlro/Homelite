@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.29.1
+- **Wallbox-Kosten nach Zeitraum:** Auf der Energie-Seite lassen sich kWh und Kosten der Wallbox **täglich** (30 Tage), **wöchentlich** (12 Wochen, Mo–So), **monatlich** (12 Monate) und **jährlich** als Tabelle mit Balken und Summe umschalten. Jeder Tag wird mit dem an diesem Tag gültigen Strompreis gerechnet. Die Tageswerte werden bis zu 400 Tage aufbewahrt.
+
 ## 1.29.0
 - **Energie: Wallbox mit Verbrauch und Kosten:** Die Energie-Seite zeigt den Wallbox-Verbrauch in kWh (heute / 7 bzw. 30 Tage / Monat / Jahr, aus der Wallbox-Leistung mitgezählt) und die Kosten. Die Wallbox des Plugins „Tomons Wallbox“ wird automatisch erkannt, andere Leistungs-Sensoren lassen sich unter „⚙ Quellen“ wählen. Neuer Dialog **💶 Strompreis**: Preis pro kWh mit Gültigkeitsbeginn – ändert sich der Preis, wird ein neuer Eintrag ab Stichtag angelegt, frühere Tage behalten ihren Preis. Gezählt wird ab dem Update (keine nachträglichen Werte). Mit simulierten Messwerten geprüft.
 

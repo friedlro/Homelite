@@ -700,6 +700,7 @@ route('PUT', '/api/energy/config', ({ body }) => {
   return { ok: true };
 });
 // Strompreis (€/kWh) je Gültigkeitsbeginn – ändert sich der Preis, einfach einen neuen Eintrag ab Datum anlegen
+route('GET', '/api/energy/wallbox', ({ url }) => energy.wallboxHistory(['day', 'week', 'month', 'year'].includes(url.searchParams.get('period')) ? url.searchParams.get('period') : 'day'));
 route('PUT', '/api/energy/tariff', ({ body }) => {
   const arr = Array.isArray(body.tariff) ? body.tariff : [];
   const out = [];
