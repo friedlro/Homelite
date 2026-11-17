@@ -147,11 +147,15 @@ function renderNav() {
   if (act && nav.scrollWidth > nav.clientWidth) { const l = act.offsetLeft; if (l < nav.scrollLeft + 8 || l + act.offsetWidth > nav.scrollLeft + nav.clientWidth - 8) nav.scrollLeft = l - (nav.clientWidth - act.offsetWidth) / 2; }
 }
 
+let renderedPage = null;
 function renderPage() {
   if (!PAGES[page] || !pageVisible(page)) page = 'dash';
   const main = $('#main');
+  // seitlich gescrollte Bereiche (Tabellen, Chip-Leisten) nach dem Neuzeichnen wieder an dieselbe Stelle setzen
+  const keep = []; if (renderedPage === page) main.querySelectorAll('*').forEach((n, i) => { if (n.scrollLeft > 0) keep.push([i, n.scrollLeft]); });
   main.replaceChildren();
-  PAGES[page].render(main);
+  PAGES[page].render(main); renderedPage = page;
+  if (keep.length) { const all = main.querySelectorAll('*'); for (const [i, x] of keep) if (all[i] && all[i].scrollWidth > all[i].clientWidth) all[i].scrollLeft = x; }
 }
 
 function renderAll() { renderStatus(); renderNav(); renderPage(); }
@@ -165,6 +169,10 @@ function go(name) {
 }
 
 let liveTimer = null;
+// Solange der Finger auf dem Bildschirm ist bzw. gerade gescrollt wurde (z. B. Tabelle seitlich wischen), nicht neu zeichnen
+let lastTouch = 0;
+for (const ev of ['touchstart', 'touchmove', 'wheel', 'pointerdown']) window.addEventListener(ev, () => { lastTouch = Date.now(); }, { passive: true, capture: true });
+document.addEventListener('scroll', (e) => { if (e.target !== document && e.target !== document.documentElement) lastTouch = Date.now(); }, { passive: true, capture: true });
 function live() {
   clearTimeout(liveTimer);
   liveTimer = setTimeout(() => {
@@ -172,6 +180,7 @@ function live() {
     if (!PAGES[page] || !PAGES[page].live) return;
     const a = document.activeElement;
     if (modalOpen() || (a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && $('#main').contains(a))) return;
+    if (Date.now() - lastTouch < 3000) { live(); return; }
     renderPage();
   }, 250);
 }

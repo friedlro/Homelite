@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.29.5
+- **Tabellen lassen sich am Handy seitlich wischen (Energie-Kostentabelle):** Die Energie-Seite zeichnet sich bei jedem Messwert neu, dadurch sprang die Tabelle beim Wischen zurück. Jetzt wird während einer Berührung bzw. 3 Sekunden danach nicht neu gezeichnet, und seitlich gescrollte Bereiche behalten ihre Position. Der Ablauf ist mit einem simulierten Neuzeichnen geprüft, nicht auf einem echten iPhone.
+
 ## 1.29.4
 - **Oberfläche für Smartphone und Tablet überarbeitet:** Tablet hochkant zeigt drei Kachelspalten; Eingabefelder haben mindestens 16 px (kein automatisches Hineinzoomen auf dem iPhone); Tippflächen auf Touch-Geräten sind größer; Rand und Kopfzeile beachten die Notch (Querformat). Die untere Leiste behält ihre Scrollposition und zeigt den aktiven Eintrag. Die Geräteliste wird auf dem Handy als Kartenliste statt als abgeschnittene Tabelle dargestellt (Quelle ausgeblendet), die Kostentabelle der Energie-Seite ist enger gesetzt. Im Querformat auf dem Handy scrollt die Kopfzeile mit. In Chromium mit Handy- und Tablet-Größen geprüft, nicht auf echten Geräten.
 
