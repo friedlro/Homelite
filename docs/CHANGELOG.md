@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.29.6
+- **Fix: Oberfläche reagierte nach 1.29.5 verzögert:** Die Pause gegen das Zurückspringen von Tabellen galt für jede Berührung (auch Tippen auf Schalter) und verzögerte Anzeige-Updates bis zu 3 Sekunden. Jetzt wird nur noch während eines seitlichen Wischens in einem scrollbaren Bereich (ca. 1 s) pausiert; Tippen und Schalten aktualisieren sofort. Die zuvor behobene Scrollposition bleibt erhalten.
+
 ## 1.29.5
 - **Tabellen lassen sich am Handy seitlich wischen (Energie-Kostentabelle):** Die Energie-Seite zeichnet sich bei jedem Messwert neu, dadurch sprang die Tabelle beim Wischen zurück. Jetzt wird während einer Berührung bzw. 3 Sekunden danach nicht neu gezeichnet, und seitlich gescrollte Bereiche behalten ihre Position. Der Ablauf ist mit einem simulierten Neuzeichnen geprüft, nicht auf einem echten iPhone.
 

@@ -169,10 +169,10 @@ function go(name) {
 }
 
 let liveTimer = null;
-// Solange der Finger auf dem Bildschirm ist bzw. gerade gescrollt wurde (z. B. Tabelle seitlich wischen), nicht neu zeichnen
-let lastTouch = 0;
-for (const ev of ['touchstart', 'touchmove', 'wheel', 'pointerdown']) window.addEventListener(ev, () => { lastTouch = Date.now(); }, { passive: true, capture: true });
-document.addEventListener('scroll', (e) => { if (e.target !== document && e.target !== document.documentElement) lastTouch = Date.now(); }, { passive: true, capture: true });
+// Nur während ein Bereich seitlich gewischt wird (Tabelle, Chip-Leiste) kurz nicht neu zeichnen.
+// Tippen, Schalten und normales Scrollen der Seite verzögern die Anzeige NICHT.
+let lastHScroll = 0;
+document.addEventListener('scroll', (e) => { if (e.target !== document && e.target !== document.documentElement && e.target.scrollWidth > e.target.clientWidth) lastHScroll = Date.now(); }, { passive: true, capture: true });
 function live() {
   clearTimeout(liveTimer);
   liveTimer = setTimeout(() => {
@@ -180,7 +180,7 @@ function live() {
     if (!PAGES[page] || !PAGES[page].live) return;
     const a = document.activeElement;
     if (modalOpen() || (a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && $('#main').contains(a))) return;
-    if (Date.now() - lastTouch < 3000) { live(); return; }
+    if (Date.now() - lastHScroll < 1200) { live(); return; }
     renderPage();
   }, 250);
 }
