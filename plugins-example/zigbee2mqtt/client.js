@@ -1,7 +1,7 @@
 // Seite „Zigbee“: Status, Anlernen, Geräte, Einrichtungs-Assistent für den Dongle
 (() => {
   const { h, fill, toast, fail } = HL;
-  let M = null, tick = null, S = null, setup = { adapter: 'ember', connection: 'usb', dongleHost: '', port: '', host: location.hostname, user: '', pass: '', channel: 11 }, out = null, open = false;
+  let M = null, tick = null, S = null, setup = { adapter: 'ember', connection: 'usb', dongleHost: '', port: '', host: location.hostname, user: '', pass: '', channel: 11 }, out = null, open = false, found = null;
   const call = (m, sub, body) => HL.api('zigbee2mqtt', m, sub, body);
   const box = () => document.getElementById('zb-box');
   const when = (s) => (s ? new Date(s).toLocaleString('de-AT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '–');
@@ -20,7 +20,9 @@
         h('div', { class: 'form' },
           h('label', {}, 'Dongle-Typ', sel),
           ...(setup.adapter === 'max' ? [h('label', {}, 'Anbindung des Dongle Max', h('select', { onchange: (e) => { setup.connection = e.target.value; draw(); } }, [['usb', 'USB (am Server eingesteckt)'], ['network', 'Netzwerk (LAN/PoE oder WLAN)']].map(([v, l]) => h('option', { value: v, selected: setup.connection === v }, l))))] : []),
-          setup.adapter === 'max' && setup.connection === 'network' ? h('label', {}, 'Adresse des Dongles (IP oder Name, Port 6638)', inp('dongleHost', 'z. B. 192.168.50.60 oder dongle-m.local')) : h('label', {}, 'Anschluss', port, dl),
+          setup.adapter === 'max' && setup.connection === 'network' ? h('div', {}, h('label', {}, 'Adresse des Dongles (IP oder Name, Port 6638)', inp('dongleHost', 'z. B. 192.168.50.60 oder dongle-m.local')),
+            h('div', { class: 'row', style: 'gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap' }, h('button', { class: 'sm', onclick: (e) => { e.target.disabled = true; e.target.textContent = 'Suche …'; call('POST', 'finddongle', {}).then((r) => { found = r; draw(); }).catch((x) => { fail(x); draw(); }); } }, '🔎 Im Netzwerk suchen'),
+              found ? (found.found.length ? found.found.map((f) => h('button', { class: 'sm primary', onclick: () => { setup.dongleHost = f.ip; draw(); } }, f.ip + (f.title ? ' · ' + f.title : ''))) : h('span', { class: 'hint' }, `Nichts auf Port 6638 gefunden (${found.subnets.join(', ')}.x). Dongle eingeschaltet, im Modus „Zigbee Coordinator“ und nicht von ZHA/Home Assistant belegt?`)) : null)) : h('label', {}, 'Anschluss', port, dl),
           h('label', {}, 'HomeLite-Server (MQTT)', inp('host', 'IP des HomeLite-Servers')),
           h('label', {}, 'MQTT-Benutzer', inp('user', 'Benutzer aus Einstellungen → MQTT-Broker')), h('label', {}, 'MQTT-Passwort', inp('pass', 'wird nicht gespeichert', 'password')),
           h('label', {}, 'Zigbee-Funkkanal', h('select', { onchange: (e) => { setup.channel = Number(e.target.value); } }, [11, 15, 20, 25].map((c) => h('option', { value: c, selected: setup.channel === c }, c + (c === 11 ? ' (Standard)' : '')))))),

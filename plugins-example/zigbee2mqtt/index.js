@@ -2,6 +2,9 @@
 // Zigbee über Zigbee2MQTT (MQTT-Broker von HomeLite). Zigbee2MQTT verwaltet den Dongle
 // (Sonoff ZBDongle-E/-P, ConBee II/III, SkyConnect …), HomeLite bildet die Geräte ab und steuert sie.
 const fs = require('fs');
+const net = require('net');
+const os = require('os');
+const http = require('http');
 
 const LABEL = { temperature: 'Temperatur', humidity: 'Feuchte', pressure: 'Luftdruck', illuminance: 'Helligkeit', illuminance_lux: 'Helligkeit', power: 'Leistung', energy: 'Energie', voltage: 'Spannung', current: 'Strom', co2: 'CO₂', voc: 'VOC', pm25: 'Feinstaub', battery: 'Batterie', soil_moisture: 'Bodenfeuchte', linkquality: 'Verbindung', local_temperature: 'Temperatur', position: 'Position', distance: 'Abstand' };
 const BIN = { occupancy: 'Bewegung', presence: 'Präsenz', water_leak: 'Wasser', smoke: 'Rauch', vibration: 'Vibration', tamper: 'Sabotage', gas: 'Gas', carbon_monoxide: 'CO', battery_low: 'Batterie schwach', contact: 'Kontakt' };
@@ -218,6 +221,18 @@ module.exports = (api) => {
     if (/cp210|silicon_labs|zbdongle-?p|cc26|cc13|sonoff/.test(n)) return { adapter: 'zstack', hint: 'Sonoff ZBDongle-P / CC2652' };
     return { adapter: '', hint: '' };
   }
+  // Netzwerk-Dongles (Sonoff Dongle Max, SLZB …) im eigenen Subnetz suchen: offener TCP-Port 6638
+  const tcpOpen = (ip, port, ms) => new Promise((res) => { const c = net.connect({ host: ip, port, timeout: ms }); c.once('connect', () => { c.destroy(); res(true); }); c.once('timeout', () => { c.destroy(); res(false); }); c.once('error', () => res(false)); });
+  const webTitle = (ip) => new Promise((res) => { const r = http.get({ host: ip, port: 80, path: '/', timeout: 1200 }, (x) => { let b = ''; x.on('data', (d) => { if (b.length < 6000) b += d; }); x.on('end', () => { const m = /<title>([^<]*)/i.exec(b); res(m ? m[1].trim().slice(0, 60) : ''); }); }); r.on('timeout', () => { r.destroy(); res(''); }); r.on('error', () => res('')); });
+  api.route('POST', 'finddongle', async ({ body }) => {
+    const nets = []; for (const l of Object.values(os.networkInterfaces())) for (const a of l || []) if (a.family === 'IPv4' && !a.internal) nets.push(a.address);
+    const prefs = String((body && body.subnet) || '').match(/^(\d+\.\d+\.\d+)\.?/) ? [String(body.subnet).match(/^(\d+\.\d+\.\d+)/)[1]] : [...new Set(nets.map((a) => a.split('.').slice(0, 3).join('.')))];
+    const ips = []; for (const p of prefs) for (let i = 1; i < 255; i++) ips.push(`${p}.${i}`);
+    const found = []; let idx = 0;
+    await Promise.all(Array.from({ length: 80 }, async () => { while (idx < ips.length) { const ip = ips[idx++]; if (await tcpOpen(ip, 6638, 700)) found.push({ ip, title: await webTitle(ip) }); } }));
+    found.sort((a, b) => a.ip.localeCompare(b.ip, undefined, { numeric: true }));
+    return { found, scanned: ips.length, subnets: prefs };
+  });
   api.route('GET', 'dongles', () => {
     let list = [];
     try { list = fs.readdirSync('/dev/serial/by-id').map((f) => ({ port: '/dev/serial/by-id/' + f, ...guess(f) })); } catch { /* kein USB-Seriell */ }

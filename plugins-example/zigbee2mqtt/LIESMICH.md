@@ -19,7 +19,7 @@ Der Assistent auf der Seite „Zigbee“ erkennt am Server angeschlossene Dongle
 ### Sonoff Dongle Max (Dongle-M)
 - Er hat USB, Ethernet (PoE) und WLAN und kann auch Thread. Für Zigbee muss in seiner Weboberfläche der Betriebsmodus **„Zigbee Coordinator“** eingestellt sein (nicht Thread/RCP).
 - **USB:** Im Assistenten „Sonoff Dongle Max“ und „USB“ wählen; Anschluss wie bei den anderen Dongles.
-- **Netzwerk:** „Netzwerk“ wählen und die Adresse des Dongles eintragen (z. B. `192.168.50.60` oder `dongle-m.local`). Der Assistent erzeugt `port: tcp://<Adresse>:6638` und lässt in der `docker-compose.yml` die USB-Freigabe weg. Der Dongle erlaubt nur **eine** Verbindung auf Port 6638 – ZHA oder Home Assistant dürfen nicht gleichzeitig verbunden sein; antwortet der Port nicht mehr, den Dongle über seine Weboberfläche neu starten.
+- **Netzwerk:** „Netzwerk“ wählen und die Adresse des Dongles eintragen (z. B. `192.168.50.60` oder `dongle-m.local`). Mit **🔎 Im Netzwerk suchen** findet der Assistent Geräte mit offenem Port 6638 im eigenen Subnetz (die Adresse lässt sich per Klick übernehmen). Der Assistent erzeugt `port: tcp://<Adresse>:6638` und lässt in der `docker-compose.yml` die USB-Freigabe weg. Der Dongle erlaubt nur **eine** Verbindung auf Port 6638 – ZHA oder Home Assistant dürfen nicht gleichzeitig verbunden sein; antwortet der Port nicht mehr, den Dongle über seine Weboberfläche neu starten.
 - Bei „Waiting for RSTACK“ im Zigbee2MQTT-Protokoll hilft meist: Dongle kurz auf Thread/RCP und wieder auf Zigbee Coordinator stellen, dann Zigbee2MQTT neu starten.
 - Nicht mit einem echten Dongle Max ausprobiert; Quelle der Angaben: Sonoff-Anleitung und Nutzerberichte.
 
