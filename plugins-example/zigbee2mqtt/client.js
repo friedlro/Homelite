@@ -1,14 +1,14 @@
 // Seite „Zigbee“: Status, Anlernen, Geräte, Einrichtungs-Assistent für den Dongle
 (() => {
   const { h, fill, toast, fail } = HL;
-  let M = null, tick = null, S = null, setup = { adapter: 'ember', port: '', host: location.hostname, user: '', pass: '', channel: 11 }, out = null, open = false;
+  let M = null, tick = null, S = null, setup = { adapter: 'ember', connection: 'usb', dongleHost: '', port: '', host: location.hostname, user: '', pass: '', channel: 11 }, out = null, open = false;
   const call = (m, sub, body) => HL.api('zigbee2mqtt', m, sub, body);
   const box = () => document.getElementById('zb-box');
   const when = (s) => (s ? new Date(s).toLocaleString('de-AT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '–');
   const copy = (t) => { try { navigator.clipboard.writeText(t); toast('Kopiert'); } catch { toast('Bitte manuell markieren und kopieren'); } };
 
   function wizard() {
-    const sel = h('select', { onchange: (e) => { setup.adapter = e.target.value; } }, Object.entries((S && S.adapters) || {}).map(([k, l]) => h('option', { value: k, selected: setup.adapter === k }, l)));
+    const sel = h('select', { onchange: (e) => { setup.adapter = e.target.value; draw(); } }, Object.entries((S && S.adapters) || {}).map(([k, l]) => h('option', { value: k, selected: setup.adapter === k }, l)));
     const ports = ((S && S.dongles) || []);
     const port = h('input', { value: setup.port, list: 'zb-ports', placeholder: '/dev/serial/by-id/…', style: 'min-width:0;width:100%', oninput: (e) => { setup.port = e.target.value; } });
     const dl = h('datalist', { id: 'zb-ports' }, ports.map((p) => h('option', { value: p.port }, p.hint)));
@@ -18,7 +18,9 @@
       !open ? h('div', { class: 'hint' }, 'Zigbee2MQTT läuft als eigener Dienst und steuert den USB-Dongle (Sonoff ZBDongle-E/-P, ConBee II …). Hier erzeugst du die passende Konfiguration.') : h('div', {},
         ports.length ? h('div', { class: 'hint', style: 'margin:6px 0' }, 'Am Server erkannt: ' + ports.map((p) => `${p.hint || 'unbekannt'} (${p.port.split('/').pop()})`).join(' · ')) : h('div', { class: 'hint', style: 'margin:6px 0' }, 'Kein USB-Dongle am HomeLite-Server erkannt (läuft Zigbee2MQTT auf einem anderen Gerät, Port von dort eintragen).'),
         h('div', { class: 'form' },
-          h('label', {}, 'Dongle-Typ', sel), h('label', {}, 'Anschluss', port, dl),
+          h('label', {}, 'Dongle-Typ', sel),
+          ...(setup.adapter === 'max' ? [h('label', {}, 'Anbindung des Dongle Max', h('select', { onchange: (e) => { setup.connection = e.target.value; draw(); } }, [['usb', 'USB (am Server eingesteckt)'], ['network', 'Netzwerk (LAN/PoE oder WLAN)']].map(([v, l]) => h('option', { value: v, selected: setup.connection === v }, l))))] : []),
+          setup.adapter === 'max' && setup.connection === 'network' ? h('label', {}, 'Adresse des Dongles (IP oder Name, Port 6638)', inp('dongleHost', 'z. B. 192.168.50.60 oder dongle-m.local')) : h('label', {}, 'Anschluss', port, dl),
           h('label', {}, 'HomeLite-Server (MQTT)', inp('host', 'IP des HomeLite-Servers')),
           h('label', {}, 'MQTT-Benutzer', inp('user', 'Benutzer aus Einstellungen → MQTT-Broker')), h('label', {}, 'MQTT-Passwort', inp('pass', 'wird nicht gespeichert', 'password')),
           h('label', {}, 'Zigbee-Funkkanal', h('select', { onchange: (e) => { setup.channel = Number(e.target.value); } }, [11, 15, 20, 25].map((c) => h('option', { value: c, selected: setup.channel === c }, c + (c === 11 ? ' (Standard)' : '')))))),

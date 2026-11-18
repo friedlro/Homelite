@@ -7,13 +7,21 @@ Bindet Zigbee-Geräte über **[Zigbee2MQTT](https://www.zigbee2mqtt.io)** in Hom
 ## Unterstützte Dongles
 | Dongle | Zigbee2MQTT-Adapter |
 |---|---|
-| **Sonoff ZBDongle-E** (EFR32MG21), Sonoff Dongle Max, SkyConnect / ZBT-1 | `ember` |
+| **Sonoff Dongle Max** (Dongle-M, EFR32MG24; USB, LAN/PoE oder WLAN) | `ember` (Netzwerk: `tcp://<Adresse>:6638`) |
+| **Sonoff ZBDongle-E** (EFR32MG21), SkyConnect / ZBT-1 | `ember` |
 | **Sonoff ZBDongle-P** (CC2652P), andere TI-CC26xx/CC13xx | `zstack` |
 | **ConBee II / ConBee III / RaspBee** (dresden elektronik) | `deconz` |
 | nRF52840-Dongles | `zboss` |
 | ältere EFR32-Dongles | `ezsp` |
 
 Der Assistent auf der Seite „Zigbee“ erkennt am Server angeschlossene Dongles anhand ihres Namens unter `/dev/serial/by-id/` und schlägt den Adapter vor. Bitte die Auswahl prüfen: der Sonoff ZBDongle-E meldet sich als „ITEAD … Dongle_Plus_V2“, der ZBDongle-P als „Silicon_Labs_CP2102N …“.
+
+### Sonoff Dongle Max (Dongle-M)
+- Er hat USB, Ethernet (PoE) und WLAN und kann auch Thread. Für Zigbee muss in seiner Weboberfläche der Betriebsmodus **„Zigbee Coordinator“** eingestellt sein (nicht Thread/RCP).
+- **USB:** Im Assistenten „Sonoff Dongle Max“ und „USB“ wählen; Anschluss wie bei den anderen Dongles.
+- **Netzwerk:** „Netzwerk“ wählen und die Adresse des Dongles eintragen (z. B. `192.168.50.60` oder `dongle-m.local`). Der Assistent erzeugt `port: tcp://<Adresse>:6638` und lässt in der `docker-compose.yml` die USB-Freigabe weg. Der Dongle erlaubt nur **eine** Verbindung auf Port 6638 – ZHA oder Home Assistant dürfen nicht gleichzeitig verbunden sein; antwortet der Port nicht mehr, den Dongle über seine Weboberfläche neu starten.
+- Bei „Waiting for RSTACK“ im Zigbee2MQTT-Protokoll hilft meist: Dongle kurz auf Thread/RCP und wieder auf Zigbee Coordinator stellen, dann Zigbee2MQTT neu starten.
+- Nicht mit einem echten Dongle Max ausprobiert; Quelle der Angaben: Sonoff-Anleitung und Nutzerberichte.
 
 ## Einrichtung
 1. **MQTT-Benutzer anlegen:** *Einstellungen → Eingebauter MQTT-Broker* → Benutzer hinzufügen (z. B. `zigbee`).

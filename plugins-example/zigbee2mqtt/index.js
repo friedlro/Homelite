@@ -6,6 +6,7 @@ const fs = require('fs');
 const LABEL = { temperature: 'Temperatur', humidity: 'Feuchte', pressure: 'Luftdruck', illuminance: 'Helligkeit', illuminance_lux: 'Helligkeit', power: 'Leistung', energy: 'Energie', voltage: 'Spannung', current: 'Strom', co2: 'CO₂', voc: 'VOC', pm25: 'Feinstaub', battery: 'Batterie', soil_moisture: 'Bodenfeuchte', linkquality: 'Verbindung', local_temperature: 'Temperatur', position: 'Position', distance: 'Abstand' };
 const BIN = { occupancy: 'Bewegung', presence: 'Präsenz', water_leak: 'Wasser', smoke: 'Rauch', vibration: 'Vibration', tamper: 'Sabotage', gas: 'Gas', carbon_monoxide: 'CO', battery_low: 'Batterie schwach', contact: 'Kontakt' };
 const ADAPTERS = {
+  max: 'Sonoff Dongle Max (Dongle-M, EFR32MG24) – USB oder Netzwerk („ember“)',
   ember: 'Sonoff ZBDongle-E / Dongle Max / SkyConnect / ZBT-1 (EFR32, „ember“)',
   zstack: 'Sonoff ZBDongle-P, CC2652/CC1352 („zstack“)',
   deconz: 'ConBee II / ConBee III / RaspBee („deconz“)',
@@ -212,6 +213,7 @@ module.exports = (api) => {
   function guess(name) {
     const n = name.toLowerCase();
     if (/conbee|raspbee|dresden/.test(n)) return { adapter: 'deconz', hint: 'ConBee/RaspBee' };
+    if (/dongle[-_ ]?max|dongle[-_ ]?m(?![a-z])|zbdongle[-_ ]?(max|mg24)|mg24/.test(n)) return { adapter: 'max', hint: 'Sonoff Dongle Max (MG24)' };
     if (/skyconnect|nabu|zbt-?[12]|dongle_max|zbdongle-?e|itead.*v2|plus_v2|mg2[14]|efr32/.test(n)) return { adapter: 'ember', hint: 'Sonoff ZBDongle-E / EFR32' };
     if (/cp210|silicon_labs|zbdongle-?p|cc26|cc13|sonoff/.test(n)) return { adapter: 'zstack', hint: 'Sonoff ZBDongle-P / CC2652' };
     return { adapter: '', hint: '' };
@@ -223,8 +225,12 @@ module.exports = (api) => {
   });
   api.route('POST', 'setup', ({ body }) => {
     const b = body || {};
-    const adapter = Object.keys(ADAPTERS).includes(b.adapter) ? b.adapter : 'ember';
-    const port = String(b.port || '/dev/serial/by-id/HIER-DONGLE-EINTRAGEN').replace(/[\r\n"]/g, '');
+    const choice = Object.keys(ADAPTERS).includes(b.adapter) ? b.adapter : 'ember';
+    const adapter = choice === 'max' ? 'ember' : choice;
+    // Dongle Max kann auch per Netzwerk (LAN/PoE/WLAN) angebunden werden: tcp://<Adresse>:6638
+    const net = choice === 'max' && b.connection === 'network';
+    const nethost = String(b.dongleHost || '').replace(/[^\w.\-]/g, '');
+    const port = net ? `tcp://${nethost || 'DONGLE-ADRESSE'}:6638` : String(b.port || '/dev/serial/by-id/HIER-DONGLE-EINTRAGEN').replace(/[\r\n"]/g, '');
     const host = String(b.host || 'SERVER-IP').replace(/[^\w.\-]/g, '');
     const user = String(b.user || 'BENUTZER').replace(/[\r\n"]/g, ''), pass = String(b.pass || 'PASSWORT').replace(/[\r\n"]/g, '');
     const topic = String(b.base || base).replace(/[#+\r\n"]/g, '') || 'zigbee2mqtt';
@@ -233,8 +239,11 @@ module.exports = (api) => {
       'version: 4', 'permit_join: false', 'availability: true', 'mqtt:', `  base_topic: ${topic}`, `  server: mqtt://${host}:1883`, `  user: ${user}`, `  password: ${pass}`,
       'serial:', `  port: ${port}`, `  adapter: ${adapter}`, 'frontend:', '  enabled: true', '  port: 8080', 'advanced:', `  channel: ${ch}`, '  network_key: GENERATE', '  pan_id: GENERATE', '  ext_pan_id: GENERATE', '  log_level: info', '',
     ].join('\n');
-    const compose = ['services:', '  zigbee2mqtt:', '    image: koenkk/zigbee2mqtt:latest', '    restart: unless-stopped', '    network_mode: host', '    environment:', '      - TZ=Europe/Vienna', '    volumes:', '      - ./data:/app/data', '      - /run/udev:/run/udev:ro', '    devices:', `      - ${port}:${port}`, ''].join('\n');
-    return { yaml, compose, adapter, note: adapter === 'deconz' ? 'ConBee: deCONZ/Phoscon darf nicht gleichzeitig laufen (Dienst „deconz“ beenden).' : '' };
+    const compose = ['services:', '  zigbee2mqtt:', '    image: koenkk/zigbee2mqtt:latest', '    restart: unless-stopped', '    network_mode: host', '    environment:', '      - TZ=Europe/Vienna', '    volumes:', '      - ./data:/app/data', '      - /run/udev:/run/udev:ro', ...(net ? [] : ['    devices:', `      - ${port}:${port}`]), ''].join('\n');
+    const notes = [];
+    if (adapter === 'deconz') notes.push('ConBee: deCONZ/Phoscon darf nicht gleichzeitig laufen (Dienst „deconz“ beenden).');
+    if (choice === 'max') notes.push(net ? 'Dongle Max (Netzwerk): In der Weboberfläche des Dongles den Betriebsmodus „Zigbee Coordinator“ wählen. Der Dongle erlaubt nur eine Verbindung auf Port 6638 – ZHA, Home Assistant o. Ä. nicht gleichzeitig verbinden. Wenn der Port nicht antwortet, den Dongle über seine Weboberfläche neu starten.' : 'Dongle Max (USB): Der Dongle muss im Betriebsmodus „Zigbee Coordinator“ laufen (nicht Thread/RCP). Bei Fehlern wie „Waiting for RSTACK“ kurz in den Thread-Modus und zurück stellen.');
+    return { yaml, compose, adapter, note: notes.join(' ') };
   });
 
   // KI-Zugriff
