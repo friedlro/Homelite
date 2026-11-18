@@ -70,6 +70,9 @@ def name_of(x):
     return getattr(x, "name", None) if x is not None else None
 
 
+REFRESH_SECS = 300   # Verbindung alle 5 Minuten erneuern
+
+
 class Watch(PushListener, DeviceListener, PowerListener):
     def __init__(self, dev):
         self.dev = dev
@@ -177,8 +180,15 @@ class Watch(PushListener, DeviceListener, PowerListener):
                 wait = 5
                 # Verbindung beobachten; alle 30 s App/Power nachlesen (Companion pusht nicht überall)
                 off_polls = 0
+                since = loop.time()
                 while not self.stop and self.cur["online"]:
                     await asyncio.sleep(30)
+                    # Vorsorge gegen „stille“ Verbindungen: Der Apple TV schickt nach Standby/Aufwachen oder WLAN-Wechseln
+                    # manchmal keine Ereignisse mehr, obwohl die Verbindung offen scheint (vorher half nur neu Koppeln).
+                    # Darum die Verbindung regelmäßig sauber neu aufbauen (Kopplung bleibt gespeichert).
+                    if loop.time() - since >= REFRESH_SECS:
+                        print("%s: Verbindung wird planmäßig erneuert" % self.dev.get("id"), file=sys.stderr, flush=True)
+                        break
                     try:
                         ps = self.atv.power.power_state
                         self.set(power="on" if ps == PowerState.On else "off" if ps == PowerState.Off else "unknown")
@@ -199,6 +209,10 @@ class Watch(PushListener, DeviceListener, PowerListener):
                 self.set(online=False)
             finally:
                 if self.atv is not None:
+                    try:
+                        self.atv.listener = None   # geplantes Schließen soll nicht kurz „offline“ melden
+                    except Exception:  # noqa: BLE001
+                        pass
                     try:
                         self.atv.close()
                     except Exception:  # noqa: BLE001

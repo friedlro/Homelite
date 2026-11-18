@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.29.7
+- **Apple TV: Status bleibt nicht mehr „hängen“:** Der Apple TV meldet nach Standby/Aufwachen oder WLAN-Wechseln manchmal keine Änderungen mehr, obwohl die Verbindung offen scheint – bisher half nur erneutes Koppeln. Die Verbindung wird jetzt alle 5 Minuten sauber neu aufgebaut (Kopplung bleibt gespeichert, kein kurzes „offline“ dabei). Die Ursache ist nur vermutet (am Gerät nicht nachgestellt); ob es hilft, zeigt sich im Betrieb.
+
 ## 1.29.6
 - **Fix: Oberfläche reagierte nach 1.29.5 verzögert:** Die Pause gegen das Zurückspringen von Tabellen galt für jede Berührung (auch Tippen auf Schalter) und verzögerte Anzeige-Updates bis zu 3 Sekunden. Jetzt wird nur noch während eines seitlichen Wischens in einem scrollbaren Bereich (ca. 1 s) pausiert; Tippen und Schalten aktualisieren sofort. Die zuvor behobene Scrollposition bleibt erhalten.
 
