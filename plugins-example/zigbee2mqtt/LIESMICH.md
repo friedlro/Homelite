@@ -23,6 +23,9 @@ Der Assistent auf der Seite „Zigbee“ erkennt am Server angeschlossene Dongle
 - Bei „Waiting for RSTACK“ im Zigbee2MQTT-Protokoll hilft meist: Dongle kurz auf Thread/RCP und wieder auf Zigbee Coordinator stellen, dann Zigbee2MQTT neu starten.
 - Nicht mit einem echten Dongle Max ausprobiert; Quelle der Angaben: Sonoff-Anleitung und Nutzerberichte.
 
+## Dongle-Status
+Auf der Seite zeigt der Block **📡 Funk-Dongle**, ob der Dongle verbunden ist: „verbunden“ heißt, Zigbee2MQTT ist online und meldet den Koordinator (Typ, Firmware, IEEE-Adresse). Sonst steht dort „nicht verbunden“ mit der letzten Fehlermeldung aus dem Zigbee2MQTT-Protokoll. Trägst du bei einem Netzwerk-Dongle die Adresse ein (wird bei der Einrichtung übernommen, sonst unter „Adresse speichern & prüfen“), prüft HomeLite zusätzlich alle 30 Sekunden, ob Port 6638 antwortet – solange Zigbee2MQTT nicht online ist.
+
 ## Einrichtung
 1. **MQTT-Benutzer anlegen:** *Einstellungen → Eingebauter MQTT-Broker* → Benutzer hinzufügen (z. B. `zigbee`).
 2. **Seite „Zigbee“ → 🔧 Einrichtung → Öffnen:** Dongle-Typ und Anschluss wählen, Server-IP und MQTT-Zugang eintragen, **Konfiguration erzeugen**. Das Passwort wird nicht gespeichert.

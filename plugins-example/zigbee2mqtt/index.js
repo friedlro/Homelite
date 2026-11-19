@@ -185,6 +185,31 @@ module.exports = (api) => {
     return sp.write(action, value) || {};
   });
 
+  // ---------- Dongle (Koordinator): verbunden? ----------
+  // Verbunden heißt: Zigbee2MQTT ist online und meldet einen Koordinator. Ist es nicht online, wird (wenn die Adresse
+  // des Netzwerk-Dongles bekannt ist) geprüft, ob Port 6638 antwortet, und der letzte Fehler aus dem Protokoll gezeigt.
+  const dg = { host: (api.kv.get('dongleHost') || '') , ip: '', reachable: null, ts: 0, msg: '' };
+  const probeDongle = async () => {
+    if (!dg.host) { dg.reachable = null; return; }
+    try {
+      let ip = dg.host; if (!/^\d+\.\d+\.\d+\.\d+$/.test(ip)) ip = (await dns.lookup(dg.host, { family: 4 })).address;
+      dg.ip = ip; dg.reachable = await tcpOpen(ip, 6638, 2000); dg.msg = '';
+    } catch { dg.reachable = false; dg.msg = 'Name nicht auflösbar'; }
+    dg.ts = Date.now(); push();
+  };
+  const lastDongleError = () => { const e = logs.find((l) => (l.level === 'error' || l.level === 'warning') && /adapter|serial|herdsman|ember|rstack|stack|port|ECONN|EHOST|timed? ?out|coordinator|tcp/i.test(l.msg)); return e ? { t: e.t, msg: e.msg } : null; };
+  const dongleInfo = () => {
+    const c = info.coordinator;
+    const connected = bridge.state === 'online' && !!c;
+    return { connected, type: c ? c.type : '', rev: c && c.meta ? (c.meta.revision || c.meta.maintrel || '') : '', ieee: c ? c.ieee_address || '' : '', host: dg.host, ip: dg.ip, reachable: dg.reachable, checked: dg.ts, msg: dg.msg, error: connected ? null : lastDongleError() };
+  };
+  api.route('POST', 'donglehost', async ({ body }) => {
+    dg.host = String((body && body.host) || '').replace(/[^\w.\-]/g, ''); api.kv.set('dongleHost', dg.host); dg.reachable = null; dg.ip = '';
+    await probeDongle(); return model();
+  });
+  api.timer(() => { if (bridge.state !== 'online') probeDongle(); }, 30000);
+  api.after(() => probeDongle(), 3000);
+
   // ---------- Oberfläche ----------
   const model = () => ({
     base, bridge: bridge.state, mqtt: api.mqtt.connected(), version: info.version || '', coordinator: info.coordinator ? { type: info.coordinator.type, rev: info.coordinator.meta && (info.coordinator.meta.revision || info.coordinator.meta.maintrel) } : null,
@@ -194,6 +219,7 @@ module.exports = (api) => {
       power: d.power, online: d.avail, lastSeen: d.lastSeen, lqi: d.state && d.state.linkquality, battery: d.state && typeof d.state.battery === 'number' ? d.state.battery : null,
       count: [...specs.values()].filter((s) => s.ieee === d.ieee).length,
     })),
+    dongle: dongleInfo(),
     events, logs,
   });
   const push = () => { try { api.emit({ model: model() }); } catch { /* egal */ } };
@@ -271,6 +297,7 @@ module.exports = (api) => {
     if (adapter === 'deconz') notes.push('ConBee: deCONZ/Phoscon darf nicht gleichzeitig laufen (Dienst „deconz“ beenden).');
     if (choice === 'max') notes.push(net ? 'Dongle Max (Netzwerk): In der Weboberfläche des Dongles den Betriebsmodus „Zigbee Coordinator“ wählen. Der Dongle erlaubt nur eine Verbindung auf Port 6638 – ZHA, Home Assistant o. Ä. nicht gleichzeitig verbinden. Wenn der Port nicht antwortet, den Dongle über seine Weboberfläche neu starten.' : 'Dongle Max (USB): Der Dongle muss im Betriebsmodus „Zigbee Coordinator“ laufen (nicht Thread/RCP). Bei Fehlern wie „Waiting for RSTACK“ kurz in den Thread-Modus und zurück stellen.');
     if (resolvedNote) notes.push(resolvedNote);
+    if (net && b.dongleHost) { dg.host = String(b.dongleHost).replace(/[^\w.\-]/g, ''); api.kv.set('dongleHost', dg.host); probeDongle(); }
     return { yaml, compose, adapter, note: notes.join(' ') };
   });
 

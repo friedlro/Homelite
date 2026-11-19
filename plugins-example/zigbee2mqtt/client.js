@@ -7,6 +7,22 @@
   const when = (s) => (s ? new Date(s).toLocaleString('de-AT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '–');
   const copy = (t) => { try { navigator.clipboard.writeText(t); toast('Kopiert'); } catch { toast('Bitte manuell markieren und kopieren'); } };
 
+  // Status des Funk-Dongles (Koordinator)
+  function dongleCard() {
+    const D = M.dongle || {};
+    const ok = D.connected;
+    const net = D.host ? (D.reachable === true ? `Port 6638 auf ${D.ip || D.host} antwortet` : D.reachable === false ? `Port 6638 auf ${D.ip || D.host} antwortet nicht${D.msg ? ' (' + D.msg + ')' : ''}` : 'wird geprüft …') : '';
+    const hostIn = h('input', { value: D.host || '', placeholder: 'Netzwerk-Dongle: IP oder Name (optional)', style: 'max-width:260px' });
+    return h('div', { class: 'card', style: 'padding:12px;margin:10px 0' },
+      h('div', { class: 'row sb' }, h('b', {}, '📡 Funk-Dongle'), h('span', { class: 'pill ' + (ok ? 'ok' : 'bad') }, ok ? 'verbunden' : M.bridge === 'online' ? 'Zigbee2MQTT online, kein Koordinator gemeldet' : 'nicht verbunden')),
+      ok ? h('div', { class: 'hint', style: 'margin-top:6px' }, [D.type, D.rev ? 'Firmware ' + D.rev : '', D.ieee ? 'IEEE ' + D.ieee : ''].filter(Boolean).join(' · '))
+        : h('div', { class: 'hint', style: 'margin-top:6px' }, 'Zigbee2MQTT meldet keinen Koordinator – der Dongle ist nicht erreichbar oder Zigbee2MQTT läuft nicht.' + (net ? ' · ' + net : '')),
+      !ok && D.error ? h('div', { class: 'hint', style: 'margin-top:4px;color:var(--bad)' }, `Letzte Meldung (${when(D.error.t)}): ${D.error.msg}`) : null,
+      !ok && D.host && D.reachable === true ? h('div', { class: 'hint', style: 'margin-top:4px' }, 'Der Port ist offen: Zigbee2MQTT mit „port: tcp://…:6638, adapter: ember, baudrate: 115200, rtscts: false“ starten bzw. neu starten; es darf keine zweite Verbindung (ZHA/Home Assistant) bestehen.') : null,
+      h('div', { class: 'row', style: 'gap:8px;margin-top:8px;flex-wrap:wrap' }, hostIn,
+        h('button', { class: 'sm', onclick: () => call('POST', 'donglehost', { host: hostIn.value }).then((r) => { M = r; draw(); }).catch(fail) }, 'Adresse speichern & prüfen')));
+  }
+
   function wizard() {
     const sel = h('select', { onchange: (e) => { setup.adapter = e.target.value; draw(); } }, Object.entries((S && S.adapters) || {}).map(([k, l]) => h('option', { value: k, selected: setup.adapter === k }, l)));
     const ports = ((S && S.dongles) || []);
@@ -59,6 +75,7 @@
         h('span', { class: 'pill ' + (online ? 'ok' : 'bad') }, online ? 'Zigbee2MQTT online' : M.mqtt ? 'Zigbee2MQTT nicht erreichbar' : 'MQTT getrennt'),
         h('span', { class: 'hint' }, [M.version ? 'Version ' + M.version : null, M.coordinator && M.coordinator.type, M.frontend ? null : null].filter(Boolean).join(' · '),
           M.frontend ? h('a', { href: M.frontend, target: '_blank', rel: 'noopener noreferrer', style: 'margin-left:8px' }, 'Oberfläche ↗') : null)),
+      dongleCard(),
       !online ? h('div', { class: 'hint', style: 'margin-top:6px' }, `Es kommen keine Nachrichten unter „${M.base}/bridge/state“. Zigbee2MQTT starten und mit dem MQTT-Broker von HomeLite verbinden – siehe 🔧 Einrichtung.`) : null,
       cd, h('b', {}, 'Geräte'), rows, wizard(),
       M.events.length ? h('div', { style: 'margin-top:10px' }, h('b', {}, 'Ereignisse'), M.events.slice(0, 8).map((e) => h('div', { class: 'hint' }, `${when(e.t)} · ${e.txt}`))) : null,
