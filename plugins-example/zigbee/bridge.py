@@ -185,7 +185,10 @@ class Bridge:
             gw = await Gateway.async_from_config(data)
             data.gateway = gw
             gw.on_all_events(self.on_gw_event)
-            await gw.async_initialize()
+            try:
+                await asyncio.wait_for(gw.async_initialize(), 120)
+            except asyncio.TimeoutError:
+                raise RuntimeError("Der Dongle antwortet nicht (120 s). Vermutlich hält noch eine andere/alte Verbindung Port 6638 – Dongle kurz vom Strom trennen bzw. in seiner Weboberfläche neu starten und Zigbee2MQTT/Home Assistant beenden") from None
             if mode == "restore":
                 old = self.mismatch_old
                 if old is None:
@@ -204,7 +207,6 @@ class Bridge:
             emit({"event": "devices", "devices": self.all_devices()})
             return {"ok": True}
         except Exception as e:  # noqa: BLE001
-            LOG.exception("Start")
             self.gw = None
             c = e.__cause__ or e.__context__
             msg = f"{type(e).__name__}: {e}" + (f" ← {type(c).__name__}: {c}" if c else "")
@@ -218,6 +220,7 @@ class Bridge:
                 msg = "Das Zigbee-Netz auf dem Dongle passt nicht zur gespeicherten Datenbank"
                 emit({"event": "status", "state": "error", "code": "mismatch", "detail": detail, "msg": msg})
                 return {"ok": False, "error": msg, "mismatch": True}
+            LOG.warning("Start fehlgeschlagen: %s", msg)
             emit({"event": "status", "state": "error", "msg": msg})
             return {"ok": False, "error": msg}
         finally:

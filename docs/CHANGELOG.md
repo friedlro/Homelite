@@ -1,5 +1,8 @@
 # Änderungen
 
+## Plugin „Zigbee direkt“ 1.0.4
+- Der Verbindungsaufbau zum Dongle bricht nach 120 s mit einer verständlichen Meldung ab, statt zu hängen; bei einem Netz-Konflikt füllt kein langer Traceback mehr das Protokoll.
+
 ## Plugin „Zigbee direkt“ 1.0.3
 - **Datenbank zurücksetzen** (Knopf beim Dongle): für Werksreset oder Dongle-Tausch; die alte Datenbank wird als `zigbee.db.bak-…` beiseitegelegt.
 - **Zigbee2MQTT-Backup einlesen:** ZIP aus Zigbee2MQTT (enthält `coordinator_backup.json`) hochladen; Netzwerkschlüssel, Kanal und PAN-ID lassen sich dann auf den Dongle schreiben, die Gerätenamen aus `configuration.yaml` werden übernommen. Geräte müssen sich danach selbst wieder melden (batteriebetriebene beim Aufwachen). Nicht an echter Hardware geprüft; ZIP-Einlesen und Namensübernahme mit einer selbst gebauten Beispieldatei getestet.

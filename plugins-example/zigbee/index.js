@@ -56,7 +56,7 @@ module.exports = (api) => {
   const send = (cmd, extra = {}, ms = 60000) => new Promise((resolve, reject) => {
     if (!proc) return reject(new Error('Zigbee-Brücke läuft nicht'));
     const id = seq++;
-    const t = setTimeout(() => { pending.delete(id); reject(new Error('Zeitüberschreitung')); }, ms);
+    const t = setTimeout(() => { pending.delete(id); reject(new Error('Zeitüberschreitung (keine Antwort der Brücke)')); }, ms);
     pending.set(id, { resolve, reject, t });
     proc.stdin.write(JSON.stringify({ id, cmd, ...extra }) + '\n');
   });
