@@ -379,7 +379,7 @@ module.exports = (api) => {
   const bdir = () => { const d = path.join(ddir(), 'backups'); fs.mkdirSync(d, { recursive: true }); return d; };
   const okName = (n) => /^zigbee-backup-[\w-]+\.json$/.test(String(n || ''));
   const stamp = () => { const d = new Date(), p = (x) => String(x).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; };
-  const listBackups = () => { try { return fs.readdirSync(bdir()).filter(okName).map((n) => { const s = fs.statSync(path.join(bdir(), n)); return { name: n, size: s.size, t: s.mtimeMs, note: /-auto\.json$/.test(n) ? 'automatisch' : /-import\.json$/.test(n) ? 'hochgeladen' : /-vor-restore\.json$/.test(n) ? 'vor Restore' : '' }; }).sort((a, b) => b.t - a.t); } catch { return []; } };
+  const listBackups = () => { try { return fs.readdirSync(bdir()).filter(okName).map((n) => { const s = fs.statSync(path.join(bdir(), n)); return { name: n, size: s.size, t: s.mtimeMs, note: /-auto\.json$/.test(n) ? 'automatisch' : /-import\.json$/.test(n) ? 'hochgeladen' : /-vor-restore\.json$/.test(n) ? 'vor Restore' : /-z2m\.json$/.test(n) ? 'aus Zigbee2MQTT' : '' }; }).sort((a, b) => b.t - a.t); } catch { return []; } };
   const pruneBackups = () => { const keep = Math.max(1, Number(cfg().backupKeep) || 14); for (const b of listBackups().slice(keep)) { try { fs.unlinkSync(path.join(bdir(), b.name)); } catch { /* egal */ } } };
   async function makeBackup(tag) {
     if (st.state !== 'online') throw new Error('Dongle nicht verbunden – kein Backup möglich');
@@ -396,6 +396,7 @@ module.exports = (api) => {
   api.route('POST', 'backup-upload', ({ body }) => {
     let j; try { j = JSON.parse(String(body && body.content || '')); } catch { throw new Error('Keine gültige JSON-Datei'); }
     if (!looksOk(j)) throw new Error('Die Datei sieht nicht wie ein Zigbee-Netzwerk-Backup aus (Open-Coordinator-Backup)');
+    j.metadata = { version: 1, format: 'zigpy/open-coordinator-backup', internal: {}, ...(j.metadata || {}) }; if (!j.metadata.source) j.metadata.source = 'import';
     fs.writeFileSync(path.join(bdir(), `zigbee-backup-${stamp()}-import.json`), JSON.stringify(j, null, 1), { mode: 0o600 });
     return { backups: listBackups() };
   });
@@ -410,6 +411,60 @@ module.exports = (api) => {
     pushEv(`Backup ${params.name} eingespielt – Brücke wird neu gestartet`);
     await shutdown(); setTimeout(() => connect().catch(() => {}), 1500); push();
     return { ok: true };
+  });
+
+  // ---------- Zigbee2MQTT-Backup einlesen, Datenbank zurücksetzen ----------
+  const zlib = require('zlib');
+  function unzip(buf) { // minimaler ZIP-Leser (Store/Deflate) über das zentrale Verzeichnis
+    let e = -1; for (let i = buf.length - 22; i >= Math.max(0, buf.length - 70000); i--) if (buf.readUInt32LE(i) === 0x06054b50) { e = i; break; }
+    if (e < 0) throw new Error('Keine gültige ZIP-Datei');
+    const n = buf.readUInt16LE(e + 10); let p = buf.readUInt32LE(e + 16); const out = {};
+    for (let k = 0; k < n; k++) {
+      if (buf.readUInt32LE(p) !== 0x02014b50) break;
+      const meth = buf.readUInt16LE(p + 10), csz = buf.readUInt32LE(p + 20), nl = buf.readUInt16LE(p + 28), xl = buf.readUInt16LE(p + 30), cl = buf.readUInt16LE(p + 32), off = buf.readUInt32LE(p + 42);
+      const name = buf.toString('utf8', p + 46, p + 46 + nl).replace(/^\.?\//, '');
+      const lh = off, dstart = lh + 30 + buf.readUInt16LE(lh + 26) + buf.readUInt16LE(lh + 28), raw = buf.subarray(dstart, dstart + csz);
+      if (/(^|\/)(coordinator_backup\.json|configuration\.yaml|database\.db)$/.test(name) && !name.endsWith('/')) out[name.split('/').pop()] = meth === 0 ? raw : meth === 8 ? zlib.inflateRawSync(raw) : null;
+      p += 46 + nl + xl + cl;
+    }
+    return out;
+  }
+  const colon = (hex) => String(hex).replace(/^0x/i, '').toLowerCase().padStart(16, '0').match(/../g).join(':');
+  function z2mNames(files) { // ieee -> Name aus configuration.yaml (Abschnitt devices) bzw. database.db
+    const out = {};
+    const yaml = files['configuration.yaml'] ? files['configuration.yaml'].toString('utf8') : '';
+    let cur = null, inDev = false;
+    for (const line of yaml.split(/\r?\n/)) {
+      if (/^\S/.test(line)) { inDev = /^devices:/.test(line); cur = null; continue; }
+      if (!inDev) continue;
+      let m = /^\s{1,4}['"]?(0x[0-9a-fA-F]{16})['"]?:\s*$/.exec(line); if (m) { cur = colon(m[1]); continue; }
+      m = /^\s+friendly_name:\s*(.+?)\s*$/.exec(line); if (m && cur) out[cur] = m[1].replace(/^['"]|['"]$/g, '');
+    }
+    return out;
+  }
+  api.route('POST', 'import-z2m', ({ body }) => {
+    const buf = Buffer.from(String(body && body.b64 || ''), 'base64');
+    let files; try { files = unzip(buf); } catch (e) { throw new Error(e.message); }
+    if (!files['coordinator_backup.json']) throw new Error('In der ZIP-Datei fehlt coordinator_backup.json – ist es ein Zigbee2MQTT-Backup (Backup-Knopf der Zigbee2MQTT-Oberfläche, oder der Ordner „data“ als ZIP)?');
+    let j; try { j = JSON.parse(files['coordinator_backup.json'].toString('utf8')); } catch { throw new Error('coordinator_backup.json ist nicht lesbar'); }
+    if (!looksOk(j)) throw new Error('coordinator_backup.json enthält kein vollständiges Netz (Netzwerkschlüssel/PAN-ID fehlen)');
+    j.metadata = { version: 1, format: 'zigpy/open-coordinator-backup', internal: {}, ...(j.metadata || {}) }; if (!j.metadata.source) j.metadata.source = 'zigbee2mqtt';
+    const name = `zigbee-backup-${stamp()}-z2m.json`; fs.writeFileSync(path.join(bdir(), name), JSON.stringify(j, null, 1), { mode: 0o600 });
+    const nm = z2mNames(files); const have = names(); let adopted = 0; for (const [ieee, n] of Object.entries(nm)) if (!have[ieee]) { have[ieee] = n; adopted++; }
+    if (adopted) api.kv.set('names', have);
+    const devsInBackup = Array.isArray(j.devices) ? j.devices.length : 0;
+    pushEv(`Zigbee2MQTT-Backup eingelesen (${Object.keys(nm).length} Gerätenamen)`); push();
+    return { name, backups: listBackups(), channel: j.channel, pan_id: j.pan_id, coordinator_ieee: j.coordinator_ieee, names: Object.keys(nm).length, devices: devsInBackup };
+  });
+  api.route('POST', 'dbreset', async () => {
+    await shutdown();
+    const f = path.join(ddir(), 'zigbee.db'); let moved = '';
+    if (fs.existsSync(f)) { moved = `zigbee.db.bak-${stamp()}`; fs.renameSync(f, path.join(ddir(), moved)); }
+    for (const x of ['zigbee.db-wal', 'zigbee.db-shm']) { try { fs.unlinkSync(path.join(ddir(), x)); } catch { /* egal */ } }
+    devs.clear(); for (const k of specs.keys()) setOnline(k, false);
+    lastSt.clear(); st = { ...st, state: 'stopped', code: '', detail: null, msg: 'Datenbank zurückgesetzt' };
+    pushEv(`Datenbank zurückgesetzt${moved ? ' (alte: ' + moved + ')' : ''}`); push();
+    connect().catch(() => {}); return { ok: true, moved };
   });
   api.timer(async () => {
     if (cfg().autoBackup === false || st.state !== 'online') return;

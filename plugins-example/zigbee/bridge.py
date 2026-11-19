@@ -450,8 +450,18 @@ class Bridge:
             return {"ok": True, "data": bk.as_open_coordinator_json()}
         if cmd == "restore":
             from zigpy.backups import NetworkBackup
-            bk = NetworkBackup.from_open_coordinator_json(m["data"])
-            await self.gw.application_controller.backups.restore_backup(bk, create_new=False)
+            data = m["data"]
+            md = data.setdefault("metadata", {})
+            md.setdefault("version", 1)
+            md.setdefault("source", "import")
+            md.setdefault("internal", {})
+            bk = NetworkBackup.from_open_coordinator_json(data)
+            app = self.gw.application_controller
+            await app.backups.restore_backup(bk, create_new=False)
+            # neuen Stand als „letztes Backup“ in der Datenbank vermerken, sonst meldet zigpy beim
+            # Neustart einen Konflikt zwischen Dongle und Datenbank
+            await app.load_network_info(load_devices=False)
+            app.backups.add_backup(app.backups.from_network_state())
             return {"ok": True}
         if cmd == "set_channel":
             await self.gw.application_controller.move_network_to_channel(int(m["channel"]))
