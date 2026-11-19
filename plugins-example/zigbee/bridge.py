@@ -90,7 +90,7 @@ def ent_info(ent):
 def dev_info(dev):
     clusters = []
     try:
-        for ep_id, ep in dev.zigpy_device.endpoints.items():
+        for ep_id, ep in dev.device.endpoints.items():
             if ep_id == 0:
                 continue
             clusters.append({
@@ -104,9 +104,8 @@ def dev_info(dev):
         pass
     quirk = ""
     try:
-        quirk = type(dev.zigpy_device).__module__ + "." + type(dev.zigpy_device).__name__
-        if quirk.startswith("zigpy.device"):
-            quirk = ""
+        if getattr(dev, "quirk_applied", False):
+            quirk = str(dev.quirk_class)
     except Exception:  # noqa: BLE001
         pass
     ents = []
@@ -129,7 +128,7 @@ def dev_info(dev):
         "rssi": dev.rssi,
         "available": bool(dev.available),
         "last_seen": dev.last_seen,
-        "sw": getattr(dev.zigpy_device, "sw_build_id", None) or "",
+        "sw": getattr(getattr(dev, "device", None), "sw_build_id", None) or "",
         "endpoints": clusters,
         "entities": ents,
     }
@@ -152,6 +151,7 @@ class Bridge:
             return {"ok": True, "already": True}
         self.starting = True
         self.cfg = cfg
+        gw = None
         emit({"event": "status", "state": "starting"})
         try:
             from zha.application.gateway import Gateway
@@ -208,6 +208,11 @@ class Bridge:
             return {"ok": True}
         except Exception as e:  # noqa: BLE001
             self.gw = None
+            if gw is not None:  # halb gestartet: Verbindung zum Dongle sauber freigeben (nur eine Verbindung erlaubt)
+                try:
+                    await asyncio.wait_for(gw.shutdown(), 20)
+                except Exception:  # noqa: BLE001
+                    pass
             c = e.__cause__ or e.__context__
             msg = f"{type(e).__name__}: {e}" + (f" ← {type(c).__name__}: {c}" if c else "")
             if type(e).__name__ == "NetworkSettingsInconsistent" and hasattr(e, "new_state"):
@@ -259,7 +264,10 @@ class Bridge:
         for d in gw.devices.values():
             if getattr(d, "is_coordinator", False) or getattr(d, "is_active_coordinator", False):
                 continue
-            out.append(dev_info(d))
+            try:
+                out.append(dev_info(d))
+            except Exception as e:  # noqa: BLE001
+                LOG.warning("Gerät %s: %s", getattr(d, "ieee", "?"), e)
         return out
 
     def attach(self, dev):

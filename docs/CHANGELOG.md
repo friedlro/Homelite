@@ -1,5 +1,8 @@
 # Änderungen
 
+## Plugin „Zigbee direkt“ 1.0.5
+- Fix: Nach erfolgreicher Verbindung zum Dongle brach das Plugin beim Auslesen der Geräteliste mit `AttributeError: 'ZigbeeDevice' object has no attribute 'zigpy_device'` ab (falscher Attributname der ZHA-Bibliothek, jetzt `device`). Dadurch blieb die Verbindung offen und weitere Versuche liefen in Zeitüberschreitungen. Ein einzelnes defektes Gerät kann den Start nicht mehr verhindern; eine halb gestartete Verbindung wird freigegeben. Die Attributnamen wurden gegen die Bibliothek geprüft; ein Lauf mit echtem Dongle steht aus.
+
 ## Plugin „Zigbee direkt“ 1.0.4
 - Der Verbindungsaufbau zum Dongle bricht nach 120 s mit einer verständlichen Meldung ab, statt zu hängen; bei einem Netz-Konflikt füllt kein langer Traceback mehr das Protokoll.
 
