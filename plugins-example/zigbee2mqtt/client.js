@@ -1,7 +1,7 @@
 // Seite „Zigbee“: Status, Anlernen, Geräte, Einrichtungs-Assistent für den Dongle
 (() => {
   const { h, fill, toast, fail } = HL;
-  let M = null, tick = null, S = null, setup = { adapter: 'ember', connection: 'usb', dongleHost: '', port: '', host: location.hostname, user: '', pass: '', channel: 11 }, out = null, open = false, found = null;
+  let M = null, tick = null, found = null;
   const call = (m, sub, body) => HL.api('zigbee2mqtt', m, sub, body);
   const box = () => document.getElementById('zb-box');
   const when = (s) => (s ? new Date(s).toLocaleString('de-AT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '–');
@@ -20,37 +20,24 @@
       !ok && D.error ? h('div', { class: 'hint', style: 'margin-top:4px;color:var(--bad)' }, `Letzte Meldung (${when(D.error.t)}): ${D.error.msg}`) : null,
       !ok && D.host && D.reachable === true ? h('div', { class: 'hint', style: 'margin-top:4px' }, 'Der Port ist offen: Zigbee2MQTT mit „port: tcp://…:6638, adapter: ember, baudrate: 115200, rtscts: false“ starten bzw. neu starten; es darf keine zweite Verbindung (ZHA/Home Assistant) bestehen.') : null,
       h('div', { class: 'row', style: 'gap:8px;margin-top:8px;flex-wrap:wrap' }, hostIn,
-        h('button', { class: 'sm', onclick: () => call('POST', 'donglehost', { host: hostIn.value }).then((r) => { M = r; draw(); }).catch(fail) }, 'Adresse speichern & prüfen')));
+        h('button', { class: 'sm', onclick: () => call('POST', 'donglehost', { host: hostIn.value }).then((r) => { M = r; draw(); }).catch(fail) }, 'Adresse speichern & prüfen'),
+        h('button', { class: 'sm', onclick: () => call('POST', 'testdongle', { host: hostIn.value }).then((r) => toast(r.msg, !r.ok)).catch(fail) }, '✔ Verbindung testen'),
+        h('button', { class: 'sm', onclick: (e) => { e.target.disabled = true; e.target.textContent = 'Suche …'; call('POST', 'finddongle', {}).then((r) => { found = r; draw(); }).catch((x) => { fail(x); draw(); }); } }, '🔎 Im Netzwerk suchen')),
+      found ? h('div', { class: 'row', style: 'gap:6px;margin-top:6px;flex-wrap:wrap' }, found.found.length ? found.found.map((f) => h('button', { class: 'sm primary', onclick: () => { call('POST', 'donglehost', { host: f.ip }).then((r) => { M = r; found = null; draw(); }).catch(fail); } }, f.ip + (f.title ? ' · ' + f.title : ''))) : h('span', { class: 'hint' }, `Nichts auf Port 6638 gefunden (${found.subnets.join(', ')}.x).`)) : null);
   }
 
-  function wizard() {
-    const sel = h('select', { onchange: (e) => { setup.adapter = e.target.value; draw(); } }, Object.entries((S && S.adapters) || {}).map(([k, l]) => h('option', { value: k, selected: setup.adapter === k }, l)));
-    const ports = ((S && S.dongles) || []);
-    const port = h('input', { value: setup.port, list: 'zb-ports', placeholder: '/dev/serial/by-id/…', style: 'min-width:0;width:100%', oninput: (e) => { setup.port = e.target.value; } });
-    const dl = h('datalist', { id: 'zb-ports' }, ports.map((p) => h('option', { value: p.port }, p.hint)));
-    const inp = (k, ph, type) => h('input', { value: setup[k], placeholder: ph, type: type || 'text', oninput: (e) => { setup[k] = e.target.value; } });
+  // Funkkanal anzeigen und ändern
+  function channelCard() {
+    if (M.bridge !== 'online') return null;
+    const cur = M.network && M.network.channel, cfgc = M.channelConfig;
+    const sel = h('select', {}, Array.from({ length: 16 }, (_, i) => 11 + i).map((n) => h('option', { value: n, selected: n === (cfgc || cur) }, n + ([15, 20, 25].includes(n) ? ' (empfohlen)' : n === 11 ? ' (Standard)' : ''))));
     return h('div', { class: 'card', style: 'padding:12px;margin:10px 0' },
-      h('div', { class: 'row sb' }, h('b', {}, '🔧 Einrichtung (Zigbee2MQTT + Dongle)'), h('button', { class: 'sm', onclick: () => { open = !open; draw(); } }, open ? 'Schließen' : 'Öffnen')),
-      !open ? h('div', { class: 'hint' }, 'Zigbee2MQTT läuft als eigener Dienst und steuert den USB-Dongle (Sonoff ZBDongle-E/-P, ConBee II …). Hier erzeugst du die passende Konfiguration.') : h('div', {},
-        ports.length ? h('div', { class: 'hint', style: 'margin:6px 0' }, 'Am Server erkannt: ' + ports.map((p) => `${p.hint || 'unbekannt'} (${p.port.split('/').pop()})`).join(' · ')) : h('div', { class: 'hint', style: 'margin:6px 0' }, 'Kein USB-Dongle am HomeLite-Server erkannt (läuft Zigbee2MQTT auf einem anderen Gerät, Port von dort eintragen).'),
-        h('div', { class: 'form' },
-          h('label', {}, 'Dongle-Typ', sel),
-          ...(setup.adapter === 'max' ? [h('label', {}, 'Anbindung des Dongle Max', h('select', { onchange: (e) => { setup.connection = e.target.value; draw(); } }, [['usb', 'USB (am Server eingesteckt)'], ['network', 'Netzwerk (LAN/PoE oder WLAN)']].map(([v, l]) => h('option', { value: v, selected: setup.connection === v }, l))))] : []),
-          setup.adapter === 'max' && setup.connection === 'network' ? h('div', {}, h('label', {}, 'Adresse des Dongles (IP oder Name, Port 6638)', inp('dongleHost', 'z. B. 192.168.50.60 oder dongle-m.local')),
-            h('div', { class: 'row', style: 'gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap' }, h('button', { class: 'sm', onclick: () => call('POST', 'testdongle', { host: setup.dongleHost }).then((r) => toast(r.msg, !r.ok)).catch(fail) }, '✔ Verbindung testen'),
-              h('button', { class: 'sm', onclick: (e) => { e.target.disabled = true; e.target.textContent = 'Suche …'; call('POST', 'finddongle', {}).then((r) => { found = r; draw(); }).catch((x) => { fail(x); draw(); }); } }, '🔎 Im Netzwerk suchen'),
-              found ? (found.found.length ? found.found.map((f) => h('button', { class: 'sm primary', onclick: () => { setup.dongleHost = f.ip; draw(); } }, f.ip + (f.title ? ' · ' + f.title : ''))) : h('span', { class: 'hint' }, `Nichts auf Port 6638 gefunden (${found.subnets.join(', ')}.x). Dongle eingeschaltet, im Modus „Zigbee Coordinator“ und nicht von ZHA/Home Assistant belegt?`)) : null)) : h('label', {}, 'Anschluss', port, dl),
-          h('label', {}, 'HomeLite-Server (MQTT)', inp('host', 'IP des HomeLite-Servers')),
-          h('label', {}, 'MQTT-Benutzer', inp('user', 'Benutzer aus Einstellungen → MQTT-Broker')), h('label', {}, 'MQTT-Passwort', inp('pass', 'wird nicht gespeichert', 'password')),
-          h('label', {}, 'Zigbee-Funkkanal', h('select', { onchange: (e) => { setup.channel = Number(e.target.value); } }, [11, 15, 20, 25].map((c) => h('option', { value: c, selected: setup.channel === c }, c + (c === 11 ? ' (Standard)' : '')))))),
-        h('button', { class: 'primary', style: 'margin-top:8px', onclick: () => call('POST', 'setup', setup).then((r) => { out = r; draw(); }).catch(fail) }, 'Konfiguration erzeugen'),
-        out ? h('div', {},
-          out.note ? h('div', { class: 'hint', style: 'color:var(--bad);margin-top:6px' }, out.note) : null,
-          h('div', { class: 'row sb', style: 'margin-top:10px' }, h('b', {}, 'data/configuration.yaml'), h('button', { class: 'sm', onclick: () => copy(out.yaml) }, 'Kopieren')),
-          h('pre', { style: 'overflow:auto;padding:8px;background:var(--bg2,#0001);border-radius:6px' }, out.yaml),
-          h('div', { class: 'row sb' }, h('b', {}, 'docker-compose.yml (empfohlen)'), h('button', { class: 'sm', onclick: () => copy(out.compose) }, 'Kopieren')),
-          h('pre', { style: 'overflow:auto;padding:8px;background:var(--bg2,#0001);border-radius:6px' }, out.compose),
-          h('div', { class: 'hint' }, 'Ablauf: Ordner anlegen (z. B. ~/zigbee2mqtt), die zwei Dateien speichern (configuration.yaml in den Unterordner data), dann „docker compose up -d“. Nach ca. 30 Sekunden erscheint hier „online“. Ohne Docker: siehe LIESMICH des Plugins.')) : null));
+      h('div', { class: 'row sb' }, h('b', {}, '📶 Funkkanal'), h('span', { class: 'pill' }, cur ? 'aktuell ' + cur : 'unbekannt')),
+      M.restartRequired ? h('div', { class: 'hint', style: 'margin-top:6px;color:var(--warn,#e8a317)' }, `Kanal ${cfgc} ist gespeichert, wird aber erst nach einem Neustart von Zigbee2MQTT verwendet.`) : null,
+      h('div', { class: 'row', style: 'gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center' }, sel,
+        h('button', { class: 'sm primary', onclick: () => { const n = Number(sel.value); if (n === cur && !M.restartRequired) return toast('Das ist schon der aktuelle Kanal'); if (confirm(`Funkkanal auf ${n} ändern?\n\nDie Geräte wechseln nach dem Neustart von Zigbee2MQTT mit. Batteriegeräte, die nicht folgen, müssen eventuell neu angelernt werden. Vorher am besten ein Backup in Zigbee2MQTT anlegen.`)) call('POST', 'channel', { channel: n }).then(() => toast('Kanal gespeichert – Zigbee2MQTT neu starten, damit er gilt')).catch(fail); } }, 'Kanal ändern'),
+        h('button', { class: 'sm', onclick: () => { if (confirm('Zigbee2MQTT jetzt neu starten? Das Zigbee-Netz ist dabei kurz nicht erreichbar.')) call('POST', 'restart', {}).then(() => toast('Neustart angefordert')).catch(fail); } }, '↻ Zigbee2MQTT neu starten')),
+      h('div', { class: 'hint', style: 'margin-top:6px' }, 'Tipp: Die Kanäle 15, 20 und 25 liegen zwischen den üblichen WLAN-Kanälen 1, 6 und 11 und stören sich am wenigsten.'));
   }
 
   function draw() {
@@ -75,9 +62,9 @@
         h('span', { class: 'pill ' + (online ? 'ok' : 'bad') }, online ? 'Zigbee2MQTT online' : M.mqtt ? 'Zigbee2MQTT nicht erreichbar' : 'MQTT getrennt'),
         h('span', { class: 'hint' }, [M.version ? 'Version ' + M.version : null, M.coordinator && M.coordinator.type, M.frontend ? null : null].filter(Boolean).join(' · '),
           M.frontend ? h('a', { href: M.frontend, target: '_blank', rel: 'noopener noreferrer', style: 'margin-left:8px' }, 'Oberfläche ↗') : null)),
-      dongleCard(),
+      dongleCard(), channelCard(),
       !online ? h('div', { class: 'hint', style: 'margin-top:6px' }, `Es kommen keine Nachrichten unter „${M.base}/bridge/state“. Zigbee2MQTT starten und mit dem MQTT-Broker von HomeLite verbinden – siehe 🔧 Einrichtung.`) : null,
-      cd, h('b', {}, 'Geräte'), rows, wizard(),
+      cd, h('b', {}, 'Geräte'), rows,
       M.events.length ? h('div', { style: 'margin-top:10px' }, h('b', {}, 'Ereignisse'), M.events.slice(0, 8).map((e) => h('div', { class: 'hint' }, `${when(e.t)} · ${e.txt}`))) : null,
       M.logs.length ? h('details', { style: 'margin-top:10px' }, h('summary', {}, 'Zigbee2MQTT-Protokoll'), M.logs.slice(0, 20).map((e) => h('div', { class: 'hint', style: e.level === 'error' ? 'color:var(--bad)' : '' }, `${when(e.t)} · ${e.msg}`))) : null);
     clearInterval(tick);
@@ -90,7 +77,6 @@
     render(el) {
       el.append(h('h2', { class: 'page-title' }, '🐝 Zigbee'), h('div', { class: 'card', id: 'zb-box' }));
       call('GET', 'model').then((r) => { M = r; draw(); }).catch(fail);
-      call('GET', 'dongles').then((r) => { S = r; if (!setup.port && r.dongles[0]) { setup.port = r.dongles[0].port; if (r.dongles[0].adapter) setup.adapter = r.dongles[0].adapter; } draw(); }).catch(() => {});
     },
   });
 })();

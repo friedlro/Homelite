@@ -23,17 +23,25 @@ Der Assistent auf der Seite „Zigbee“ erkennt am Server angeschlossene Dongle
 - Bei „Waiting for RSTACK“ im Zigbee2MQTT-Protokoll hilft meist: Dongle kurz auf Thread/RCP und wieder auf Zigbee Coordinator stellen, dann Zigbee2MQTT neu starten.
 - Nicht mit einem echten Dongle Max ausprobiert; Quelle der Angaben: Sonoff-Anleitung und Nutzerberichte.
 
+## Funkkanal ändern
+Der Block **📶 Funkkanal** zeigt den aktuellen Kanal und lässt einen neuen wählen (11–26; 15, 20 und 25 sind empfohlen). „Kanal ändern“ schickt die Einstellung an Zigbee2MQTT; sie gilt nach einem Neustart von Zigbee2MQTT (Knopf „↻ Zigbee2MQTT neu starten“). Die Geräte wechseln normalerweise mit; Batteriegeräte, die nicht folgen, müssen eventuell neu angelernt werden – vorher ein Backup in Zigbee2MQTT anlegen. Nicht an echtem Zigbee-Netz ausprobiert.
+
 ## Dongle-Status
 Auf der Seite zeigt der Block **📡 Funk-Dongle**, ob der Dongle verbunden ist: „verbunden“ heißt, Zigbee2MQTT ist online und meldet den Koordinator (Typ, Firmware, IEEE-Adresse). Sonst steht dort „nicht verbunden“ mit der letzten Fehlermeldung aus dem Zigbee2MQTT-Protokoll. Trägst du bei einem Netzwerk-Dongle die Adresse ein (wird bei der Einrichtung übernommen, sonst unter „Adresse speichern & prüfen“), prüft HomeLite zusätzlich alle 30 Sekunden, ob Port 6638 antwortet – solange Zigbee2MQTT nicht online ist.
 
 ## Einrichtung
+Zigbee2MQTT wird außerhalb von HomeLite betrieben (z. B. Docker) und mit dem MQTT-Broker von HomeLite verbunden; einen Konfigurationsgenerator gibt es nicht mehr.
 1. **MQTT-Benutzer anlegen:** *Einstellungen → Eingebauter MQTT-Broker* → Benutzer hinzufügen (z. B. `zigbee`).
-2. **Seite „Zigbee“ → 🔧 Einrichtung → Öffnen:** Dongle-Typ und Anschluss wählen, Server-IP und MQTT-Zugang eintragen, **Konfiguration erzeugen**. Das Passwort wird nicht gespeichert.
-3. Auf dem Server einen Ordner anlegen (z. B. `~/zigbee2mqtt`), `docker-compose.yml` dort und `configuration.yaml` im Unterordner `data/` speichern, dann:
-   ```bash
-   docker compose up -d
+2. In der `configuration.yaml` von Zigbee2MQTT den MQTT-Server (`mqtt://<Server-IP>:1883`, Benutzer/Passwort) und den Dongle eintragen, z. B. für den Sonoff Dongle Max im Netzwerk:
+   ```yaml
+   serial:
+     port: tcp://192.168.50.60:6638
+     adapter: ember
+     baudrate: 115200
+     rtscts: false
    ```
-   Nach etwa 30 Sekunden zeigt die Seite „Zigbee2MQTT online“. Die Zigbee2MQTT-Oberfläche ist auf Port 8080 erreichbar (Adresse in den Plugin-Einstellungen eintragen, dann erscheint ein Link).
+   (Namen wie `dongle-m.local` finden Docker-Container oft nicht – besser die IP-Adresse verwenden.) Dann Zigbee2MQTT starten; nach etwa 30 Sekunden zeigt die Seite „Zigbee2MQTT online“. Die Oberfläche von Zigbee2MQTT liegt meist auf Port 8080 (Adresse in den Plugin-Einstellungen eintragen, dann erscheint ein Link).
+3. Beim Netzwerk-Dongle die Adresse im Block **📡 Funk-Dongle** eintragen („Adresse speichern & prüfen“); mit „Im Netzwerk suchen“ lässt sie sich finden.
 4. **➕ Anlernen** drücken und am Gerät die Anlerntaste betätigen bzw. es zurücksetzen. Fertig eingelesene Geräte erscheinen automatisch in HomeLite (Benachrichtigung „Neues Gerät eingelesen“).
 
 **ConBee II:** Der Dienst `deconz` / Phoscon darf nicht gleichzeitig laufen (`sudo systemctl disable --now deconz`). Die Firmware sollte aktuell sein (GCFFlasher).

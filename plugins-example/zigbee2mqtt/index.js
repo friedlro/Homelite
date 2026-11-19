@@ -166,6 +166,7 @@ module.exports = (api) => {
       if (txt) { pushEv(txt); if (j.type === 'device_interview' && j.data && j.data.status === 'successful') api.notify('Zigbee', `Neues Gerät eingelesen: ${n}`); push(); }
       return;
     }
+    if (rel === 'bridge/response/options') { const j = parse(payload); if (j) { pushEv(j.status === 'ok' ? 'Einstellung gespeichert' + (j.data && j.data.restart_required ? ' – Neustart von Zigbee2MQTT nötig' : '') : `Einstellung abgelehnt: ${j.error || 'Fehler'}`); push(); } return; }
     if (rel.startsWith('bridge/')) return;
     if (rel.endsWith('/availability')) {
       const d = devs.get(rel.slice(0, -13)); if (!d) return;
@@ -219,7 +220,8 @@ module.exports = (api) => {
       power: d.power, online: d.avail, lastSeen: d.lastSeen, lqi: d.state && d.state.linkquality, battery: d.state && typeof d.state.battery === 'number' ? d.state.battery : null,
       count: [...specs.values()].filter((s) => s.ieee === d.ieee).length,
     })),
-    dongle: dongleInfo(),
+    dongle: dongleInfo(), network: info.network ? { channel: info.network.channel, pan: info.network.pan_id } : null,
+    channelConfig: info.config && info.config.advanced ? info.config.advanced.channel : null, restartRequired: !!info.restart_required,
     events, logs,
   });
   const push = () => { try { api.emit({ model: model() }); } catch { /* egal */ } };
@@ -237,6 +239,10 @@ module.exports = (api) => {
     req('device/remove', { id: d.ieee, force: !!body.force }); return { ok: true };
   });
   api.route('POST', 'interview', ({ body }) => { const d = devs.get(String(body.name || '')); if (!d) throw new Error('Gerät unbekannt'); req('device/interview', { id: d.ieee }); return { ok: true }; });
+  api.route('POST', 'channel', ({ body }) => {
+    const n = Math.round(Number(body && body.channel)); if (!(n >= 11 && n <= 26)) throw new Error('Kanal muss zwischen 11 und 26 liegen');
+    req('options', { options: { advanced: { channel: n } } }); pushEv(`Funkkanal ${n} angefordert`); push(); return { ok: true };
+  });
   api.route('POST', 'restart', () => { req('restart', ''); return { ok: true }; });
 
   // Dongles am Server erkennen
