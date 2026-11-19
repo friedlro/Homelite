@@ -5,6 +5,7 @@ const fs = require('fs');
 const net = require('net');
 const os = require('os');
 const http = require('http');
+const dns = require('dns').promises;
 
 const LABEL = { temperature: 'Temperatur', humidity: 'Feuchte', pressure: 'Luftdruck', illuminance: 'Helligkeit', illuminance_lux: 'Helligkeit', power: 'Leistung', energy: 'Energie', voltage: 'Spannung', current: 'Strom', co2: 'CO₂', voc: 'VOC', pm25: 'Feinstaub', battery: 'Batterie', soil_moisture: 'Bodenfeuchte', linkquality: 'Verbindung', local_temperature: 'Temperatur', position: 'Position', distance: 'Abstand' };
 const BIN = { occupancy: 'Bewegung', presence: 'Präsenz', water_leak: 'Wasser', smoke: 'Rauch', vibration: 'Vibration', tamper: 'Sabotage', gas: 'Gas', carbon_monoxide: 'CO', battery_low: 'Batterie schwach', contact: 'Kontakt' };
@@ -224,6 +225,12 @@ module.exports = (api) => {
   // Netzwerk-Dongles (Sonoff Dongle Max, SLZB …) im eigenen Subnetz suchen: offener TCP-Port 6638
   const tcpOpen = (ip, port, ms) => new Promise((res) => { const c = net.connect({ host: ip, port, timeout: ms }); c.once('connect', () => { c.destroy(); res(true); }); c.once('timeout', () => { c.destroy(); res(false); }); c.once('error', () => res(false)); });
   const webTitle = (ip) => new Promise((res) => { const r = http.get({ host: ip, port: 80, path: '/', timeout: 1200 }, (x) => { let b = ''; x.on('data', (d) => { if (b.length < 6000) b += d; }); x.on('end', () => { const m = /<title>([^<]*)/i.exec(b); res(m ? m[1].trim().slice(0, 60) : ''); }); }); r.on('timeout', () => { r.destroy(); res(''); }); r.on('error', () => res('')); });
+  api.route('POST', 'testdongle', async ({ body }) => {
+    const hostIn = String((body && body.host) || '').replace(/[^\w.\-]/g, ''); if (!hostIn) return { ok: false, msg: 'Keine Adresse eingetragen.' };
+    let ip = hostIn; if (!/^\d+\.\d+\.\d+\.\d+$/.test(ip)) { try { ip = (await dns.lookup(hostIn, { family: 4 })).address; } catch { return { ok: false, msg: `„${hostIn}“ lässt sich auf diesem Server nicht auflösen – IP-Adresse verwenden.` }; } }
+    const open = await tcpOpen(ip, 6638, 2500);
+    return open ? { ok: true, msg: `Port 6638 auf ${ip} antwortet. Zigbee2MQTT sollte sich verbinden können (Dongle auf „Zigbee Coordinator“, keine zweite Verbindung).` } : { ok: false, msg: `Port 6638 auf ${ip} antwortet nicht. Dongle erreichbar? Betriebsmodus „Zigbee Coordinator“? Belegt eine andere Verbindung (ZHA/Home Assistant) den Port? Dongle ggf. über seine Weboberfläche neu starten.` };
+  });
   api.route('POST', 'finddongle', async ({ body }) => {
     const nets = []; for (const l of Object.values(os.networkInterfaces())) for (const a of l || []) if (a.family === 'IPv4' && !a.internal) nets.push(a.address);
     const prefs = String((body && body.subnet) || '').match(/^(\d+\.\d+\.\d+)\.?/) ? [String(body.subnet).match(/^(\d+\.\d+\.\d+)/)[1]] : [...new Set(nets.map((a) => a.split('.').slice(0, 3).join('.')))];
@@ -238,13 +245,18 @@ module.exports = (api) => {
     try { list = fs.readdirSync('/dev/serial/by-id').map((f) => ({ port: '/dev/serial/by-id/' + f, ...guess(f) })); } catch { /* kein USB-Seriell */ }
     return { dongles: list, adapters: ADAPTERS };
   });
-  api.route('POST', 'setup', ({ body }) => {
+  api.route('POST', 'setup', async ({ body }) => {
     const b = body || {};
     const choice = Object.keys(ADAPTERS).includes(b.adapter) ? b.adapter : 'ember';
     const adapter = choice === 'max' ? 'ember' : choice;
     // Dongle Max kann auch per Netzwerk (LAN/PoE/WLAN) angebunden werden: tcp://<Adresse>:6638
     const net = choice === 'max' && b.connection === 'network';
-    const nethost = String(b.dongleHost || '').replace(/[^\w.\-]/g, '');
+    let nethost = String(b.dongleHost || '').replace(/[^\w.\-]/g, '');
+    let resolvedNote = '';
+    // Namen wie „dongle-m.local“ (mDNS) kann Zigbee2MQTT im Docker-Container meist nicht auflösen → hier in eine IP umwandeln
+    if (net && nethost && !/^\d+\.\d+\.\d+\.\d+$/.test(nethost)) {
+      try { const r = await dns.lookup(nethost, { family: 4 }); resolvedNote = `„${nethost}“ wurde auf ${r.address} aufgelöst und als feste Adresse eingetragen (Namen mit .local findet Zigbee2MQTT im Docker-Container oft nicht).`; nethost = r.address; } catch { resolvedNote = `„${nethost}“ konnte hier nicht aufgelöst werden. Wenn Zigbee2MQTT sich nicht verbindet, die IP-Adresse des Dongles eintragen (Router oder „Im Netzwerk suchen“).`; }
+    }
     const port = net ? `tcp://${nethost || 'DONGLE-ADRESSE'}:6638` : String(b.port || '/dev/serial/by-id/HIER-DONGLE-EINTRAGEN').replace(/[\r\n"]/g, '');
     const host = String(b.host || 'SERVER-IP').replace(/[^\w.\-]/g, '');
     const user = String(b.user || 'BENUTZER').replace(/[\r\n"]/g, ''), pass = String(b.pass || 'PASSWORT').replace(/[\r\n"]/g, '');
@@ -252,12 +264,13 @@ module.exports = (api) => {
     const ch = [11, 15, 20, 25].includes(Number(b.channel)) ? Number(b.channel) : 11;
     const yaml = [
       'version: 4', 'permit_join: false', 'availability: true', 'mqtt:', `  base_topic: ${topic}`, `  server: mqtt://${host}:1883`, `  user: ${user}`, `  password: ${pass}`,
-      'serial:', `  port: ${port}`, `  adapter: ${adapter}`, 'frontend:', '  enabled: true', '  port: 8080', 'advanced:', `  channel: ${ch}`, '  network_key: GENERATE', '  pan_id: GENERATE', '  ext_pan_id: GENERATE', '  log_level: info', '',
+      'serial:', `  port: ${port}`, `  adapter: ${adapter}`, ...(choice === 'max' ? ['  baudrate: 115200', '  rtscts: false'] : []), 'frontend:', '  enabled: true', '  port: 8080', 'advanced:', `  channel: ${ch}`, '  network_key: GENERATE', '  pan_id: GENERATE', '  ext_pan_id: GENERATE', '  log_level: info', '',
     ].join('\n');
     const compose = ['services:', '  zigbee2mqtt:', '    image: koenkk/zigbee2mqtt:latest', '    restart: unless-stopped', '    network_mode: host', '    environment:', '      - TZ=Europe/Vienna', '    volumes:', '      - ./data:/app/data', '      - /run/udev:/run/udev:ro', ...(net ? [] : ['    devices:', `      - ${port}:${port}`]), ''].join('\n');
     const notes = [];
     if (adapter === 'deconz') notes.push('ConBee: deCONZ/Phoscon darf nicht gleichzeitig laufen (Dienst „deconz“ beenden).');
     if (choice === 'max') notes.push(net ? 'Dongle Max (Netzwerk): In der Weboberfläche des Dongles den Betriebsmodus „Zigbee Coordinator“ wählen. Der Dongle erlaubt nur eine Verbindung auf Port 6638 – ZHA, Home Assistant o. Ä. nicht gleichzeitig verbinden. Wenn der Port nicht antwortet, den Dongle über seine Weboberfläche neu starten.' : 'Dongle Max (USB): Der Dongle muss im Betriebsmodus „Zigbee Coordinator“ laufen (nicht Thread/RCP). Bei Fehlern wie „Waiting for RSTACK“ kurz in den Thread-Modus und zurück stellen.');
+    if (resolvedNote) notes.push(resolvedNote);
     return { yaml, compose, adapter, note: notes.join(' ') };
   });
 

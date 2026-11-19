@@ -1,7 +1,7 @@
 {
   "id": "zigbee2mqtt",
   "name": "Zigbee (Zigbee2MQTT)",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Zigbee über Zigbee2MQTT: Geräte werden automatisch als HomeLite-Geräte angelegt, Anlernen/Umbenennen/Entfernen direkt in HomeLite. Mit Einrichtungs-Assistent für Sonoff ZBDongle-E/-P, Dongle Max (USB oder Netzwerk), ConBee II und weitere Dongles (erzeugt die Zigbee2MQTT-Konfiguration).",
   "author": "HomeLite",
   "icon": "🐝",
@@ -51,6 +51,7 @@
   "changelog": {
     "1.0.0": "Erste Version: Geräte automatisch aus Zigbee2MQTT, Anlernen, Dongle-Einrichtung.",
     "1.1.0": "Sonoff Dongle Max (Dongle-M): Erkennung, Einrichtung für USB und Netzwerk (tcp://…:6638).",
-    "1.1.1": "Dongle Max im Netzwerk (LAN/WLAN) per Suche finden (Port 6638)."
+    "1.1.1": "Dongle Max im Netzwerk (LAN/WLAN) per Suche finden (Port 6638).",
+    "1.1.2": "Dongle Max: baudrate 115200 und rtscts false, .local-Namen werden in IP aufgelöst, Verbindungstest."
   }
 }
