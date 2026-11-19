@@ -60,6 +60,7 @@ Plugins are optional. Nothing in this list is active until you install and enabl
 | Plugin | Purpose |
 |---|---|
 | `flows` | Visual flow editor: webhooks, MQTT, sub-flows, execution history, custom nodes |
+| `zigbee` | Standalone Zigbee via the ZHA core (zigpy/bellows/zha-quirks), no Zigbee2MQTT: Sonoff Dongle Max (network/USB), auto-discovery, pairing, channel change, backup/restore |
 | `zigbee2mqtt` | Zigbee devices via a Zigbee2MQTT instance: auto-discovery, pairing, renaming, setup assistant |
 | `zwave` | Z-Wave via zwave-js-server: switches, dimmers, locks, thermostats, sensors, buttons |
 | `tuya` | Tuya / Smart Life devices, local (LAN) with cloud fallback |

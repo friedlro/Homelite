@@ -1,5 +1,8 @@
 # Änderungen
 
+## Plugin „Zigbee direkt“ 1.0.0 (neu, `plugins-example/zigbee`)
+- Eigenständiges Zigbee-Plugin ohne Zigbee2MQTT: Python-Brücke mit dem ZHA-Kern (zigpy, bellows, zha, zha-quirks) hält den Dongle selbst – Sonoff Dongle Max per Netzwerk oder USB, weitere Funkchips (Z-Stack, ConBee, XBee, ZiGate) wählbar. Installation der Python-Umgebung per Knopf, Anlernen, automatische Geräte (Licht, Schalter, Rollo, Schloss, Thermostat, Sensoren, Taster), Konfigurations-Entitäten auf der Seite, Kanalwechsel, Backup/Restore im „Open Coordinator“-Format. **Nicht mit echter Hardware getestet** (nur Pakete, Brücken-Start bis zum Funkchip, Zuordnung und Seite mit Simulation).
+
 ## 1.29.8
 - **Anwesenheit: Uhrzeit von Weggehen und Ankunft:** Pro Person merkt sich HomeLite, wann sie zuletzt die Zone „Zuhause“ verlassen hat und wann sie wieder angekommen ist (bleibt nach Neustart erhalten). Anzeige auf den Seiten „Anwesenheit“ und „Ort“ sowie im Dashboard-Baustein: unterwegs → „Weg seit 08:15“, zuhause → „Angekommen 17:30 · zuletzt weg 08:15 – 17:30“. Gezählt wird ab diesem Update; für schon bekannte Personen erscheint die Zeit erst beim nächsten Weggehen bzw. bei der nächsten Ankunft. Mit simulierten Standortdaten geprüft.
 

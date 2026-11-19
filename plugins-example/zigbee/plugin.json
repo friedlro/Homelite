@@ -1,0 +1,141 @@
+{
+  "id": "zigbee",
+  "name": "Zigbee (direkt, ZHA)",
+  "version": "1.0.0",
+  "description": "Eigenständiges Zigbee ohne Zigbee2MQTT: der ZHA-Kern (zigpy, bellows, zha-quirks) steuert den Funk-Dongle direkt, z. B. Sonoff Dongle Max per USB oder Netzwerk. Geräte werden automatisch angelegt (Licht, Schalter, Sensoren, Rollos, Thermostate, Schlosser, Tasten). Mit Anlernen, Kanalwechsel, Backup und echtem Restore.",
+  "author": "HomeLite",
+  "icon": "📡",
+  "api": 1,
+  "minCore": "1.20.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": {
+    "label": "Zigbee direkt",
+    "icon": "📡"
+  },
+  "config": [
+    {
+      "key": "connection",
+      "label": "Anschluss des Dongles",
+      "type": "select",
+      "default": "network",
+      "options": {
+        "network": "Netzwerk (LAN/WLAN, z. B. Dongle Max)",
+        "usb": "USB (am HomeLite-Server)"
+      }
+    },
+    {
+      "key": "host",
+      "label": "Netzwerk: IP oder Name des Dongles",
+      "type": "text",
+      "default": "",
+      "placeholder": "192.168.50.60",
+      "help": "IP-Adresse ist am sichersten (Namen wie dongle-m.local lassen sich oft nicht auflösen). Der Dongle muss im Modus „Zigbee Coordinator“ (TCP) laufen."
+    },
+    {
+      "key": "port",
+      "label": "Netzwerk: Port",
+      "type": "number",
+      "default": 6638
+    },
+    {
+      "key": "device",
+      "label": "USB: Gerätepfad",
+      "type": "text",
+      "default": "",
+      "placeholder": "/dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_…",
+      "help": "Am besten der Pfad unter /dev/serial/by-id/. Der Benutzer des Servers braucht Zugriff (Gruppe dialout)."
+    },
+    {
+      "key": "radio",
+      "label": "Funkchip",
+      "type": "select",
+      "default": "ezsp",
+      "options": {
+        "ezsp": "Silicon Labs EZSP (Sonoff Dongle Max/ZBDongle-E, SkyConnect, ZBT-1)",
+        "znp": "Texas Instruments Z-Stack (Sonoff ZBDongle-P, CC26x2)",
+        "deconz": "ConBee / RaspBee",
+        "xbee": "XBee",
+        "zigate": "ZiGate"
+      }
+    },
+    {
+      "key": "baudrate",
+      "label": "Baudrate",
+      "type": "number",
+      "default": 115200,
+      "help": "Dongle Max: 115200. Bei USB-Dongles mit EFR32 oft 115200 oder 460800, bei Z-Stack 115200."
+    },
+    {
+      "key": "flow",
+      "label": "Flusskontrolle",
+      "type": "select",
+      "default": "",
+      "options": {
+        "": "keine (Netzwerk, Dongle Max)",
+        "hardware": "Hardware (RTS/CTS)",
+        "software": "Software (XON/XOFF)"
+      }
+    },
+    {
+      "key": "channel",
+      "label": "Funkkanal beim Erstellen eines neuen Netzes (11–26)",
+      "type": "number",
+      "default": 15,
+      "help": "Gilt nur, wenn noch kein Zigbee-Netz auf dem Dongle existiert. Später auf der Seite „Kanal wechseln“. Kanal 15, 20, 25 stören WLAN am wenigsten."
+    },
+    {
+      "key": "room",
+      "label": "Standard-Raum für neue Geräte (optional)",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "batteries",
+      "label": "Batteriestand als Sensor anlegen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "linkquality",
+      "label": "Verbindungsqualität (LQI) als Sensor anlegen",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "diagnostics",
+      "label": "Weitere Diagnose-Sensoren anlegen (z. B. Spannung, Zähler)",
+      "type": "bool",
+      "default": false
+    },
+    {
+      "key": "ota",
+      "label": "Firmware-Updates (OTA) der Geräte zulassen",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "autoBackup",
+      "label": "Automatisches Backup des Zigbee-Netzes (täglich)",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "backupKeep",
+      "label": "Backups behalten (Anzahl)",
+      "type": "number",
+      "default": 14
+    },
+    {
+      "key": "python",
+      "label": "Python-Programm für die Installation (optional)",
+      "type": "text",
+      "default": "",
+      "placeholder": "python3.13",
+      "help": "Nur nötig, wenn python3 älter als 3.12 ist."
+    }
+  ],
+  "changelog": {
+    "1.0.0": "Erste Version: eigenständige Zigbee-Anbindung über den ZHA-Kern (zigpy/bellows/zha-quirks), Sonoff Dongle Max (Netzwerk/USB), automatische Geräte, Anlernen, Kanalwechsel, Backup/Restore."
+  }
+}
