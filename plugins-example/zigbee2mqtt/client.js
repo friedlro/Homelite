@@ -1,6 +1,6 @@
 // Seite „Zigbee“: Status, Anlernen, Geräte, Einrichtungs-Assistent für den Dongle
 (() => {
-  const { h, fill, toast, fail } = HL;
+  const { h, fill, toast, fail, modal } = HL;
   let M = null, tick = null, found = null;
   const call = (m, sub, body) => HL.api('zigbee2mqtt', m, sub, body);
   const box = () => document.getElementById('zb-box');
@@ -24,6 +24,38 @@
         h('button', { class: 'sm', onclick: () => call('POST', 'testdongle', { host: hostIn.value }).then((r) => toast(r.msg, !r.ok)).catch(fail) }, '✔ Verbindung testen'),
         h('button', { class: 'sm', onclick: (e) => { e.target.disabled = true; e.target.textContent = 'Suche …'; call('POST', 'finddongle', {}).then((r) => { found = r; draw(); }).catch((x) => { fail(x); draw(); }); } }, '🔎 Im Netzwerk suchen')),
       found ? h('div', { class: 'row', style: 'gap:6px;margin-top:6px;flex-wrap:wrap' }, found.found.length ? found.found.map((f) => h('button', { class: 'sm primary', onclick: () => { call('POST', 'donglehost', { host: f.ip }).then((r) => { M = r; found = null; draw(); }).catch(fail); } }, f.ip + (f.title ? ' · ' + f.title : ''))) : h('span', { class: 'hint' }, `Nichts auf Port 6638 gefunden (${found.subnets.join(', ')}.x).`)) : null);
+  }
+
+  // ---- Backup & Restore ----
+  let BK = null;
+  const kb = (n) => (n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' kB');
+  const saveFile = (name, mime, blob) => { const a = h('a', { href: URL.createObjectURL(new Blob([blob], { type: mime })), download: name }); document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); };
+  const b64ToBytes = (b64) => Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
+  const loadBackups = () => call('GET', 'backups').then((r) => { BK = r; draw(); }).catch(() => {});
+  function restoreDialog(b) {
+    call('GET', `restore-script/${b.name}`).then((r) => {
+      modal('Backup einspielen (Restore)', h('div', {}, h('p', { class: 'hint', style: 'margin-top:0' }, 'Zigbee2MQTT bietet keine Schnittstelle zum Einspielen und überschreibt seine Dateien beim Beenden. Deshalb muss Zigbee2MQTT dafür kurz angehalten werden. Das Skript macht das auf dem Rechner, auf dem Zigbee2MQTT läuft:'),
+        h('ol', { style: 'margin:6px 0 6px 18px;padding:0' }, h('li', {}, 'Backup-Datei (⬇) und Skript auf diesen Rechner kopieren.'), h('li', {}, 'Skript ausführen: ', h('code', {}, `bash restore-zigbee2mqtt.sh ${b.name}`)), h('li', {}, 'Nach etwa 30 Sekunden zeigt diese Seite wieder „online“.')),
+        h('p', { class: 'hint' }, 'Das Skript hält den Container an, sichert den aktuellen Stand in einen Ordner „…vor-restore-…“, entpackt das Backup und startet neu. Ordner und Container-Name stehen in den Plugin-Einstellungen. Bei einem neuen Dongle stellt Zigbee2MQTT das Netz aus der Datei coordinator_backup.json wieder her.'),
+        h('textarea', { readonly: true, rows: 12, style: 'width:100%;font-family:monospace;font-size:12px' }, r.content)),
+      [{ label: 'Skript herunterladen', primary: true, onClick: () => { saveFile(r.filename, 'text/x-shellscript', r.content); return false; } },
+        { label: 'Backup herunterladen', onClick: () => { dl(b); return false; } }, { label: 'Kopieren', onClick: () => { copy(r.content); return false; } }, { label: 'Schließen' }]);
+    }).catch(fail);
+  }
+  function dl(b) { call('GET', `backup/${b.name}`).then((r) => saveFile(r.filename, 'application/zip', b64ToBytes(r.b64))).catch(fail); }
+  function backupCard() {
+    if (!BK) return null;
+    const pick = h('input', { type: 'file', accept: '.zip', style: 'display:none', onchange: () => { const f = pick.files[0]; if (!f) return; if (f.size > 700 * 1024) return toast('Datei zu groß (maximal ca. 700 kB)', true); const rd = new FileReader(); rd.onload = () => { const b64 = String(rd.result).split(',')[1]; call('POST', 'backup-upload', { b64 }).then((r) => { BK.backups = r.backups; toast('Backup hochgeladen'); draw(); }).catch(fail); }; rd.readAsDataURL(f); pick.value = ''; } });
+    return h('div', { class: 'card', style: 'padding:12px;margin:10px 0' },
+      h('div', { class: 'row sb' }, h('b', {}, '💾 Backup & Restore'), h('span', { class: 'pill' }, BK.auto ? 'automatisch täglich' : 'nur manuell')),
+      h('div', { class: 'hint', style: 'margin-top:4px' }, 'Ein Backup enthält die Zigbee2MQTT-Daten: Geräteliste, Konfiguration, Zustand und die Netzwerkdaten des Koordinators (Kanal, Schlüssel). Damit lässt sich das Netz auch auf einem neuen Dongle wiederherstellen.'),
+      h('div', { class: 'row', style: 'gap:8px;margin-top:8px;flex-wrap:wrap' },
+        h('button', { class: 'sm primary', onclick: (e) => { e.target.disabled = true; e.target.textContent = 'Backup läuft …'; call('POST', 'backup', {}).then((r) => { BK.backups = r.backups; toast('Backup erstellt'); draw(); }).catch((x) => { fail(x); draw(); }); } }, '💾 Backup jetzt erstellen'),
+        h('button', { class: 'sm', onclick: () => pick.click() }, '⬆ Backup-Datei hochladen'), pick),
+      BK.backups.length ? h('div', { style: 'margin-top:8px' }, BK.backups.map((b) => h('div', { class: 'row sb', style: 'padding:6px 0;border-top:1px solid var(--line,#ddd);gap:6px;flex-wrap:wrap' },
+        h('div', {}, h('b', {}, when(b.t)), ' ', h('span', { class: 'hint' }, `${kb(b.size)}${b.note ? ' · ' + b.note : ''}`)),
+        h('div', { class: 'row', style: 'gap:6px' }, h('button', { class: 'sm', onclick: () => dl(b) }, '⬇'), h('button', { class: 'sm primary', onclick: () => restoreDialog(b) }, 'Restore'),
+          h('button', { class: 'sm danger', onclick: () => { if (confirm('Dieses Backup löschen?')) call('DELETE', `backup/${b.name}`).then((r) => { BK.backups = r.backups; draw(); }).catch(fail); } }, '🗑'))))) : h('div', { class: 'hint', style: 'margin-top:8px' }, 'Noch kein Backup vorhanden.'));
   }
 
   // Funkkanal anzeigen und ändern
@@ -64,7 +96,7 @@
         h('span', { class: 'pill ' + (online ? 'ok' : 'bad') }, online ? 'Zigbee2MQTT online' : M.mqtt ? 'Zigbee2MQTT nicht erreichbar' : 'MQTT getrennt'),
         h('span', { class: 'hint' }, [M.version ? 'Version ' + M.version : null, M.coordinator && M.coordinator.type, M.frontend ? null : null].filter(Boolean).join(' · '),
           M.frontend ? h('a', { href: M.frontend, target: '_blank', rel: 'noopener noreferrer', style: 'margin-left:8px' }, 'Oberfläche ↗') : null)),
-      dongleCard(), channelCard(),
+      dongleCard(), channelCard(), backupCard(),
       !online ? h('div', { class: 'hint', style: 'margin-top:6px' }, `Es kommen keine Nachrichten unter „${M.base}/bridge/state“. Zigbee2MQTT starten und mit dem MQTT-Broker von HomeLite verbinden – siehe 🔧 Einrichtung.`) : null,
       cd, h('b', {}, 'Geräte'), rows,
       M.events.length ? h('div', { style: 'margin-top:10px' }, h('b', {}, 'Ereignisse'), M.events.slice(0, 8).map((e) => h('div', { class: 'hint' }, `${when(e.t)} · ${e.txt}`))) : null,
@@ -78,7 +110,7 @@
     label: 'Zigbee', icon: '🐝',
     render(el) {
       el.append(h('h2', { class: 'page-title' }, '🐝 Zigbee'), h('div', { class: 'card', id: 'zb-box' }));
-      call('GET', 'model').then((r) => { M = r; draw(); }).catch(fail);
+      call('GET', 'model').then((r) => { M = r; draw(); }).catch(fail); loadBackups();
     },
   });
 })();

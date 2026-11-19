@@ -2,6 +2,7 @@
 // Zigbee über Zigbee2MQTT (MQTT-Broker von HomeLite). Zigbee2MQTT verwaltet den Dongle
 // (Sonoff ZBDongle-E/-P, ConBee II/III, SkyConnect …), HomeLite bildet die Geräte ab und steuert sie.
 const fs = require('fs');
+const path = require('path');
 const net = require('net');
 const os = require('os');
 const http = require('http');
@@ -173,6 +174,7 @@ module.exports = (api) => {
       if (txt) { pushEv(txt); if (j.type === 'device_interview' && j.data && j.data.status === 'successful') api.notify('Zigbee', `Neues Gerät eingelesen: ${n}`); push(); }
       return;
     }
+    if (rel === 'bridge/response/backup') { const j = parse(payload); if (bk.wait) { const w = bk.wait; bk.wait = null; w(j); } return; }
     if (rel === 'bridge/response/options') {
       const j = parse(payload);
       if (j && chg && chg.step === 'options') {
@@ -198,6 +200,55 @@ module.exports = (api) => {
     if (bridge.state !== 'online') throw new Error('Zigbee2MQTT ist nicht erreichbar');
     return sp.write(action, value) || {};
   });
+
+  // ---------- Backup & Restore ----------
+  // Backup = ZIP mit dem Daten-Ordner von Zigbee2MQTT (configuration.yaml, database.db, state.json, coordinator_backup.json),
+  // von Zigbee2MQTT selbst per MQTT geliefert und hier im Plugin-Ordner abgelegt.
+  const bk = { wait: null, busy: false };
+  const bdir = () => { const d = path.join(api.dataDir, 'backups'); fs.mkdirSync(d, { recursive: true }); return d; };
+  const okName = (n) => /^z2m-backup-[\w\-]+\.zip$/.test(String(n || ''));
+  const stamp = () => { const d = new Date(), p = (x) => String(x).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; };
+  const listBackups = () => { try { return fs.readdirSync(bdir()).filter(okName).map((n) => { const st = fs.statSync(path.join(bdir(), n)); return { name: n, size: st.size, t: st.mtimeMs, note: /-auto\.zip$/.test(n) ? 'automatisch' : /-import\.zip$/.test(n) ? 'hochgeladen' : '' }; }).sort((a, b) => b.t - a.t); } catch { return []; } };
+  const pruneBackups = () => { const keep = Math.max(1, Number(cfg().backupKeep) || 14); for (const b of listBackups().slice(keep)) { try { fs.unlinkSync(path.join(bdir(), b.name)); } catch { /* egal */ } } };
+  const looksLikeZ2m = (buf) => buf.length > 100 && buf[0] === 0x50 && buf[1] === 0x4b && buf.includes('database.db') && buf.includes('configuration.yaml');
+  async function makeBackup(tag) {
+    if (bk.busy) throw new Error('Es läuft schon ein Backup');
+    if (bridge.state !== 'online') throw new Error('Zigbee2MQTT ist nicht online – kein Backup möglich');
+    bk.busy = true;
+    try {
+      const res = await new Promise((resolve, reject) => { const t = setTimeout(() => { bk.wait = null; reject(new Error('Zigbee2MQTT hat nicht geantwortet')); }, 20000); bk.wait = (j) => { clearTimeout(t); resolve(j); }; try { req('backup', ''); } catch (e) { clearTimeout(t); bk.wait = null; reject(e); } });
+      if (!res || res.status !== 'ok' || !res.data || !res.data.zip) throw new Error(`Zigbee2MQTT lieferte kein Backup${res && res.error ? ': ' + res.error : ''}`);
+      const buf = Buffer.from(res.data.zip, 'base64'); if (!looksLikeZ2m(buf)) throw new Error('Die erhaltene Datei sieht nicht wie ein Zigbee2MQTT-Backup aus');
+      const name = `z2m-backup-${stamp()}${tag ? '-' + tag : ''}.zip`; fs.writeFileSync(path.join(bdir(), name), buf);
+      pruneBackups(); pushEv(`Backup erstellt: ${name} (${Math.round(buf.length / 1024)} kB)`); push(); return name;
+    } finally { bk.busy = false; }
+  }
+  api.route('GET', 'backups', () => ({ backups: listBackups(), auto: cfg().autoBackup !== false, last: api.kv.get('lastAutoBackup') || 0 }));
+  api.route('POST', 'backup', async () => { const name = await makeBackup(''); return { name, backups: listBackups() }; });
+  api.route('GET', 'backup/:name', ({ params }) => { if (!okName(params.name)) throw new Error('Name ungültig'); const f = path.join(bdir(), params.name); if (!fs.existsSync(f)) throw new Error('Backup nicht gefunden'); return { filename: params.name, b64: fs.readFileSync(f).toString('base64') }; });
+  api.route('DELETE', 'backup/:name', ({ params }) => { if (!okName(params.name)) throw new Error('Name ungültig'); try { fs.unlinkSync(path.join(bdir(), params.name)); } catch { /* egal */ } return { backups: listBackups() }; });
+  api.route('POST', 'backup-upload', ({ body }) => {
+    const buf = Buffer.from(String((body && body.b64) || ''), 'base64'); if (!looksLikeZ2m(buf)) throw new Error('Keine gültige Zigbee2MQTT-Backup-Datei (ZIP mit configuration.yaml und database.db erwartet)');
+    const name = `z2m-backup-${stamp()}-import.zip`; fs.writeFileSync(path.join(bdir(), name), buf); pruneBackups(); pushEv(`Backup hochgeladen: ${name}`); push(); return { name, backups: listBackups() };
+  });
+  // Restore: Zigbee2MQTT bietet dafür keine Schnittstelle (es überschreibt seine Dateien beim Beenden). Darum ein Skript für den Rechner von Zigbee2MQTT.
+  api.route('GET', 'restore-script/:name', ({ params }) => {
+    if (!okName(params.name)) throw new Error('Name ungültig');
+    const c = cfg(); const data = String(c.dataDir || '~/zigbee2mqtt/data').replace(/[^\w\/.~\- ]/g, ''); const cont = String(c.container || 'zigbee2mqtt').replace(/[^\w.\-]/g, '');
+    const q = (x) => (x.startsWith('~/') ? '"$HOME/' + x.slice(2) + '"' : `"${x}"`);
+    const content = ['#!/bin/bash', '# Zigbee2MQTT-Backup einspielen (erzeugt von HomeLite)', 'set -e', `ZIP="\${1:-${params.name}}"`, `DATA=${q(data)}`, `CONTAINER="${cont}"`,
+      '[ -f "$ZIP" ] || { echo "Backup-Datei $ZIP nicht gefunden (Pfad als Argument angeben)"; exit 1; }', '[ -d "$DATA" ] || { echo "Daten-Ordner $DATA nicht gefunden"; exit 1; }',
+      'echo "Zigbee2MQTT anhalten …"', 'docker stop "$CONTAINER"   # ohne Docker: z. B. systemctl stop zigbee2mqtt',
+      'SAFE="${DATA}.vor-restore-$(date +%Y%m%d-%H%M%S)"', 'echo "Aktuellen Stand sichern nach $SAFE"', 'cp -a "$DATA" "$SAFE"',
+      'echo "Backup einspielen …"', 'unzip -o "$ZIP" -d "$DATA"', 'echo "Zigbee2MQTT starten …"', 'docker start "$CONTAINER"', 'echo "Fertig. Der alte Stand liegt in $SAFE."', ''].join('\n');
+    return { filename: 'restore-zigbee2mqtt.sh', content };
+  });
+  // Tägliches Automatik-Backup (nur wenn Zigbee2MQTT online ist)
+  api.timer(async () => {
+    if (cfg().autoBackup === false || bridge.state !== 'online' || bk.busy) return;
+    if (Date.now() - (Number(api.kv.get('lastAutoBackup')) || 0) < 23.5 * 3600 * 1000) return;
+    try { await makeBackup('auto'); api.kv.set('lastAutoBackup', Date.now()); } catch (e) { api.log('warn', 'Auto-Backup: ' + e.message); }
+  }, 10 * 60 * 1000);
 
   // ---------- Dongle (Koordinator): verbunden? ----------
   // Verbunden heißt: Zigbee2MQTT ist online und meldet einen Koordinator. Ist es nicht online, wird (wenn die Adresse

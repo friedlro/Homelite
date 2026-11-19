@@ -23,6 +23,10 @@ Der Assistent auf der Seite „Zigbee“ erkennt am Server angeschlossene Dongle
 - Bei „Waiting for RSTACK“ im Zigbee2MQTT-Protokoll hilft meist: Dongle kurz auf Thread/RCP und wieder auf Zigbee Coordinator stellen, dann Zigbee2MQTT neu starten.
 - Nicht mit einem echten Dongle Max ausprobiert; Quelle der Angaben: Sonoff-Anleitung und Nutzerberichte.
 
+## Backup und Restore
+Der Block **💾 Backup & Restore** erstellt ein Backup von Zigbee2MQTT (ZIP mit Geräteliste, Konfiguration, Zustand und den Netzwerkdaten des Koordinators) und legt es im Plugin-Ordner von HomeLite ab. Zusätzlich läuft täglich automatisch eines, solange Zigbee2MQTT online ist (abschaltbar, Anzahl der behaltenen Backups einstellbar). Backups lassen sich herunterladen, löschen und – bis ca. 700 kB – hochladen.
+**Restore:** Zigbee2MQTT hat keine Schnittstelle zum Einspielen und überschreibt seine Dateien beim Beenden. Der Knopf „Restore“ liefert deshalb ein Skript (`restore-zigbee2mqtt.sh`) für den Rechner, auf dem Zigbee2MQTT läuft: Es hält den Container an, sichert den aktuellen Stand in einen Ordner `…vor-restore-…`, entpackt das Backup und startet neu. Daten-Ordner und Container-Name stehen in den Plugin-Einstellungen. Bei einem neuen Dongle baut Zigbee2MQTT das Netz aus `coordinator_backup.json` wieder auf. Nicht an einer echten Installation ausprobiert; ein Backup ist nicht möglich, wenn der Adapter es nicht unterstützt.
+
 ## Funkkanal ändern
 Der Block **📶 Funkkanal** zeigt den aktuellen Kanal und lässt einen neuen wählen (11–26; 15, 20 und 25 sind empfohlen). **Kanal ändern & neu starten** speichert den Kanal in Zigbee2MQTT, startet es neu und prüft danach, ob das Netz wirklich auf dem neuen Kanal läuft; das Ergebnis (✅ / ⚠) steht im Block, darunter die Kanal-Meldungen aus dem Zigbee2MQTT-Protokoll. Zigbee2MQTT stellt den Kanal beim Start um (nur Adapter „ember“ und „zstack“) und schickt einen Wechselbefehl an die Geräte. Batteriegeräte folgen erst, wenn sie aufwachen (kurz auslösen); manche folgen nie und müssen neu angelernt werden – vorher ein Backup anlegen. Nicht an einem echten Zigbee-Netz ausprobiert.
 

@@ -1,8 +1,8 @@
 {
   "id": "zigbee2mqtt",
   "name": "Zigbee (Zigbee2MQTT)",
-  "version": "1.3.1",
-  "description": "Zigbee über Zigbee2MQTT: Geräte werden automatisch als HomeLite-Geräte angelegt, Anlernen/Umbenennen/Entfernen direkt in HomeLite. Mit Einrichtungs-Assistent für Sonoff ZBDongle-E/-P, Dongle Max (USB oder Netzwerk), ConBee II und weitere Dongles (erzeugt die Zigbee2MQTT-Konfiguration).",
+  "version": "1.4.0",
+  "description": "Zigbee über Zigbee2MQTT: Geräte werden automatisch als HomeLite-Geräte angelegt, Anlernen/Umbenennen/Entfernen direkt in HomeLite. Mit Einrichtungs-Assistent für Sonoff ZBDongle-E/-P, Dongle Max (USB oder Netzwerk), ConBee II und weitere Dongles. Mit Backup (manuell/automatisch) und Restore-Hilfe.",
   "author": "HomeLite",
   "icon": "🐝",
   "api": 1,
@@ -46,6 +46,31 @@
       "default": "",
       "placeholder": "http://192.168.50.10:8080",
       "help": "Wird als Link auf der Zigbee-Seite angezeigt."
+    },
+    {
+      "key": "autoBackup",
+      "label": "Automatisches Backup (täglich, wenn Zigbee2MQTT online ist)",
+      "type": "bool",
+      "default": true
+    },
+    {
+      "key": "backupKeep",
+      "label": "Backups behalten (Anzahl)",
+      "type": "number",
+      "default": 14
+    },
+    {
+      "key": "dataDir",
+      "label": "Daten-Ordner von Zigbee2MQTT (nur für das Restore-Skript)",
+      "type": "text",
+      "default": "~/zigbee2mqtt/data",
+      "help": "Pfad auf dem Rechner, auf dem Zigbee2MQTT läuft."
+    },
+    {
+      "key": "container",
+      "label": "Docker-Container von Zigbee2MQTT (nur für das Restore-Skript)",
+      "type": "text",
+      "default": "zigbee2mqtt"
     }
   ],
   "changelog": {
@@ -55,6 +80,7 @@
     "1.1.2": "Dongle Max: baudrate 115200 und rtscts false, .local-Namen werden in IP aufgelöst, Verbindungstest.",
     "1.2.0": "Anzeige „Funk-Dongle verbunden“ (Koordinator, Firmware, IEEE), bei Netzwerk-Dongle Prüfung von Port 6638 und letzte Fehlermeldung.",
     "1.3.0": "Funkkanal ändern (Neustart-Hinweis), Einrichtungs-Assistent „Konfiguration erzeugen“ entfernt; Dongle-Suche und -Test im Dongle-Block.",
-    "1.3.1": "Kanalwechsel in einem Schritt (speichern, Zigbee2MQTT neu starten, Ergebnis prüfen und anzeigen)."
+    "1.3.1": "Kanalwechsel in einem Schritt (speichern, Zigbee2MQTT neu starten, Ergebnis prüfen und anzeigen).",
+    "1.4.0": "Backup und Restore: Backup per Knopf und täglich automatisch, Liste mit Download/Hochladen/Löschen, Restore-Skript."
   }
 }
