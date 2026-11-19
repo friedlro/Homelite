@@ -90,7 +90,7 @@ module.exports = (api) => {
   }
   function scheduleRestart(ms) { clearTimeout(restartT); restartT = setTimeout(() => { restartT = null; connect().catch(() => {}); }, ms); }
 
-  async function connect() {
+  async function connect(mismatch) {
     clearTimeout(restartT); restartT = null;
     if (!hasVenv()) { st = { ...st, state: 'noenv', msg: 'Python-Umgebung fehlt – „Installieren“ drücken' }; push(); return; }
     let t;
@@ -99,8 +99,9 @@ module.exports = (api) => {
     const c = cfg();
     st = { ...st, state: 'starting', msg: `Verbinde mit ${t.path} …` }; push();
     try {
-      await ask('start', { cfg: { path: t.path, baudrate: Number(c.baudrate) || 115200, flow_control: c.flow || '', channel: Number(c.channel) || 15, radio: c.radio || 'ezsp', data_dir: ddir(), ota: c.ota !== false, custom_quirks: path.join(ddir(), 'quirks') } }, 180000);
+      await ask('start', { cfg: { path: t.path, baudrate: Number(c.baudrate) || 115200, flow_control: c.flow || '', channel: Number(c.channel) || 15, radio: c.radio || 'ezsp', data_dir: ddir(), ota: c.ota !== false, mismatch: mismatch || '', custom_quirks: path.join(ddir(), 'quirks') } }, 180000);
     } catch (e) {
+      if (st.code === 'mismatch') { st = { ...st, state: 'error', msg: e.message }; push(); return; } // wartet auf Entscheidung des Benutzers
       st = { ...st, state: 'error', msg: e.message }; pushLog('error', e.message); push();
       if (proc) { try { await send('stop', {}, 15000); } catch { /* egal */ } }
       scheduleRestart(30000);
@@ -118,7 +119,7 @@ module.exports = (api) => {
   function onEvent(m) {
     switch (m.event) {
       case 'status':
-        st = { ...st, state: m.state, msg: m.msg || '', info: m.info || st.info, since: m.state === 'online' ? Date.now() : st.since };
+        st = { ...st, state: m.state, msg: m.msg || '', info: m.info || st.info, since: m.state === 'online' ? Date.now() : st.since, code: m.code || '', detail: m.detail || null };
         if (m.state === 'online') { pushEv('Dongle verbunden'); }
         if (m.state === 'error' && m.msg) pushLog('error', m.msg);
         if (m.state !== 'online') for (const k of specs.keys()) setOnline(k, false);
@@ -334,7 +335,7 @@ module.exports = (api) => {
         mapped: specs.has(`zha:${d.ieee}:${e.uid}`) })),
     })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
     return {
-      status: st.state, msg: st.msg, info: st.info, since: st.since, join, devices: list, events: events.slice(0, 20), logs: logs.slice(0, 30),
+      status: st.state, code: st.code || '', detail: st.detail || null, msg: st.msg, info: st.info, since: st.since, join, devices: list, events: events.slice(0, 20), logs: logs.slice(0, 30),
       conn: { connection: c.connection || 'network', host: c.host || '', port: Number(c.port) || 6638, device: c.device || '', radio: c.radio || 'ezsp', channel: Number(c.channel) || 15, baudrate: Number(c.baudrate) || 115200, flow: c.flow || '' },
       env: { ready: hasVenv(), busy: inst.busy, ok: inst.ok, log: inst.log.slice(-40) }, chg: chgBusy,
     };
@@ -421,6 +422,14 @@ module.exports = (api) => {
   api.route('GET', 'model', () => model());
   api.route('POST', 'install', () => install());
   api.route('POST', 'start', async () => { await shutdown(); connect().catch(() => {}); return { ok: true }; });
+  api.route('POST', 'mismatch', async ({ body }) => {
+    const mode = String(body && body.mode || '');
+    if (!['adopt', 'restore'].includes(mode)) throw new Error('Modus ungültig');
+    if (st.code !== 'mismatch') throw new Error('Es liegt kein Netz-Konflikt vor');
+    pushEv(mode === 'adopt' ? 'Netz des Dongles wird übernommen (alte Datenbank beiseitegelegt)' : 'Altes Netz wird auf den Dongle zurückgeschrieben');
+    st = { ...st, code: '', detail: null }; // Brücke bleibt am Leben (hält das alte Netz im Speicher)
+    connect(mode).catch(() => {}); return { ok: true };
+  });
   api.route('POST', 'stop', async () => { await shutdown(); st = { ...st, state: 'stopped', msg: 'Angehalten' }; for (const k of specs.keys()) setOnline(k, false); push(); return { ok: true }; });
   api.route('POST', 'test', async ({ body }) => {
     if (st.state === 'online' || st.state === 'starting') return { ok: false, msg: 'Der Dongle wird gerade vom Plugin gehalten (Verbindung steht schon bzw. wird aufgebaut) – ein zweiter Test würde stören.' };

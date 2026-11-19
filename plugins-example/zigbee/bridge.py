@@ -144,6 +144,7 @@ class Bridge:
         self.starting = False
         self.loop = asyncio.get_running_loop()
         self.tasks = set()
+        self.mismatch_old = None
 
     # ---------- Start / Stop ----------
     async def start(self, cfg):
@@ -173,11 +174,28 @@ class Bridge:
                                                          setup_function=zhaquirks.setup),
                 device_options=DeviceOptions(enable_identify_on_join=False),
             )
+            mode = cfg.get("mismatch") or ""
+            db = zcfg["database_path"]
+            if mode == "adopt" and os.path.exists(db):
+                # Netz des Dongles übernehmen: alte Datenbank beiseitelegen (nicht löschen)
+                os.replace(db, db + ".bak-" + time.strftime("%Y%m%d-%H%M%S"))
+            if mode == "restore":
+                zcfg["validate_network_settings"] = False
             data = ZHAData(config=zha_cfg, zigpy_config=zcfg)
             gw = await Gateway.async_from_config(data)
             data.gateway = gw
             gw.on_all_events(self.on_gw_event)
             await gw.async_initialize()
+            if mode == "restore":
+                old = self.mismatch_old
+                if old is None:
+                    raise RuntimeError("Kein altes Netz zum Zurückschreiben bekannt – erst normal verbinden")
+                await gw.application_controller.backups.restore_backup(old, create_new=False)
+                self.mismatch_old = None
+                await gw.shutdown()
+                emit({"event": "status", "state": "starting", "msg": "Altes Netz geschrieben, verbinde neu …"})
+                self.starting = False
+                return await self.start({**cfg, "mismatch": ""})
             self.gw = gw
             await gw.async_initialize_devices_and_entities()
             for d in list(gw.devices.values()):
@@ -190,6 +208,16 @@ class Bridge:
             self.gw = None
             c = e.__cause__ or e.__context__
             msg = f"{type(e).__name__}: {e}" + (f" ← {type(c).__name__}: {c}" if c else "")
+            if type(e).__name__ == "NetworkSettingsInconsistent" and hasattr(e, "new_state"):
+                self.mismatch_old = e.old_state
+
+                def d(b):
+                    return {"channel": b.network_info.channel, "pan_id": f"0x{b.network_info.pan_id:04x}", "ext_pan_id": str(b.network_info.extended_pan_id),
+                            "ieee": str(b.node_info.ieee), "time": b.backup_time.isoformat()}
+                detail = {"dongle": d(e.new_state), "database": d(e.old_state)}
+                msg = "Das Zigbee-Netz auf dem Dongle passt nicht zur gespeicherten Datenbank"
+                emit({"event": "status", "state": "error", "code": "mismatch", "detail": detail, "msg": msg})
+                return {"ok": False, "error": msg, "mismatch": True}
             emit({"event": "status", "state": "error", "msg": msg})
             return {"ok": False, "error": msg}
         finally:

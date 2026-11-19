@@ -1,5 +1,8 @@
 # Änderungen
 
+## Plugin „Zigbee direkt“ 1.0.2
+- Netz-Konflikt: Meldet der Dongle ein anderes Zigbee-Netz als in der Plugin-Datenbank steht („Radio network settings are not compatible with most recent backup“), versucht das Plugin nicht mehr endlos, sondern zeigt beide Netze (Kanal, PAN-ID, Adresse) und lässt wählen: Netz des Dongles übernehmen (Datenbank wird beiseitegelegt) oder gespeichertes Netz auf den Dongle schreiben. Ablauf mit simulierter Brücke geprüft, nicht am Dongle.
+
 ## Plugin „Zigbee direkt“ 1.0.1
 - Fix: Das Backup las beim Dongle Max die Geräte-Kindliste aus und die Verbindung brach dabei ab („Connection has been closed“); das Backup kommt jetzt ohne diese Liste aus (für die Netzwiederherstellung nicht nötig). Außerdem starteten Brücke und Plugin nach einem Verbindungsverlust gleichzeitig neu („läuft bereits“) – behoben. Ursache des Abbruchs nicht sicher geklärt (siehe LIESMICH: nur eine Verbindung zum Dongle).
 
