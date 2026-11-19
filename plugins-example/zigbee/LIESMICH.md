@@ -44,6 +44,9 @@ Eigenständige Zigbee-Anbindung: HomeLite steuert den Funk-Dongle **selbst**, es
 
 Kontakt-Sensoren („Tür/Fenster“) sind **an = offen** (wie in ZHA).
 
+## Bestehende Geräte von Zigbee2MQTT übernehmen
+Geräte, die vorher über Zigbee2MQTT liefen (z. B. Couchlicht), sind in HomeLite noch mit dem Zigbee2MQTT-Plugin verknüpft. Sobald sich das Gerät im neuen Netz meldet, erscheint es hier als neues Gerät. In der aufgeklappten Gerätekarte steht bei der Entität (z. B. „light“) der Knopf **⇄ Altes Gerät zuordnen**: das alte HomeLite-Gerät auswählen (nur gleicher Typ wird angeboten). Es behält ID, Name, Raum und alle Automationen und steuert ab dann den neuen Zigbee-Eintrag; ein schon angelegtes neues Gerät dafür wird entfernt. Braucht HomeLite ab 1.29.9. Das Zigbee2MQTT-Plugin muss deaktiviert bleiben, sonst legt es seine Geräte wieder neu an. Nicht an echten Geräten geprüft.
+
 ## Funkkanal ändern
 Auf der Seite beim Dongle: Kanal wählen, „Wechseln“. Es wird vorher ein Backup erstellt; dann sendet der Koordinator die Kanalumschaltung an alle Geräte. Netzbetriebene Geräte folgen sofort, batteriebetriebene Geräte brauchen manchmal Minuten bis Stunden – einzelne müssen eventuell neu angelernt werden. „📶 Kanäle prüfen“ zeigt die Funk-Auslastung je Kanal (nur bei Dongles, die einen Energie-Scan können). Der Wechsel gilt auch nach Neustart (die Einstellung „Funkkanal“ wirkt nur beim Neuanlegen eines Netzes).
 

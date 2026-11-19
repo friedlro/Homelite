@@ -67,6 +67,17 @@
   }
 
   // ---- Geräte ----
+  // Altes HomeLite-Gerät (z. B. Couchlicht von Zigbee2MQTT) diesem Zigbee-Gerät zuordnen
+  function adoptDialog(d, e) {
+    const S = (HL.S && HL.S.devices) || [];
+    const cands = S.filter((x) => x.type === e.htype && x.plugin !== 'zigbee' && (x.plugin === 'zigbee2mqtt' || x.driver !== 'plugin' || x.pending));
+    const opts = { '': e.linked ? '— Zuordnung aufheben (eigenes Gerät) —' : '— bitte wählen —' };
+    for (const x of cands.sort((a, b) => a.name.localeCompare(b.name, 'de'))) opts[x.id] = `${x.name}${x.room ? ' (' + x.room + ')' : ''} · ${x.plugin === 'zigbee2mqtt' ? 'Zigbee2MQTT' : x.driver || 'Gerät'}`;
+    let sel = '';
+    const body = h('div', {}, h('p', { class: 'hint', style: 'margin-top:0' }, `„${d.name}“ (${e.platform}) wird ein vorhandenes HomeLite-Gerät. Das alte Gerät behält ID, Name, Raum und alle Automationen, steuert ab jetzt aber diesen Zigbee-Eintrag. Ein schon automatisch angelegtes neues Gerät dafür wird entfernt.`), HL.fld('Altes HomeLite-Gerät', HL.sel(opts, '', (v) => { sel = v; })), cands.length ? null : h('p', { class: 'hint' }, `Keine passenden Geräte vom Typ „${e.htype}“ gefunden.`));
+    modal('Altes Gerät zuordnen', body, [{ label: 'Abbrechen' }, { label: 'Zuordnen', primary: true, onClick: async () => { if (!sel && !e.linked) { toast('Bitte ein Gerät wählen', true); return false; } await call('POST', 'adopt', { ieee: d.ieee, uid: e.uid, deviceId: sel }); toast('Zugeordnet'); } }]);
+  }
+
   function entityRow(d, e) {
     const s = e.state || {};
     const v = s.native_value !== undefined ? s.native_value : s.is_on !== undefined ? (s.is_on ? 'an' : 'aus') : s.on !== undefined ? (s.on ? 'an' : 'aus') : s.current_position !== undefined ? s.current_position + ' %' : s.is_locked !== undefined ? (s.is_locked ? 'verriegelt' : 'offen') : s.current_temperature !== undefined ? s.current_temperature + ' °C' : s.state !== undefined ? s.state : s.current_option !== undefined ? s.current_option : '';
@@ -76,7 +87,8 @@
     else if (e.platform === 'select') { const opts = e.options || s.options || []; const sl = h('select', {}, opts.map((o) => h('option', { value: o, selected: o === (s.current_option ?? s.state) }, o))); ctl = [sl, h('button', { class: 'sm', onclick: () => call('POST', 'entity', { ieee: d.ieee, uid: e.uid, value: sl.value }).then(() => toast('Gesetzt')).catch(fail) }, 'OK')]; }
     else if (e.platform === 'button') ctl = h('button', { class: 'sm', onclick: () => call('POST', 'entity', { ieee: d.ieee, uid: e.uid }).then(() => toast('Ausgeführt')).catch(fail) }, 'Auslösen');
     else if (e.platform === 'switch' && (e.category === 'config' || e.category === 'diagnostic')) ctl = h('button', { class: 'sm', onclick: () => call('POST', 'entity', { ieee: d.ieee, uid: e.uid, value: !s.is_on }).then(() => toast('Gesetzt')).catch(fail) }, s.is_on ? 'ausschalten' : 'einschalten');
-    return h('div', { class: 'row sb', style: 'gap:6px;padding:3px 0;flex-wrap:wrap' }, h('div', { class: 'hint' }, label, ' ', h('span', { style: e.mapped ? 'color:var(--ok,#2a2)' : '' }, e.mapped ? '→ HomeLite-Gerät' : '')), h('div', { class: 'row', style: 'gap:6px' }, h('b', {}, v === null || v === undefined ? '' : String(v) + (e.unit ? ' ' + e.unit : '')), ctl));
+    const adoptBtn = e.mapped && e.htype ? h('button', { class: 'sm', onclick: () => adoptDialog(d, e) }, e.linked ? '⇄ zugeordnet' : '⇄ Altes Gerät zuordnen') : null;
+    return h('div', { class: 'row sb', style: 'gap:6px;padding:3px 0;flex-wrap:wrap' }, h('div', { class: 'hint' }, label, ' ', h('span', { style: e.mapped ? 'color:var(--ok,#2a2)' : '' }, e.mapped ? '→ HomeLite-Gerät' : ''), ' ', adoptBtn), h('div', { class: 'row', style: 'gap:6px' }, h('b', {}, v === null || v === undefined ? '' : String(v) + (e.unit ? ' ' + e.unit : '')), ctl));
   }
   function devCard(d) {
     const isOpen = open.has(d.ieee);

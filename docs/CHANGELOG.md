@@ -1,5 +1,11 @@
 # Änderungen
 
+## Plugin „Zigbee direkt“ 1.1.0
+- **Altes Gerät zuordnen:** Knopf „⇄ Altes Gerät zuordnen“ je Entität; ein vorhandenes HomeLite-Gerät (z. B. von Zigbee2MQTT) wird zum Zigbee-Eintrag, mit ID, Name, Raum und Automationen. Braucht Kern 1.29.9. Logik mit Simulation geprüft, nicht mit echten Geräten.
+
+## 1.29.9
+- **Plugins: Geräte eines anderen Plugins übernehmen:** `api.devices.ensure({ adopt })` konnte nur Platzhalter und Geräte ohne Plugin übernehmen; jetzt auch Geräte, die einem anderen Plugin gehören (z. B. von „Zigbee (Zigbee2MQTT)“ zu „Zigbee direkt“). ID, Name, Raum und damit Automationen bleiben erhalten.
+
 ## Plugin „Zigbee direkt“ 1.0.6
 - Nach Plugin-Updates blieben alte Brücken-Prozesse am Leben und hielten die einzige Verbindung zum Dongle. Das Plugin merkt sich jetzt die PID und beendet eine übrig gebliebene Brücke beim Start; das Beenden wird nach 6 s erzwungen.
 

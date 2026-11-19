@@ -33,6 +33,7 @@ module.exports = (api) => {
   const pushLog = (level, msg) => { logs.unshift({ t: Date.now(), level, msg }); logs.length = Math.min(logs.length, 60); };
   const names = () => api.kv.get('names') || {};
   const rooms = () => api.kv.get('rooms') || {};
+  const links = () => api.kv.get('links') || {};
   const hasVenv = () => fs.existsSync(vpy());
 
   // ---------- Verbindungsziel ----------
@@ -269,7 +270,9 @@ module.exports = (api) => {
       want.add(s.key);
       try {
         specs.set(s.key, { ...s, ieee: d.ieee, uid: s.key.slice(`zha:${d.ieee}:`.length) });
-        api.devices.ensure({ key: s.key, name: s.name, room: s.room, type: s.type, unit: s.unit || '' });
+        const adopt = links()[s.key];
+        try { api.devices.ensure(adopt ? { key: s.key, type: s.type, unit: s.unit || '', adopt } : { key: s.key, name: s.name, room: s.room, type: s.type, unit: s.unit || '' }); }
+        catch (er) { if (!adopt) throw er; const l = links(); delete l[s.key]; api.kv.set('links', l); api.log('warn', `Zugeordnetes Gerät für ${s.key} nicht mehr vorhanden: ${er.message}`); api.devices.ensure({ key: s.key, name: s.name, room: s.room, type: s.type, unit: s.unit || '' }); }
         const e = (d.entities || []).find((x) => `zha:${d.ieee}:${x.uid}` === s.key);
         const patch = e && s.pick ? s.pick(e.state || {}) : null;
         api.devices.setState(s.key, { ...(patch || {}), online: d.available !== false });
@@ -342,7 +345,7 @@ module.exports = (api) => {
       lqi: d.lqi, rssi: d.rssi, available: d.available !== false, last_seen: d.last_seen, sw: d.sw, endpoints: d.endpoints || [],
       battery: (() => { const e = (d.entities || []).find((x) => x.platform === 'sensor' && x.device_class === 'battery'); const v = e && e.state ? num(e.state.native_value) : null; return v; })(),
       entities: (d.entities || []).map((e) => ({ uid: e.uid, platform: e.platform, name: e.name || e.key, device_class: e.device_class, category: e.category, unit: e.unit, options: e.options, min: e.min, max: e.max, step: e.step, state: e.state,
-        mapped: specs.has(`zha:${d.ieee}:${e.uid}`) })),
+        mapped: specs.has(`zha:${d.ieee}:${e.uid}`), htype: (specs.get(`zha:${d.ieee}:${e.uid}`) || {}).type || '', linked: !!links()[`zha:${d.ieee}:${e.uid}`] })),
     })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
     return {
       status: st.state, code: st.code || '', detail: st.detail || null, msg: st.msg, info: st.info, since: st.since, join, devices: list, events: events.slice(0, 20), logs: logs.slice(0, 30),
@@ -509,6 +512,18 @@ module.exports = (api) => {
     await ask('permit', { time: t }, 20000);
     join = t ? Date.now() + t * 1000 : 0; if (t) pushEv(`Anlernen für ${t} s geöffnet`); push();
     return { ok: true };
+  });
+  // Bestehendes HomeLite-Gerät (z. B. von Zigbee2MQTT) diesem Zigbee-Gerät zuordnen: ID, Name, Raum und Automationen bleiben
+  api.route('POST', 'adopt', async ({ body }) => {
+    const d = devs.get(String(body.ieee || '')); if (!d) throw new Error('Gerät unbekannt');
+    const key = `zha:${d.ieee}:${String(body.uid || '')}`; const sp = specs.get(key); if (!sp) throw new Error('Diese Entität ist kein HomeLite-Gerät');
+    const target = String(body.deviceId || '');
+    if (!target) { const l = links(); delete l[key]; api.kv.set('links', l); push(); return { ok: true }; }
+    const l = links(); l[key] = target; api.kv.set('links', l);
+    // ein schon angelegtes eigenes Gerät (Doppelgänger) entfernen, damit das alte Gerät übernommen werden kann
+    try { api.devices.remove(key); } catch { /* war nicht angelegt */ }
+    try { sync(d); } catch (e) { throw new Error(e.message); }
+    push(); return { ok: true };
   });
   api.route('POST', 'rename', ({ body }) => {
     const ieee = String(body.ieee || ''), to = String(body.name || '').trim(); const d = devs.get(ieee); if (!d) throw new Error('Gerät unbekannt');
