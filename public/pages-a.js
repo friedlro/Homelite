@@ -151,7 +151,7 @@ function renderBlock(b, edit) {
     }
     case 'presence':
       if (!S.presence.length) return null;
-      return { kind: 'widget', el: h('div', { class: 'card' }, h('h3', {}, 'Anwesenheit'), h('div', { class: 'kv' }, S.presence.flatMap((p) => [h('span', {}, p.name), h('span', {}, p.known ? (p.home ? '🏠 zuhause' : '🚶 unterwegs') : 'unbekannt')]))) };
+      return { kind: 'widget', el: h('div', { class: 'card' }, h('h3', {}, 'Anwesenheit'), h('div', { class: 'kv' }, S.presence.flatMap((p) => [h('span', {}, p.name), h('span', {}, p.known ? (p.home ? '🏠 zuhause' : '🚶 unterwegs') : 'unbekannt', awayText(p) ? h('div', { class: 'hint' }, awayText(p)) : null)]))) };
     case 'heating':
       if (!S.heating.rooms.length) return null;
       return { kind: 'widget', el: h('div', { class: 'card tile click', onclick: () => go('heat') }, h('h3', {}, '🌡 Heizung'),

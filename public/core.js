@@ -67,6 +67,14 @@ let logs = [];
 
 const dev = (id) => S.devices.find((d) => d.id === id);
 const st = (id) => S.states[id] || {};
+// Zeitpunkt kurz: heute „14:05“, sonst „Mi. 18.11., 14:05“
+const fmtWhen = (ts) => { if (!ts) return ''; const d = new Date(ts), n = new Date(); const t = d.toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' }); if (d.toDateString() === n.toDateString()) return t; const y = new Date(n); y.setDate(n.getDate() - 1); if (d.toDateString() === y.toDateString()) return 'gestern ' + t; return d.toLocaleDateString('de-AT', { weekday: 'short', day: '2-digit', month: '2-digit' }) + ', ' + t; };
+// Text zu Weggehen/Ankunft einer Person
+const awayText = (p) => {
+  if (!p.known) return '';
+  if (p.home) { const a = p.arrivedAt, l = p.leftAt; return [a ? `Angekommen ${fmtWhen(a)}` : '', l && a && l < a ? `zuletzt weg ${fmtWhen(l)} – ${fmtWhen(a)}` : ''].filter(Boolean).join(' · '); }
+  return p.leftAt ? `Weg seit ${fmtWhen(p.leftAt)}` + (p.arrivedAt && p.arrivedAt < p.leftAt ? ` · zuletzt zuhause angekommen ${fmtWhen(p.arrivedAt)}` : '') : '';
+};
 const fmtTime = (ts) => (ts ? new Date(ts).toLocaleString('de-AT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '–');
 const fmtNum = (n, d = 1) => (n === undefined || n === null || isNaN(n) ? '–' : Number(n).toLocaleString('de-AT', { maximumFractionDigits: d }));
 const DAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];

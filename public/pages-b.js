@@ -283,6 +283,7 @@ PAGES.geo = {
       el.append(h('div', { class: 'grid wide', style: 'margin-top:12px' }, S.presence.map((p) => h('div', { class: 'card' },
         h('div', { class: 'row sb' }, h('h3', { style: 'margin:0' }, p.name), h('span', { class: 'pill ' + (p.home ? 'ok' : '') }, p.known ? (p.home ? '🏠 zuhause' : '🚶 unterwegs') : 'unbekannt')),
         h('div', { class: 'hint', style: 'margin:6px 0' }, p.zones.length ? 'In: ' + p.zones.join(', ') : 'Keine Zone', ' · ', fmtTime(p.ts)),
+        awayText(p) ? h('div', { style: 'margin:2px 0 6px;font-weight:600' }, awayText(p)) : null,
         h('div', { class: 'row' }, h('button', { class: 'sm', onclick: () => api('POST', `/api/presence/${p.id}`, { home: true }).catch(fail) }, 'Manuell: zuhause'), h('button', { class: 'sm', onclick: () => api('POST', `/api/presence/${p.id}`, { home: false }).catch(fail) }, 'Manuell: weg'))))));
     }
     el.append(h('h2', {}, 'Zonen'), h('div', { class: 'card', style: 'overflow-x:auto' }, h('table', {}, h('thead', {}, h('tr', {}, ['Name', 'Position', 'Radius', ''].map((t) => h('th', {}, t)))),

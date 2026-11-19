@@ -1,5 +1,8 @@
 # Änderungen
 
+## 1.29.8
+- **Anwesenheit: Uhrzeit von Weggehen und Ankunft:** Pro Person merkt sich HomeLite, wann sie zuletzt die Zone „Zuhause“ verlassen hat und wann sie wieder angekommen ist (bleibt nach Neustart erhalten). Anzeige auf den Seiten „Anwesenheit“ und „Ort“ sowie im Dashboard-Baustein: unterwegs → „Weg seit 08:15“, zuhause → „Angekommen 17:30 · zuletzt weg 08:15 – 17:30“. Gezählt wird ab diesem Update; für schon bekannte Personen erscheint die Zeit erst beim nächsten Weggehen bzw. bei der nächsten Ankunft. Mit simulierten Standortdaten geprüft.
+
 ## 1.29.7
 - **Apple TV: Status bleibt nicht mehr „hängen“:** Der Apple TV meldet nach Standby/Aufwachen oder WLAN-Wechseln manchmal keine Änderungen mehr, obwohl die Verbindung offen scheint – bisher half nur erneutes Koppeln. Die Verbindung wird jetzt alle 5 Minuten sauber neu aufgebaut (Kopplung bleibt gespeichert, kein kurzes „offline“ dabei). Die Ursache ist nur vermutet (am Gerät nicht nachgestellt); ob es hilft, zeigt sich im Betrieb.
 

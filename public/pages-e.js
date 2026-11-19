@@ -179,6 +179,7 @@ PAGES.where = {
       el.append(h('div', { class: 'grid wide', style: 'margin-top:12px' }, S.presence.map((p) => h('div', { class: 'card' },
         h('div', { class: 'row sb' }, h('h3', { style: 'margin:0' }, h('span', { class: 'dot', style: `background:${personColor(p.id)}` }), ' ', p.name), h('span', { class: 'pill ' + (p.home ? 'ok' : '') }, p.known ? (p.home ? '🏠 zuhause' : '🚶 unterwegs') : 'unbekannt')),
         h('div', { class: 'hint', style: 'margin:6px 0' }, p.zones.length ? 'In: ' + p.zones.join(', ') : 'Keine Zone', ' · ', fmtTime(p.locTs || p.ts)),
+        awayText(p) ? h('div', { style: 'margin:2px 0 6px;font-weight:600' }, awayText(p)) : null,
         h('div', { class: 'hint' }, p.lat == null ? 'Noch keine Position' : `${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}`, p.acc != null ? ` · ±${p.acc} m` : '', p.battery != null ? ` · 🔋 ${p.battery} %` : '', p.src ? ` · ${p.src}` : ''),
         p.lat != null ? h('div', { class: 'row', style: 'margin-top:8px' }, h('button', { class: 'sm', onclick: () => { WM.lat = p.lat; WM.lon = p.lon; WM.z = 16; WM.fitted = true; renderPage(); window.scrollTo(0, 0); } }, 'Auf Karte zeigen')) : null))));
     }
