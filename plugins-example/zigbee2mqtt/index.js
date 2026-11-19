@@ -20,7 +20,7 @@ const ADAPTERS = {
 
 module.exports = (api) => {
   let base = 'zigbee2mqtt';
-  let bridge = { state: 'unknown' }, info = {};
+  let bridge = { state: 'unknown' }, info = {}, chg = null;
   const devs = new Map();    // friendly_name -> { ieee, name, def, type, interviewed, supported, disabled, power, state, avail, lastSeen }
   const byIeee = new Map();
   const specs = new Map();   // key -> { ieee, write }
@@ -155,8 +155,15 @@ module.exports = (api) => {
 
   function onMsg(topic, payload) {
     const rel = topic.slice(base.length + 1);
-    if (rel === 'bridge/state') { const j = parse(payload); bridge.state = j && j.state ? j.state : String(payload).trim(); if (bridge.state !== 'online') for (const d of byIeee.values()) { d.avail = false; for (const [key, sp] of specs) if (sp.ieee === d.ieee) { try { api.devices.setState(key, { online: false }); } catch { /* egal */ } } } return push(); }
-    if (rel === 'bridge/info') { info = parse(payload) || {}; return push(); }
+    if (rel === 'bridge/state') { const j = parse(payload); bridge.state = j && j.state ? j.state : String(payload).trim(); if (chg && chg.step === 'restart') { if (bridge.state !== 'online') chg.sawOff = true; } if (bridge.state !== 'online') for (const d of byIeee.values()) { d.avail = false; for (const [key, sp] of specs) if (sp.ieee === d.ieee) { try { api.devices.setState(key, { online: false }); } catch { /* egal */ } } } return push(); }
+    if (rel === 'bridge/info') {
+      info = parse(payload) || {};
+      if (chg && chg.step === 'restart' && chg.sawOff && bridge.state === 'online' && info.network && info.network.channel) {
+        if (Number(info.network.channel) === chg.target) { chg.step = 'done'; chg.msg = `Funkkanal ist jetzt ${chg.target}.`; pushEv(chg.msg); api.notify('Zigbee', chg.msg); }
+        else { chg.step = 'failed'; chg.msg = `Nach dem Neustart läuft das Netz weiter auf Kanal ${info.network.channel} (gewünscht ${chg.target}). Siehe Protokoll unten; Zigbee2MQTT unterstützt den Kanalwechsel nur mit den Adaptern „ember“ und „zstack“.`; pushEv(chg.msg); }
+      }
+      return push();
+    }
     if (rel === 'bridge/devices') { const j = parse(payload); if (Array.isArray(j)) setDevices(j); return; }
     if (rel === 'bridge/logging') { const j = parse(payload); if (j && j.message) { logs.unshift({ t: Date.now(), level: j.level || 'info', msg: String(j.message).slice(0, 300) }); logs.length = Math.min(logs.length, 40); push(); } return; }
     if (rel === 'bridge/event') {
@@ -166,7 +173,13 @@ module.exports = (api) => {
       if (txt) { pushEv(txt); if (j.type === 'device_interview' && j.data && j.data.status === 'successful') api.notify('Zigbee', `Neues Gerät eingelesen: ${n}`); push(); }
       return;
     }
-    if (rel === 'bridge/response/options') { const j = parse(payload); if (j) { pushEv(j.status === 'ok' ? 'Einstellung gespeichert' + (j.data && j.data.restart_required ? ' – Neustart von Zigbee2MQTT nötig' : '') : `Einstellung abgelehnt: ${j.error || 'Fehler'}`); push(); } return; }
+    if (rel === 'bridge/response/options') {
+      const j = parse(payload);
+      if (j && chg && chg.step === 'options') {
+        if (j.status === 'ok') { if (chg.restart) { chg.step = 'restart'; chg.sawOff = false; chg.msg = 'Kanal gespeichert, Zigbee2MQTT wird neu gestartet …'; try { req('restart', ''); } catch (e) { chg.step = 'failed'; chg.msg = e.message; } } else { chg.step = 'saved'; chg.msg = 'Kanal gespeichert – gilt nach dem Neustart von Zigbee2MQTT.'; } }
+        else { chg.step = 'failed'; chg.msg = `Zigbee2MQTT hat die Einstellung abgelehnt: ${j.error || 'Fehler'}`; }
+      }
+      if (j) { pushEv(j.status === 'ok' ? 'Einstellung gespeichert' + (j.data && j.data.restart_required ? ' – Neustart von Zigbee2MQTT nötig' : '') : `Einstellung abgelehnt: ${j.error || 'Fehler'}`); push(); } return; }
     if (rel.startsWith('bridge/')) return;
     if (rel.endsWith('/availability')) {
       const d = devs.get(rel.slice(0, -13)); if (!d) return;
@@ -220,6 +233,7 @@ module.exports = (api) => {
       power: d.power, online: d.avail, lastSeen: d.lastSeen, lqi: d.state && d.state.linkquality, battery: d.state && typeof d.state.battery === 'number' ? d.state.battery : null,
       count: [...specs.values()].filter((s) => s.ieee === d.ieee).length,
     })),
+    channelChange: chg ? { target: chg.target, step: chg.step, msg: chg.msg } : null, channelLogs: logs.filter((l) => /channel|kanal/i.test(l.msg)).slice(0, 5),
     dongle: dongleInfo(), network: info.network ? { channel: info.network.channel, pan: info.network.pan_id } : null,
     channelConfig: info.config && info.config.advanced ? info.config.advanced.channel : null, restartRequired: !!info.restart_required,
     events, logs,
@@ -239,9 +253,14 @@ module.exports = (api) => {
     req('device/remove', { id: d.ieee, force: !!body.force }); return { ok: true };
   });
   api.route('POST', 'interview', ({ body }) => { const d = devs.get(String(body.name || '')); if (!d) throw new Error('Gerät unbekannt'); req('device/interview', { id: d.ieee }); return { ok: true }; });
+  // Kanalwechsel: Einstellung speichern → (optional) Zigbee2MQTT neu starten → prüfen, ob der Kanal wirklich gewechselt hat
   api.route('POST', 'channel', ({ body }) => {
     const n = Math.round(Number(body && body.channel)); if (!(n >= 11 && n <= 26)) throw new Error('Kanal muss zwischen 11 und 26 liegen');
-    req('options', { options: { advanced: { channel: n } } }); pushEv(`Funkkanal ${n} angefordert`); push(); return { ok: true };
+    const restart = !body || body.restart !== false;
+    chg = { target: n, step: 'options', restart, msg: 'Wird an Zigbee2MQTT gesendet …', t: Date.now() };
+    req('options', { options: { advanced: { channel: n } } }); pushEv(`Funkkanal ${n} angefordert`);
+    const me = chg; api.after(() => { if (chg === me && ['options', 'restart'].includes(me.step)) { const wasOpt = me.step === 'options'; me.step = 'failed'; me.msg = wasOpt ? 'Keine Antwort von Zigbee2MQTT.' : 'Zigbee2MQTT ist nach dem Neustart nicht (rechtzeitig) wieder online gekommen.'; push(); } }, 180000);
+    push(); return { ok: true };
   });
   api.route('POST', 'restart', () => { req('restart', ''); return { ok: true }; });
 
