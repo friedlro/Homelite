@@ -62,12 +62,22 @@ module.exports = (api) => {
   });
   const ask = async (cmd, extra, ms) => { const r = await send(cmd, extra, ms); if (!r.ok) throw new Error(r.error || 'Fehler'); return r; };
 
+  // Übrig gebliebene Brücke einer früheren Plugin-Instanz beenden (hält sonst die einzige Dongle-Verbindung)
+  function killStale() {
+    try {
+      const f = path.join(ddir(), 'bridge.pid'); if (!fs.existsSync(f)) return;
+      const pid = Number(fs.readFileSync(f, 'utf8'));
+      if (pid > 1 && /bridge\.py/.test(fs.readFileSync(`/proc/${pid}/cmdline`, 'utf8')) && fs.readFileSync(`/proc/${pid}/cmdline`, 'utf8').includes('zigbee')) { process.kill(pid, 'SIGKILL'); api.log('warn', `Alte Zigbee-Brücke (PID ${pid}) beendet`); }
+    } catch { /* Prozess existiert nicht mehr */ }
+  }
   function spawnBridge() {
     if (proc) return;
+    killStale();
     const py = hasVenv() ? vpy() : '';
     if (!py) { st = { ...st, state: 'noenv', msg: 'Python-Umgebung fehlt – „Installieren“ drücken' }; push(); return; }
     const p = spawn(py, [path.join(__dirname, 'bridge.py')], { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, PYTHONUNBUFFERED: '1', PYTHONWARNINGS: 'ignore' } });
     proc = p; stopping = false;
+    try { fs.writeFileSync(path.join(ddir(), 'bridge.pid'), String(p.pid)); } catch { /* egal */ }
     rl = readline.createInterface({ input: p.stdout });
     rl.on('line', (line) => {
       let m; try { m = JSON.parse(line); } catch { return; }
@@ -111,7 +121,7 @@ module.exports = (api) => {
   async function shutdown() {
     stopping = true; clearTimeout(restartT); restartT = null;
     const p = proc;
-    if (p) { try { await send('stop', {}, 15000); } catch { /* egal */ } try { p.stdin.end(); } catch { /* egal */ } setTimeout(() => { try { p.kill(); } catch { /* egal */ } }, 2000); }
+    if (p) { try { await send('stop', {}, 15000); } catch { /* egal */ } try { p.stdin.end(); } catch { /* egal */ } setTimeout(() => { try { p.kill(); } catch { /* egal */ } }, 2000); setTimeout(() => { try { p.kill('SIGKILL'); } catch { /* egal */ } }, 6000); }
     proc = null;
   }
 
