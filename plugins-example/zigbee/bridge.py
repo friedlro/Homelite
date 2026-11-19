@@ -148,7 +148,7 @@ class Bridge:
     # ---------- Start / Stop ----------
     async def start(self, cfg):
         if self.gw or self.starting:
-            return {"ok": False, "error": "läuft bereits"}
+            return {"ok": True, "already": True}
         self.starting = True
         self.cfg = cfg
         emit({"event": "status", "state": "starting"})
@@ -294,6 +294,9 @@ class Bridge:
 
     async def reconnect(self):
         """Nach Verbindungsverlust (z. B. Netzwerk-Dongle neu gestartet) alle 15 s neu versuchen."""
+        if getattr(self, "reconnecting", False):
+            return
+        self.reconnecting = True
         cfg = self.cfg
         try:
             await self.stop()
@@ -303,7 +306,8 @@ class Bridge:
             await asyncio.sleep(15)
             r = await self.start(cfg)
             if r.get("ok"):
-                return
+                break
+        self.reconnecting = False
 
     # periodische Auffrischung von LQI/Erreichbarkeit
     async def ticker(self):
@@ -412,7 +416,9 @@ class Bridge:
             return {"ok": True}
         if cmd == "backup":
             app = self.gw.application_controller
-            bk = await app.backups.create_backup()
+            # ohne Geräte-Kindliste: für die Wiederherstellung des Netzes nicht nötig, und das Auslesen
+            # (viele Anfragen) hat bei Netzwerk-Dongles die Verbindung abbrechen lassen
+            bk = await app.backups.create_backup(load_devices=False)
             return {"ok": True, "data": bk.as_open_coordinator_json()}
         if cmd == "restore":
             from zigpy.backups import NetworkBackup

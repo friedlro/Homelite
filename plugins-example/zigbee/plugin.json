@@ -1,7 +1,7 @@
 {
   "id": "zigbee",
   "name": "Zigbee (direkt, ZHA)",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Eigenständiges Zigbee ohne Zigbee2MQTT: der ZHA-Kern (zigpy, bellows, zha-quirks) steuert den Funk-Dongle direkt, z. B. Sonoff Dongle Max per USB oder Netzwerk. Geräte werden automatisch angelegt (Licht, Schalter, Sensoren, Rollos, Thermostate, Schlosser, Tasten). Mit Anlernen, Kanalwechsel, Backup und echtem Restore.",
   "author": "HomeLite",
   "icon": "📡",
@@ -136,6 +136,7 @@
     }
   ],
   "changelog": {
-    "1.0.0": "Erste Version: eigenständige Zigbee-Anbindung über den ZHA-Kern (zigpy/bellows/zha-quirks), Sonoff Dongle Max (Netzwerk/USB), automatische Geräte, Anlernen, Kanalwechsel, Backup/Restore."
+    "1.0.0": "Erste Version: eigenständige Zigbee-Anbindung über den ZHA-Kern (zigpy/bellows/zha-quirks), Sonoff Dongle Max (Netzwerk/USB), automatische Geräte, Anlernen, Kanalwechsel, Backup/Restore.",
+    "1.0.1": "Backup liest keine Geräte-Kindliste mehr (Verbindungsabbruch beim Dongle Max), doppelte Neuverbindung behoben."
   }
 }

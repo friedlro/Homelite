@@ -1,5 +1,8 @@
 # Änderungen
 
+## Plugin „Zigbee direkt“ 1.0.1
+- Fix: Das Backup las beim Dongle Max die Geräte-Kindliste aus und die Verbindung brach dabei ab („Connection has been closed“); das Backup kommt jetzt ohne diese Liste aus (für die Netzwiederherstellung nicht nötig). Außerdem starteten Brücke und Plugin nach einem Verbindungsverlust gleichzeitig neu („läuft bereits“) – behoben. Ursache des Abbruchs nicht sicher geklärt (siehe LIESMICH: nur eine Verbindung zum Dongle).
+
 ## Plugin „Zigbee direkt“ 1.0.0 (neu, `plugins-example/zigbee`)
 - Eigenständiges Zigbee-Plugin ohne Zigbee2MQTT: Python-Brücke mit dem ZHA-Kern (zigpy, bellows, zha, zha-quirks) hält den Dongle selbst – Sonoff Dongle Max per Netzwerk oder USB, weitere Funkchips (Z-Stack, ConBee, XBee, ZiGate) wählbar. Installation der Python-Umgebung per Knopf, Anlernen, automatische Geräte (Licht, Schalter, Rollo, Schloss, Thermostat, Sensoren, Taster), Konfigurations-Entitäten auf der Seite, Kanalwechsel, Backup/Restore im „Open Coordinator“-Format. **Nicht mit echter Hardware getestet** (nur Pakete, Brücken-Start bis zum Funkchip, Zuordnung und Seite mit Simulation).
 
