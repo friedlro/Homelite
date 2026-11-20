@@ -50,6 +50,9 @@ Geräte, die vorher über Zigbee2MQTT liefen (z. B. Couchlicht), sind in HomeLit
 ## Farben bei Lichtern
 Kann die Lampe Farbe (xy) und/oder Weißton, zeigt die Kachel in HomeLite Farbfelder, einen Farbwähler, Weißtöne (Kerze bis Kaltweiß) und einen Kelvin-Regler. Der Weißton wird auf den Bereich der Lampe begrenzt. Für Automationen gibt es die Aktionen „Farbe (Licht, #rrggbb)“ und „Weißton (Licht, Kelvin)“. Braucht HomeLite 1.30.0. Nicht an einer echten Lampe geprüft; die tatsächlich gezeigte Farbe hängt vom Farbumfang der Lampe ab.
 
+## Echtzeit und Abfragen
+Geräte melden Änderungen von selbst; HomeLite und die Seite zeigen sie sofort. **↻ Alle jetzt abfragen** (bzw. je Gerät „↻ Werte abfragen“) liest die Werte zusätzlich direkt aus den Geräten. Das geht nur bei netzbetriebenen Geräten zuverlässig: Batteriegeräte schlafen und antworten erst, wenn sie wach sind (dann „ohne Antwort“). Optional fragt das Plugin netzbetriebene Geräte alle N Minuten ab (Einstellung, Standard 0 = aus; ab 5 Minuten sinnvoll, sonst belastet es das Funknetz). KI-Tool: `zha_abfragen`.
+
 ## Funkkanal ändern
 Auf der Seite beim Dongle: Kanal wählen, „Wechseln“. Es wird vorher ein Backup erstellt; dann sendet der Koordinator die Kanalumschaltung an alle Geräte. Netzbetriebene Geräte folgen sofort, batteriebetriebene Geräte brauchen manchmal Minuten bis Stunden – einzelne müssen eventuell neu angelernt werden. „📶 Kanäle prüfen“ zeigt die Funk-Auslastung je Kanal (nur bei Dongles, die einen Energie-Scan können). Der Wechsel gilt auch nach Neustart (die Einstellung „Funkkanal“ wirkt nur beim Neuanlegen eines Netzes).
 

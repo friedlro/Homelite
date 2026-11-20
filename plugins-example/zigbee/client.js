@@ -104,7 +104,7 @@
         d.endpoints.length ? h('details', { style: 'margin-top:6px' }, h('summary', { class: 'hint' }, 'Technisch: Endpunkte und Cluster'), d.endpoints.map((p) => h('div', { class: 'hint', style: 'font-family:monospace;font-size:11px' }, `EP${p.ep} Profil 0x${(p.profile || 0).toString(16)} Typ ${p.device_type}  in: ${p.in.join(' ')}  out: ${p.out.join(' ')}`))) : null,
         h('div', { class: 'row', style: 'gap:6px;margin-top:8px;flex-wrap:wrap' }, nameIn, roomIn,
           h('button', { class: 'sm', onclick: () => call('POST', 'rename', { ieee: d.ieee, name: nameIn.value, room: roomIn.value }).then((r) => toast(r.note || 'Gespeichert')).catch(fail) }, 'Name/Raum'),
-          h('button', { class: 'sm', onclick: () => call('POST', 'poll', { ieee: d.ieee }).then(() => toast('Abgefragt')).catch(fail) }, '↻ Werte abfragen'),
+          h('button', { class: 'sm', onclick: () => call('POST', 'poll', { ieee: d.ieee }).then((r) => toast(r.failed ? `Abgefragt, ${r.failed} ohne Antwort (Batteriegerät schläft?)` : 'Abgefragt')).catch(fail) }, '↻ Werte abfragen'),
           h('button', { class: 'sm', onclick: (e) => { e.target.disabled = true; toast('Neu abfragen …'); call('POST', 'reinterview', { ieee: d.ieee }).then(() => toast('Fertig')).catch(fail).finally(() => { e.target.disabled = false; }); } }, '🔍 Neu abfragen'),
           h('button', { class: 'sm danger', onclick: () => { if (confirm(`„${d.name}“ aus dem Zigbee-Netz entfernen?\n(Batteriegeräte antworten nur, wenn sie wach sind – ggf. Taste am Gerät drücken. HomeLite-Geräte werden mit entfernt.)`)) call('POST', 'remove', { ieee: d.ieee }).then(() => toast('Entfernt')).catch(fail); } }, '🗑 Entfernen'))) : null);
   }
@@ -141,7 +141,7 @@
     fill(el,
       h('div', { class: 'hint' }, 'Zigbee direkt über den ZHA-Kern – ohne Zigbee2MQTT. Einstellungen (Anschluss, Funkchip, Kanal …) über das Zahnrad des Plugins.'),
       envCard(), dongleCard(), joinCard(),
-      h('div', { class: 'row sb', style: 'margin-top:6px' }, h('b', {}, `Geräte (${M.devices.length})`), M.devices.length > 6 ? filt : null),
+      h('div', { class: 'row sb', style: 'margin-top:6px;gap:8px;flex-wrap:wrap' }, h('b', {}, `Geräte (${M.devices.length})`), h('div', { class: 'row', style: 'gap:8px' }, M.devices.length > 6 ? filt : null, h('button', { class: 'sm', disabled: M.status !== 'online', onclick: (e) => { e.target.disabled = true; e.target.textContent = 'Frage ab …'; call('POST', 'pollall', {}).then((r) => toast(`Abgefragt: ${r.polled} Werte${r.failed ? ', ' + r.failed + ' ohne Antwort' : ''}${r.skipped ? ', ' + r.skipped + ' Geräte übersprungen (Batterie/offline)' : ''}`)).catch(fail).finally(() => draw()); } }, '↻ Alle jetzt abfragen'))),
       list.length ? list.map(devCard) : h('div', { class: 'hint', style: 'margin:8px 0' }, M.status === 'online' ? 'Noch keine Geräte – oben „Anlernen“ öffnen.' : 'Erst den Dongle verbinden.'),
       backupCard(),
       M.events.length ? h('div', { style: 'margin-top:10px' }, h('b', {}, 'Ereignisse'), M.events.slice(0, 8).map((e) => h('div', { class: 'hint' }, `${when(e.t)} · ${e.txt}`))) : null,

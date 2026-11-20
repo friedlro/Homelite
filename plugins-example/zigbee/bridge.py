@@ -444,18 +444,47 @@ class Bridge:
             emit({"event": "device", "device": dev_info(dev), "new": False})
             return {"ok": True}
         if cmd == "poll":
+            # Werte direkt vom Gerät lesen (nicht abwarten, bis es von selbst meldet).
+            # Netzbetriebene Geräte antworten sofort; Batteriegeräte schlafen und werden nur auf ausdrücklichen Wunsch versucht.
             from zigpy.types import EUI64
-            dev = self.gw.devices.get(EUI64.convert(m["ieee"]))
-            if not dev:
+            if m.get("ieee"):
+                dev = self.gw.devices.get(EUI64.convert(m["ieee"]))
+                targets = [dev] if dev else []
+                force = True
+            else:
+                targets = [d for d in self.gw.devices.values() if not getattr(d, "is_active_coordinator", False) and not getattr(d, "is_coordinator", False)]
+                force = False
+            if not targets:
                 return {"ok": False, "error": "Gerät unbekannt"}
-            for e in dev.platform_entities.values():
-                f = getattr(e, "async_update", None)
-                if f:
-                    try:
-                        await f()
-                    except Exception:  # noqa: BLE001
-                        pass
-            return {"ok": True}
+            stats = {"polled": 0, "failed": 0, "skipped": 0}
+
+            async def one(ent):
+                f = getattr(ent, "async_update", None)
+                if not f:
+                    return
+                try:
+                    await asyncio.wait_for(f(), 15)
+                    stats["polled"] += 1
+                except Exception:  # noqa: BLE001
+                    stats["failed"] += 1
+
+            jobs = []
+            for d in targets:
+                if not force and not d.is_mains_powered:
+                    stats["skipped"] += 1
+                    continue
+                if not d.available and not force:
+                    stats["skipped"] += 1
+                    continue
+                jobs.extend(one(e) for e in d.platform_entities.values())
+            sem = asyncio.Semaphore(6)
+
+            async def limited(c):
+                async with sem:
+                    await c
+
+            await asyncio.gather(*(limited(j) for j in jobs))
+            return {"ok": True, **stats}
         if cmd == "backup":
             app = self.gw.application_controller
             # ohne Geräte-Kindliste: für die Wiederherstellung des Netzes nicht nötig, und das Auslesen

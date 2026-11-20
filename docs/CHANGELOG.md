@@ -1,5 +1,8 @@
 # Änderungen
 
+## Plugin „Zigbee direkt“ 1.3.0
+- **Echtzeit:** Die Zigbee-Seite aktualisiert Werte, Erreichbarkeit und Ereignisse live (höchstens etwa 1× pro Sekunde), vorher nur bei Geräteänderungen. Neu: „↻ Alle jetzt abfragen“ liest die aktuellen Werte netzbetriebener Geräte direkt aus (parallel, je Wert max. 15 s); Batteriegeräte schlafen und werden nur einzeln auf Wunsch versucht. Optional zyklische Abfrage (Einstellung „Minuten“, Standard aus) und MCP-Tool `zha_abfragen`. Mit Simulation geprüft, nicht mit echten Geräten.
+
 ## 1.30.0
 - **Lichter: Farbe und Weißton wählbar (Plugin-Lichter):** Hat ein Licht Farbe/Weißton (Plugin meldet `caps: ['brightness','color','ct']`), zeigt die Kachel Farbfelder (Rot, Orange, Gelb, Grün, Türkis, Blau, Violett, Pink), einen Farbwähler, Weißtöne (Kerze, Warmweiß, Neutral, Kaltweiß) und einen Kelvin-Regler. Neue Aktionen `color` (#rrggbb) und `ct` (Kelvin) für Automationen, die Historie und die KI-Steuerung. Bedienelemente und Aktionen mit Simulation geprüft, nicht mit echter Lampe.
 

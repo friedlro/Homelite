@@ -26,7 +26,7 @@ module.exports = (api) => {
   let proc = null, seq = 1, restartT = null, stopping = false, rl = null;
   const pending = new Map();
   let join = 0;
-  let chgBusy = false;
+  let chgBusy = false, pollLast = 0;
   const inst = { busy: false, ok: null, log: [], py: '' };
 
   const pushEv = (txt) => { events.unshift({ t: Date.now(), txt }); events.length = Math.min(events.length, 40); };
@@ -146,7 +146,7 @@ module.exports = (api) => {
       case 'health': for (const h of m.devices || []) { const d = devs.get(h.ieee); if (!d) continue; const was = d.available; Object.assign(d, { lqi: h.lqi, rssi: h.rssi, available: h.available, last_seen: h.last_seen }); if (was !== h.available) availability(d); lqiState(d); } break;
       default: break;
     }
-    if (m.event !== 'state') push();
+    if (m.event !== 'state') push(); else pushSoon();
   }
 
   const disp = (d) => names()[d.ieee] || d.name || d.ieee;
@@ -387,6 +387,8 @@ module.exports = (api) => {
     };
   }
   const push = () => { try { api.emit({ model: model() }); } catch { /* egal */ } };
+  let soonT = null;
+  function pushSoon() { if (soonT) return; soonT = setTimeout(() => { soonT = null; push(); }, 700); } // Live-Anzeige: höchstens ca. 1× pro Sekunde
 
   // ---------- Installation der Python-Umgebung ----------
   const run = (cmd, args, opts = {}) => new Promise((resolve) => {
@@ -567,7 +569,14 @@ module.exports = (api) => {
   });
   api.route('POST', 'remove', async ({ body }) => { await ask('remove', { ieee: String(body.ieee || '') }, 40000); return { ok: true }; });
   api.route('POST', 'reinterview', async ({ body }) => { await ask('reinterview', { ieee: String(body.ieee || '') }, 120000); return { ok: true }; });
-  api.route('POST', 'poll', async ({ body }) => { await ask('poll', { ieee: String(body.ieee || '') }, 60000); return { ok: true }; });
+  api.route('POST', 'poll', async ({ body }) => { const r = await ask('poll', { ieee: String(body.ieee || '') }, 120000); push(); return { ok: true, polled: r.polled, failed: r.failed, skipped: r.skipped }; });
+  api.route('POST', 'pollall', async () => { if (st.state !== 'online') throw new Error('Dongle nicht verbunden'); const r = await ask('poll', {}, 180000); push(); return { ok: true, polled: r.polled, failed: r.failed, skipped: r.skipped }; });
+  // zyklische Abfrage netzbetriebener Geräte (optional, Minuten; 0 = aus)
+  api.timer(async () => {
+    const mins = Number(cfg().pollMinutes) || 0; if (!mins || st.state !== 'online') return;
+    if (Date.now() - (pollLast || 0) < mins * 60000 - 5000) return;
+    pollLast = Date.now(); try { await ask('poll', {}, 180000); } catch (e) { api.log('warn', 'Abfrage: ' + e.message); }
+  }, 30000);
   // Konfigurations-Entitäten (number/select/button …) direkt aus der Seite
   api.route('POST', 'entity', async ({ body }) => {
     const d = devs.get(String(body.ieee || '')); if (!d) throw new Error('Gerät unbekannt');
@@ -596,6 +605,7 @@ module.exports = (api) => {
 
   try {
     api.mcp.tool({ name: 'zha_geraete', description: 'Zigbee-Geräte (direkt, ZHA): Name, Hersteller, Modell, Erreichbarkeit, Batterie, Verbindungsqualität', readOnly: true, inputSchema: { type: 'object', properties: {} }, run: () => model().devices.map((d) => ({ name: d.name, ieee: d.ieee, hersteller: d.manufacturer, modell: d.model, erreichbar: d.available, batterie: d.battery, lqi: d.lqi })) });
+    api.mcp.tool({ name: 'zha_abfragen', description: 'Zigbee-Geräte (direkt, ZHA) jetzt live abfragen: liest die aktuellen Werte netzbetriebener Geräte direkt aus (Batteriegeräte schlafen und melden sich selbst)', control: true, inputSchema: { type: 'object', properties: {} }, run: async () => { if (st.state !== 'online') throw new Error('Dongle nicht verbunden'); const r = await ask('poll', {}, 180000); return { abgefragt: r.polled, fehlgeschlagen: r.failed, uebersprungen: r.skipped }; } });
     api.mcp.tool({ name: 'zha_anlernen', description: 'Zigbee-Anlernmodus (direkt, ZHA) für N Sekunden öffnen (0 = schließen, max. 254)', control: true, inputSchema: { type: 'object', properties: { sekunden: { type: 'number' } }, required: ['sekunden'] }, run: async ({ sekunden }) => { const t = Math.max(0, Math.min(254, Number(sekunden) || 0)); await ask('permit', { time: t }, 20000); join = t ? Date.now() + t * 1000 : 0; push(); return { ok: true }; } });
   } catch { /* MCP nicht verfügbar */ }
 
