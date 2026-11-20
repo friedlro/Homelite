@@ -134,13 +134,37 @@
           h('button', { class: 'sm danger', onclick: () => { if (confirm('Dieses Backup löschen?')) call('DELETE', `backup/${b.name}`).then((r) => { BK.backups = r.backups; draw(); }).catch(fail); } }, '🗑'))))) : h('div', { class: 'hint', style: 'margin-top:8px' }, 'Noch kein Backup vorhanden.'));
   }
 
+  // ---- Einstellungen (direkt auf der Seite, gleiche Felder wie das Zahnrad) ----
+  let CF = null, CV = {}, cfOpen = false;
+  function loadCfg() {
+    return HL.rawApi('GET', '/api/plugins').then((l) => { const p = (l || []).find((x) => x.id === 'zigbee'); if (p) { CF = p.config || []; CV = {}; CF.forEach((f) => { CV[f.key] = f.type === 'password' ? '' : f.value; }); } }).catch(() => {});
+  }
+  function settingsCard() {
+    const body = [];
+    if (cfOpen) {
+      if (!CF) body.push(h('div', { class: 'hint' }, 'Lade Einstellungen …'));
+      else {
+        CF.forEach((f) => {
+          let inp;
+          if (f.type === 'bool') inp = h('input', { type: 'checkbox', checked: !!CV[f.key], onchange: (e) => { CV[f.key] = e.target.checked; } });
+          else if (f.type === 'select') inp = HL.sel(f.options || {}, CV[f.key] === undefined || CV[f.key] === null ? '' : CV[f.key], (v) => { CV[f.key] = v; });
+          else if (f.type === 'textarea') inp = h('textarea', { rows: 3, oninput: (e) => { CV[f.key] = e.target.value; } }, CV[f.key] || '');
+          else inp = h('input', { type: f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text', value: CV[f.key] === undefined || CV[f.key] === null ? '' : CV[f.key], placeholder: f.type === 'password' && f.hasValue ? '(gesetzt – leer lassen = behalten)' : f.placeholder || '', oninput: (e) => { CV[f.key] = f.type === 'number' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value; } });
+          body.push(HL.fld(f.label, inp), f.help ? h('div', { class: 'hint', style: 'margin:-4px 0 8px' }, f.help) : null);
+        });
+        body.push(h('div', { class: 'row', style: 'gap:8px;margin-top:6px' }, h('button', { onclick: (e) => { e.target.disabled = true; const vals = {}; CF.forEach((f) => { if (f.type === 'password' && !CV[f.key]) return; vals[f.key] = CV[f.key]; }); HL.rawApi('PUT', '/api/plugins/zigbee', { config: vals }).then(() => { toast('Gespeichert – Verbindung wird neu aufgebaut'); cfOpen = false; return loadCfg(); }).catch(fail).finally(() => draw()); } }, 'Speichern'), h('button', { class: 'sm', onclick: () => { cfOpen = false; draw(); } }, 'Abbrechen')));
+      }
+    }
+    return h('div', { class: 'card', style: 'margin:8px 0' }, h('div', { class: 'row sb' }, h('b', {}, '⚙ Einstellungen'), h('button', { class: 'sm', onclick: () => { cfOpen = !cfOpen; if (cfOpen && !CF) loadCfg().then(draw); draw(); } }, cfOpen ? 'Schließen' : 'Bearbeiten')), body);
+  }
+
   function draw() {
     const el = box(); if (!el || !M) return;
     const list = M.devices.filter((d) => !fl || (d.name + ' ' + d.model + ' ' + d.manufacturer + ' ' + d.ieee).toLowerCase().includes(fl.toLowerCase()));
     const filt = h('input', { placeholder: 'Geräte filtern …', value: fl, style: 'max-width:240px', oninput: (e) => { fl = e.target.value; const pos = e.target.selectionStart; draw(); const n = box().querySelector('input[placeholder^="Geräte"]'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } } });
     fill(el,
-      h('div', { class: 'hint' }, 'Zigbee direkt über den ZHA-Kern – ohne Zigbee2MQTT. Einstellungen (Anschluss, Funkchip, Kanal …) über das Zahnrad des Plugins.'),
-      envCard(), dongleCard(), joinCard(),
+      h('div', { class: 'hint' }, 'Zigbee direkt über den ZHA-Kern – ohne Zigbee2MQTT. Einstellungen (Anschluss, Funkchip, Kanal …) unten bei „⚙ Einstellungen“.'),
+      envCard(), dongleCard(), settingsCard(), joinCard(),
       h('div', { class: 'row sb', style: 'margin-top:6px;gap:8px;flex-wrap:wrap' }, h('b', {}, `Geräte (${M.devices.length})`), h('div', { class: 'row', style: 'gap:8px' }, M.devices.length > 6 ? filt : null, h('button', { class: 'sm', disabled: M.status !== 'online', onclick: (e) => { e.target.disabled = true; e.target.textContent = 'Frage ab …'; call('POST', 'pollall', {}).then((r) => toast(`Abgefragt: ${r.polled} Werte${r.failed ? ', ' + r.failed + ' ohne Antwort' : ''}${r.skipped ? ', ' + r.skipped + ' Geräte übersprungen (Batterie/offline)' : ''}`)).catch(fail).finally(() => draw()); } }, '↻ Alle jetzt abfragen'))),
       list.length ? list.map(devCard) : h('div', { class: 'hint', style: 'margin:8px 0' }, M.status === 'online' ? 'Noch keine Geräte – oben „Anlernen“ öffnen.' : 'Erst den Dongle verbinden.'),
       backupCard(),
