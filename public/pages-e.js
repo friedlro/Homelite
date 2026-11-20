@@ -352,6 +352,8 @@ const HIST_ICON = { ui: '👆', auto: '⚙️', mcp: '🤖', heat: '🌡', ext: 
 
 function histAction(e) {
   if (e.a === 'brightness') return `Helligkeit ${e.v} %`;
+  if (e.a === 'color') return `Farbe ${e.v}`;
+  if (e.a === 'ct') return `Weißton ${e.v} K`;
   if (e.a === 'press') return `Taste „${e.v}“`;
   return HIST_ACT[e.a] || e.a;
 }

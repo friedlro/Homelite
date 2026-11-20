@@ -1,12 +1,12 @@
 {
   "id": "zigbee",
   "name": "Zigbee (direkt, ZHA)",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Eigenständiges Zigbee ohne Zigbee2MQTT: der ZHA-Kern (zigpy, bellows, zha-quirks) steuert den Funk-Dongle direkt, z. B. Sonoff Dongle Max per USB oder Netzwerk. Geräte werden automatisch angelegt (Licht, Schalter, Sensoren, Rollos, Thermostate, Schlosser, Tasten). Mit Anlernen, Kanalwechsel, Backup und echtem Restore.",
   "author": "HomeLite",
   "icon": "📡",
   "api": 1,
-  "minCore": "1.29.9",
+  "minCore": "1.30.0",
   "main": "index.js",
   "client": "client.js",
   "page": {
@@ -143,6 +143,7 @@
     "1.0.4": "Verbindungsaufbau bricht nach 120 s mit klarer Meldung ab (statt hängen), weniger Fehlerzeilen im Protokoll bei Netz-Konflikt.",
     "1.0.5": "Fix: Geräteliste ließ sich nach dem Verbinden nicht auslesen (AttributeError zigpy_device) – Verbindung kam deshalb nie zustande; halb gestartete Verbindung wird sauber freigegeben.",
     "1.0.6": "Übrig gebliebene Brücken-Prozesse einer früheren Plugin-Instanz werden beim Start beendet (sie hielten die einzige Dongle-Verbindung).",
-    "1.1.0": "Altes HomeLite-Gerät (z. B. von Zigbee2MQTT) einem Zigbee-Eintrag zuordnen: ID, Name, Raum und Automationen bleiben erhalten (braucht Kern 1.29.9)."
+    "1.1.0": "Altes HomeLite-Gerät (z. B. von Zigbee2MQTT) einem Zigbee-Eintrag zuordnen: ID, Name, Raum und Automationen bleiben erhalten (braucht Kern 1.29.9).",
+    "1.2.0": "Farbe und Weißton für Lichter (Farbfelder, Farbwähler, Kelvin-Regler); braucht Kern 1.30.0."
   }
 }

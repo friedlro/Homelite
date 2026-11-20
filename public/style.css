@@ -365,3 +365,10 @@ header, main { padding-left: max(var(--pad-x, 24px), env(safe-area-inset-left));
   /* Kostentabelle (Energie) enger setzen */
   table.costtab th, table.costtab td { padding: 7px 4px; font-size: 12px; }
 }
+
+/* Farbauswahl für Lichter */
+.lcol { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.lcol .swatch { width: 24px; height: 24px; min-width: 0; padding: 0; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; }
+.lcol .swatch.sel { border-color: var(--text); }
+.lcol input[type=color] { width: 32px; height: 26px; padding: 0; border: 0; background: none; cursor: pointer; }
+.lcol input[type=range] { margin: 0; }

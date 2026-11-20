@@ -27,13 +27,15 @@ function tile(d) {
       const sub = [];
       if (s.power !== undefined) sub.push(`${fmtNum(s.power, 0)} W`);
       if (offline) sub.push('offline');
-      const dimmable = d.type === 'light' && d.paths && d.paths.brightness;
+      const caps = d.caps || [];
+      const dimmable = d.type === 'light' && ((d.paths && d.paths.brightness) || caps.includes('brightness'));
       return base(`click ${s.on ? 'on' : ''}`, () => act(d, 'toggle'), true,
         h('div', { class: 'val' }, known ? (s.on ? 'An' : 'Aus') : '–'),
         dimmable ? h('input', {
           type: 'range', min: 0, max: 100, value: s.brightness ?? (s.on ? 100 : 0),
           onclick: (e) => e.stopPropagation(), onchange: (e) => act(d, 'brightness', Number(e.target.value)),
         }) : null,
+        d.type === 'light' && (caps.includes('color') || caps.includes('ct')) ? lightColors(d, s) : null,
         h('div', { class: 'sub' }, sub.join(' · ') || (dimmable && s.brightness !== undefined ? `${s.brightness} %` : '')));
     }
     case 'lock': {
@@ -259,6 +261,30 @@ PAGES.dash = {
 };
 
 // ---------- Geräte ----------
+// Farbauswahl für Lichter: Farbfelder, Weißtöne (Kelvin) und freier Farbwähler; wirkt über die Aktionen „color“ (#rrggbb) und „ct“ (Kelvin)
+const LIGHT_COLORS = [['#ff0000', 'Rot'], ['#ff7a00', 'Orange'], ['#ffd000', 'Gelb'], ['#4cd137', 'Grün'], ['#00d2d3', 'Türkis'], ['#2e86ff', 'Blau'], ['#8e44ff', 'Violett'], ['#ff4fa3', 'Pink']];
+const LIGHT_WHITES = [[2200, 'Kerze'], [2700, 'Warmweiß'], [4000, 'Neutral'], [6500, 'Kaltweiß']];
+function kelvinCss(k) { // grobe Anzeigefarbe für einen Weißton
+  const t = k / 100; let r, g, b;
+  r = t <= 66 ? 255 : 329.7 * ((t - 60) ** -0.1332); g = t <= 66 ? 99.47 * Math.log(t) - 161.12 : 288.12 * ((t - 60) ** -0.0755);
+  b = t >= 66 ? 255 : t <= 19 ? 0 : 138.52 * Math.log(t - 10) - 305.04;
+  const c = (v) => Math.max(0, Math.min(255, Math.round(v)));
+  return `rgb(${c(r)},${c(g)},${c(b)})`;
+}
+function lightColors(d, s) {
+  const caps = d.caps || [], stop = (e) => e.stopPropagation(), row = h('div', { class: 'lcol', onclick: stop });
+  if (caps.includes('color')) {
+    for (const [c, n] of LIGHT_COLORS) row.append(h('button', { class: 'swatch' + (s.color && String(s.color).toLowerCase() === c ? ' sel' : ''), title: n, style: `background:${c}`, onclick: (e) => { stop(e); act(d, 'color', c); } }));
+    row.append(h('input', { type: 'color', value: s.color || '#ffffff', title: 'Eigene Farbe', onclick: stop, onchange: (e) => act(d, 'color', e.target.value) }));
+  }
+  if (caps.includes('ct')) {
+    const r = d.ct || { min: 2000, max: 6500 };
+    for (const [k, n] of LIGHT_WHITES) if (k >= r.min - 100 && k <= r.max + 100) row.append(h('button', { class: 'swatch' + (s.ct && Math.abs(s.ct - k) < 150 ? ' sel' : ''), title: `${n} (${k} K)`, style: `background:${kelvinCss(k)}`, onclick: (e) => { stop(e); act(d, 'ct', k); } }));
+    row.append(h('input', { type: 'range', min: r.min, max: r.max, step: 50, value: s.ct || Math.round((r.min + r.max) / 2), title: 'Farbtemperatur (Kelvin)', style: 'flex:1;min-width:90px', onclick: stop, onchange: (e) => act(d, 'ct', Number(e.target.value)) }));
+  }
+  return row;
+}
+
 const MQTT_HELP = 'stateTopics: Topics, auf denen der Zustand kommt. paths: JSON-Pfade im Payload ("" = ganzer Payload). cmd: topic + Payloads (on/off, brightness/setpoint mit {{v}}). Beispiel Zigbee2MQTT-Steckdose siehe README.';
 
 function deviceDialog(d, onSaved, initial) {

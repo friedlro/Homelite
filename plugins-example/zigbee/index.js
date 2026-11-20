@@ -163,6 +163,26 @@ module.exports = (api) => {
   const num = (v) => (typeof v === 'number' && isFinite(v) ? v : (typeof v === 'string' && v !== '' && isFinite(Number(v)) ? Number(v) : null));
   const R = (v, n = 3) => Math.round(v * 10 ** n) / 10 ** n;
 
+
+  // ---------- Farbumrechnung (Licht): sRGB <-> CIE-xy, Kelvin <-> Mired ----------
+  const lin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const gam = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+  function hexToXy(hex) {
+    const n = parseInt(String(hex).slice(1), 16), r = lin(((n >> 16) & 255) / 255), g = lin(((n >> 8) & 255) / 255), b = lin((n & 255) / 255);
+    const X = 0.4124 * r + 0.3576 * g + 0.1805 * b, Y = 0.2126 * r + 0.7152 * g + 0.0722 * b, Z = 0.0193 * r + 0.1192 * g + 0.9505 * b, s = X + Y + Z;
+    return s > 0 ? [Math.round(X / s * 10000) / 10000, Math.round(Y / s * 10000) / 10000] : [0.3127, 0.329];
+  }
+  function xyToHex(x, y) {
+    if (!(y > 0)) return null;
+    const Y = 1, X = Y / y * x, Z = Y / y * (1 - x - y);
+    let r = 3.2406 * X - 1.5372 * Y - 0.4986 * Z, g = -0.9689 * X + 1.8758 * Y + 0.0415 * Z, b = 0.0557 * X - 0.204 * Y + 1.057 * Z;
+    const m = Math.max(r, g, b, 1e-9); r = Math.max(0, r / m); g = Math.max(0, g / m); b = Math.max(0, b / m);
+    const h2 = (v) => Math.max(0, Math.min(255, Math.round(gam(v) * 255))).toString(16).padStart(2, '0');
+    return '#' + h2(r) + h2(g) + h2(b);
+  }
+  const kToMired = (k) => Math.round(1e6 / Math.max(1000, Number(k)));
+  const miredToK = (m) => Math.round(1e6 / Math.max(1, Number(m)) / 50) * 50;
+
   // Entität -> HomeLite-Gerät(e). Rückgabe: Liste { key, name, type, unit, pick(state), write(action,value) }
   function build(d) {
     const out = [];
@@ -176,18 +196,31 @@ module.exports = (api) => {
       const call = (method, args) => ask('call', { ieee: d.ieee, uid: e.uid, method, args: args || {} }, 30000).then((r) => r.state || {}).catch((er) => { throw new Error(er.message); });
       const cat = e.category || '';
       switch (e.platform) {
-        case 'light':
-          out.push({ key: k, name: base + ep, type: 'light', room,
-            pick: (s) => { const p = {}; if (s.on !== undefined && s.on !== null) p.on = !!s.on; const b = num(s.brightness); if (b !== null) p.brightness = Math.round(b * 100 / 255); return Object.keys(p).length ? p : null; },
+        case 'light': {
+          const modes = (e.color_modes || []).map(String);
+          const hasColor = modes.some((x) => ['xy', 'hs', 'rgb', 'rgbw'].includes(x)), hasCt = modes.includes('color_temp') || hasColor;
+          const caps = ['brightness']; if (hasColor) caps.push('color'); if (hasCt) caps.push('ct');
+          const minM = num(e.min_mireds) || 153, maxM = num(e.max_mireds) || 500;
+          const ct = hasCt ? { min: Math.max(1500, miredToK(maxM)), max: Math.min(10000, miredToK(minM)) } : undefined;
+          const clampM = (m) => Math.max(minM, Math.min(maxM, m));
+          out.push({ key: k, name: base + ep, type: 'light', room, caps, ct,
+            pick: (s) => {
+              const p = {}; if (s.on !== undefined && s.on !== null) p.on = !!s.on; const b = num(s.brightness); if (b !== null) p.brightness = Math.round(b * 100 / 255);
+              if (hasColor && s.color_mode === 'xy' && Array.isArray(s.xy_color) && s.xy_color.length === 2) { const h = xyToHex(Number(s.xy_color[0]), Number(s.xy_color[1])); if (h) { p.color = h; p.ct = null; } }
+              else if (hasCt && s.color_mode === 'color_temp' && num(s.color_temp)) { p.ct = miredToK(s.color_temp); p.color = null; }
+              return Object.keys(p).length ? p : null;
+            },
             write: async (a, v) => {
               if (a === 'toggle') a = (devSt(d.ieee, e.uid) || {}).on ? 'off' : 'on';
               if (a === 'on') { await call('turn_on'); return { on: true }; }
               if (a === 'off') { await call('turn_off'); return { on: false }; }
               if (a === 'brightness') { const p = Math.max(0, Math.min(100, Number(v))); if (p === 0) { await call('turn_off'); return { on: false, brightness: 0 }; } await call('turn_on', { brightness: Math.round(p * 255 / 100) }); return { on: true, brightness: p }; }
+              if (a === 'color' && hasColor) { if (!/^#[0-9a-f]{6}$/i.test(String(v))) throw new Error('Farbe als #rrggbb'); await call('turn_on', { xy_color: hexToXy(v) }); return { on: true, color: String(v).toLowerCase(), ct: null }; }
+              if (a === 'ct' && hasCt) { const k2 = Number(v); if (!(k2 > 0)) throw new Error('Kelvin erwartet'); const m = clampM(kToMired(k2)); await call('turn_on', { color_temp: m }); return { on: true, ct: miredToK(m), color: null }; }
               if (a === 'color_temp') { await call('turn_on', { color_temp: Math.round(Number(v)) }); return {}; }
               throw new Error('Aktion nicht unterstützt: ' + a);
             } });
-          break;
+          break; }
         case 'switch': case 'siren': case 'fan': case 'valve': {
           if (cat === 'config' || cat === 'diagnostic') break; // z. B. „Kindersicherung“: nur in der Zigbee-Seite
           const isOn = (s) => (s.is_on !== undefined && s.is_on !== null ? !!s.is_on : s.state !== undefined ? s.state === 'on' || s.state === true : undefined);
@@ -271,8 +304,8 @@ module.exports = (api) => {
       try {
         specs.set(s.key, { ...s, ieee: d.ieee, uid: s.key.slice(`zha:${d.ieee}:`.length) });
         const adopt = links()[s.key];
-        try { api.devices.ensure(adopt ? { key: s.key, type: s.type, unit: s.unit || '', adopt } : { key: s.key, name: s.name, room: s.room, type: s.type, unit: s.unit || '' }); }
-        catch (er) { if (!adopt) throw er; const l = links(); delete l[s.key]; api.kv.set('links', l); api.log('warn', `Zugeordnetes Gerät für ${s.key} nicht mehr vorhanden: ${er.message}`); api.devices.ensure({ key: s.key, name: s.name, room: s.room, type: s.type, unit: s.unit || '' }); }
+        try { api.devices.ensure(adopt ? { key: s.key, type: s.type, unit: s.unit || '', adopt, caps: s.caps, ct: s.ct } : { key: s.key, name: s.name, room: s.room, type: s.type, unit: s.unit || '', caps: s.caps, ct: s.ct }); }
+        catch (er) { if (!adopt) throw er; const l = links(); delete l[s.key]; api.kv.set('links', l); api.log('warn', `Zugeordnetes Gerät für ${s.key} nicht mehr vorhanden: ${er.message}`); api.devices.ensure({ key: s.key, name: s.name, room: s.room, type: s.type, unit: s.unit || '', caps: s.caps, ct: s.ct }); }
         const e = (d.entities || []).find((x) => `zha:${d.ieee}:${x.uid}` === s.key);
         const patch = e && s.pick ? s.pick(e.state || {}) : null;
         api.devices.setState(s.key, { ...(patch || {}), online: d.available !== false });

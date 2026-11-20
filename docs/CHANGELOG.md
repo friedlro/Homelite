@@ -1,5 +1,11 @@
 # Änderungen
 
+## 1.30.0
+- **Lichter: Farbe und Weißton wählbar (Plugin-Lichter):** Hat ein Licht Farbe/Weißton (Plugin meldet `caps: ['brightness','color','ct']`), zeigt die Kachel Farbfelder (Rot, Orange, Gelb, Grün, Türkis, Blau, Violett, Pink), einen Farbwähler, Weißtöne (Kerze, Warmweiß, Neutral, Kaltweiß) und einen Kelvin-Regler. Neue Aktionen `color` (#rrggbb) und `ct` (Kelvin) für Automationen, die Historie und die KI-Steuerung. Bedienelemente und Aktionen mit Simulation geprüft, nicht mit echter Lampe.
+
+## Plugin „Zigbee direkt“ 1.2.0
+- Farbe und Weißton für Zigbee-Lichter: das Plugin meldet die Farbmodi der Lampe (xy/Farbtemperatur), setzt Farbe über CIE-xy und Weißton in Mired (innerhalb des Bereichs der Lampe) und zeigt die aktuelle Farbe bzw. den Weißton an. Braucht Kern 1.30.0. Umrechnung geprüft, nicht an einer echten Lampe.
+
 ## Plugin „Zigbee direkt“ 1.1.0
 - **Altes Gerät zuordnen:** Knopf „⇄ Altes Gerät zuordnen“ je Entität; ein vorhandenes HomeLite-Gerät (z. B. von Zigbee2MQTT) wird zum Zigbee-Eintrag, mit ID, Name, Raum und Automationen. Braucht Kern 1.29.9. Logik mit Simulation geprüft, nicht mit echten Geräten.
 

@@ -30,7 +30,7 @@ const CAR_COMMANDS = {
   battery_preheat_off: 'Batterie-Vorheizen aus', steering_wheel_heat_on: 'Lenkradheizung an', steering_wheel_heat_off: 'Lenkradheizung aus', windows_close: 'Fenster schließen',
 };
 const ACT = {
-  device: { label: 'Gerät steuern', f: [['device', 'Gerät', 'device', [...CTRL, 'lock']], ['action', 'Aktion', 'select', { on: 'Einschalten', off: 'Ausschalten', toggle: 'Umschalten', lock: 'Zusperren (Schloss)', unlock: 'Aufsperren (Schloss)', brightness: 'Helligkeit (%)', setpoint: 'Solltemperatur (°C)', open: 'Öffnen (Rollo/Markise)', close: 'Schließen (Rollo/Markise)', stop: 'Stopp (Rollo/Markise)' }], ['value', 'Wert (Helligkeit / Soll)', 'text']] },
+  device: { label: 'Gerät steuern', f: [['device', 'Gerät', 'device', [...CTRL, 'lock']], ['action', 'Aktion', 'select', { on: 'Einschalten', off: 'Ausschalten', toggle: 'Umschalten', lock: 'Zusperren (Schloss)', unlock: 'Aufsperren (Schloss)', brightness: 'Helligkeit (%)', color: 'Farbe (Licht, #rrggbb)', ct: 'Weißton (Licht, Kelvin)', setpoint: 'Solltemperatur (°C)', open: 'Öffnen (Rollo/Markise)', close: 'Schließen (Rollo/Markise)', stop: 'Stopp (Rollo/Markise)' }], ['value', 'Wert (Helligkeit / Soll)', 'text']] },
   delay: { label: 'Warten', f: [['seconds', 'Sekunden', 'number']] },
   require: { label: 'Nur weitermachen, wenn …', f: [['conditions', 'Trifft das nicht zu, wird der Rest der Automation abgebrochen.', 'conds']] },
   if: { label: 'Wenn … dann … sonst …', f: [['conditions', 'Wenn', 'conds'], ['then', 'Dann', 'acts'], ['else', 'Sonst', 'acts']] },
