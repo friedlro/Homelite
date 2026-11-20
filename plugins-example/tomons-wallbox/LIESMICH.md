@@ -42,3 +42,6 @@ Alle Routen stammen aus der Tomons-App 1.1.5 (`device/my-shared-devices`, `devic
 
 ## Was (noch) nicht geht: Lademodus-Zeitpläne, NFC-Karten, Start/Stopp
 Peak/Valley-Zeitpläne (Tarifzonen), NFC-Karten verwalten und der Start/Stopp-Befehl werden in der App als „Tags“ über dieselbe verschlüsselte Geräteverbindung gesendet wie die Messwerte (device/{id}/send, AES-256-CBC). Solange das Plugin die MQTT-Zugangsdaten der Cloud nicht entschlüsseln kann (siehe Abschnitt oben), lassen sich auch diese Funktionen nicht zuverlässig nachbauen. Start/Stopp ist im Plugin als experimenteller Versuch vorhanden, der Rest fehlt bewusst.
+
+## Automatische Zweitversuche (Plugin 1.2.1)
+Liefert die Haupt-Anmeldung nur verschlüsselte `mqtt_credentials`, probiert das Plugin selbstständig zwei weitere, in der App-Datei gefundene Wege, bevor es aufgibt: eine zweite API-Adresse (`wan2.licheng-tech.com:5010`) und den Geräte-Endpunkt `device/credentials`. Beide sind nicht öffentlich dokumentiert und können genauso scheitern oder gar nicht erreichbar sein (die zweite Adresse z. B. nur aus dem Netz des Herstellers). Jeder Versuch steht mit Ergebnis im Protokoll. Gelingt keiner, bleibt nur ein echter Netzwerk-Mitschnitt der App oder der Weg über das zweite Tomons-Konto in der App selbst.

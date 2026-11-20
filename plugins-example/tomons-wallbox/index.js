@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const P = require('./protocol');
 
 const API = 'https://tomons-app.licheng-tech.com/api/';
+const API_LEGACY = 'http://wan2.licheng-tech.com:5010/api/'; // ältere/zweite API-Adresse laut App-Programm – Versuch, falls die neue nur verschlüsselt antwortet
 const BROKER = 'mqtt://tomons-app.licheng-tech.com:1883';
 const GEARS = [6, 8, 10, 13, 16, 20, 24, 32];
 const ITEMS = [
@@ -24,10 +25,27 @@ module.exports = (api) => {
   const model = () => ({ status: S.status, err: S.err, device: S.device, t: S.t, ts: S.ts, log: S.log, gears: GEARS.filter((g) => g <= (Number(cfg().maxA) || 16)), startStop: !!cfg().allowStartStop });
 
   // ---------- Cloud ----------
-  async function req(method, path, body) {
-    const r = await fetch(API + path, { method, headers: { 'Content-Type': 'application/json', 'User-Agent': 'HomeLite', ...(token ? { Authorization: 'Bearer ' + token } : {}) }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(15000) });
+  async function req(method, path, body, base) {
+    const r = await fetch((base || API) + path, { method, headers: { 'Content-Type': 'application/json', 'User-Agent': 'HomeLite', ...(token ? { Authorization: 'Bearer ' + token } : {}) }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(15000) });
     const j = await r.json().catch(() => ({}));
     return { status: r.status, j };
+  }
+  // Zwei zusätzliche, ungesicherte Versuche an unverschlüsselte MQTT-Zugangsdaten zu kommen (nur lesend, keine Geheimnisse preisgegeben):
+  // 1) eine zweite, ältere API-Adresse, die in der App-Datei steckt, 2) ein eigener Geräte-Endpunkt statt der allgemeinen Anmeldeantwort.
+  async function tryPlainSources(c, md5, id) {
+    try {
+      const { status, j } = await req('POST', 'auth/login', { account: c.email, password: md5, login_type: 'EMAIL' }, API_LEGACY);
+      const ui = (j && j.data && (j.data.userInfo || j.data.mqtt_credentials)) || null;
+      if (status === 200 && ui && typeof ui === 'object' && (ui.mqttUsername || ui.mqtt_username)) { lg('Zugangsdaten über die zweite API-Adresse erhalten'); return ui; }
+      lg(`Zweite API-Adresse: HTTP ${status}${j && j.data ? ' · Felder: ' + Object.keys(j.data).join(',') : ''}`);
+    } catch (e) { lg('Zweite API-Adresse nicht erreichbar: ' + clean(e.message)); }
+    if (id) try {
+      const { status, j } = await req('GET', `device/credentials?device_id=${id}`);
+      const d = (j && j.data) || {};
+      if (status === 200 && (d.mqttUsername || d.mqtt_username || d.username)) { lg('Zugangsdaten über device/credentials erhalten'); return d; }
+      lg(`device/credentials: HTTP ${status}${d && typeof d === 'object' ? ' · Felder: ' + Object.keys(d).join(',') : ''}`);
+    } catch (e) { lg('device/credentials fehlgeschlagen: ' + clean(e.message)); }
+    return null;
   }
 
   // Entschlüsselung von mqtt_credentials (AES-256-CBC): der Schlüssel steckt in der App und ist nicht dokumentiert.
@@ -137,13 +155,25 @@ module.exports = (api) => {
     try {
       S.status = 'Melde an …'; S.err = ''; push();
       const m = await login();
-      const pass = m.pass || c.mqttPassword; if (!m.pass) lg('Die Cloud hat kein MQTT-Passwort geliefert – benutze das Feld aus den Plugin-Einstellungen');
-      if (!pass) throw new Error('MQTT-Passwort fehlt (Plugin-Einstellungen, siehe LIESMICH)');
       dev = await pickDevice(); S.device = dev; ensureDevices();
+      let user = m.user, pass = m.pass, host = m.host, port = m.port;
+      if (!pass) {
+        const md5 = /^[0-9a-f]{32}$/i.test(c.password) ? c.password.toLowerCase() : crypto.createHash('md5').update(c.password).digest('hex');
+        const alt = await tryPlainSources(c, md5, dev.id);
+        if (alt) {
+          const pick2 = (...ks) => { for (const k of ks) if (alt[k]) return alt[k]; return ''; };
+          user = pick2('mqttUsername', 'mqtt_username', 'username') || user;
+          pass = pick2('mqttPassword', 'mqtt_password', 'password') || pass;
+          host = pick2('mqttBroker', 'mqtt_broker', 'broker', 'host') || host;
+          port = Number(pick2('mqttPort', 'mqtt_port', 'port')) || port;
+        }
+      }
+      pass = pass || c.mqttPassword; if (!m.pass && !pass) lg('Die Cloud hat kein MQTT-Passwort geliefert – benutze das Feld aus den Plugin-Einstellungen');
+      if (!pass) throw new Error('MQTT-Passwort fehlt (Plugin-Einstellungen, siehe LIESMICH)');
       if (mq) { try { mq.end(true); } catch { /* egal */ } }
-      const url = m.host ? `mqtt://${m.host.replace(/^\w+:\/\//, '')}:${m.port || 1883}` : BROKER;
+      const url = host ? `mqtt://${host.replace(/^\w+:\/\//, '')}:${port || 1883}` : BROKER;
       if (url !== BROKER) lg('Broker aus der Anmeldung: ' + url.replace(/^mqtt:\/\//, ''));
-      mq = mqtt.connect(url, { username: m.user, password: pass, clientId: 'homelite_' + crypto.randomBytes(4).toString('hex'), reconnectPeriod: 5000, keepalive: 60, connectTimeout: 15000 });
+      mq = mqtt.connect(url, { username: user, password: pass, clientId: 'homelite_' + crypto.randomBytes(4).toString('hex'), reconnectPeriod: 5000, keepalive: 60, connectTimeout: 15000 });
       mq.on('connect', () => { S.status = 'Verbunden'; S.err = ''; lg('Cloud verbunden'); mq.subscribe(`device/${dev.id}/#`); ask(); clearInterval(askT); askT = setInterval(ask, 30000); push(); });
       mq.on('close', () => { S.status = 'Getrennt'; push(); });
       mq.on('error', (e) => { S.err = clean(e.message); push(); });
