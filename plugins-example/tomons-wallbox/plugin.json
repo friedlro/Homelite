@@ -1,7 +1,7 @@
 {
   "id": "tomons-wallbox",
   "name": "Tomons Wallbox",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Tomons / Inateck Mobile Wallbox (11 kW, 22 kW) über die Tomons-Cloud: Ladeleistung, Spannung, Strom, Energie, Temperatur, Kabelstatus als Geräte; Ladestrom-Grenze einstellen. Inoffiziell (Reverse-Engineering), experimentell.",
   "author": "HomeLite",
   "icon": "🔌",
@@ -72,6 +72,7 @@
   "changelog": {
     "1.0.0": "Erste Version: Messwerte, Kabelstatus, Ladestrom-Grenze, optional Start/Stopp (experimentell).",
     "1.1.0": "Freigabecode einlösen (zweites Konto für HomeLite, damit sich App und HomeLite nicht abmelden); bei Anmeldefehler nur noch alle 30 Minuten neu versuchen statt alle 2 Minuten.",
-    "1.1.1": "Diagnose im Protokoll (welche MQTT-Felder die Cloud bei der Anmeldung liefert), Broker-Adresse und Port aus der Anmeldung übernehmen."
+    "1.1.1": "Diagnose im Protokoll (welche MQTT-Felder die Cloud bei der Anmeldung liefert), Broker-Adresse und Port aus der Anmeldung übernehmen.",
+    "1.1.2": "MQTT-Zugangsdaten aus dem Feld mqtt_credentials der Cloud-Antwort lesen (bisher nur userInfo)."
   }
 }

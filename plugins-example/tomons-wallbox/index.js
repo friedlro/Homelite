@@ -36,13 +36,19 @@ module.exports = (api) => {
     if (status !== 200 || j.code !== 200) throw new Error('Anmeldung fehlgeschlagen' + (j.message ? ': ' + j.message : ` (HTTP ${status})`));
     token = (j.data && j.data.token) || '';
     const u = (j.data && j.data.user) || {};
-    const ui = (j.data && j.data.userInfo) || {};
+    // Die Cloud liefert die Broker-Zugangsdaten je nach Version unter mqtt_credentials oder userInfo
+    const d0 = (j.data && typeof j.data === 'object') ? j.data : {};
+    const ui = { ...(d0.userInfo || {}), ...(d0.mqtt_credentials || d0.mqttCredentials || {}) };
+    const pick = (...ks) => { for (const k of ks) if (ui[k] !== undefined && ui[k] !== null && ui[k] !== '') return ui[k]; return ''; };
     const id = String(u.id || '').replace(/-/g, '').slice(0, 25);
-    // Diagnose ohne Geheimnisse: welche Felder liefert die Cloud?
     const mk = (o) => (o && typeof o === 'object' ? Object.keys(o).join(',') : typeof o);
     const mask = (v) => (v ? `${String(v).length} Zeichen` : 'leer');
-    lg(`Anmeldung ok · data: ${mk(j.data)} · userInfo: ${mk(ui)} · mqttUsername ${mask(ui.mqttUsername)} (${ui.mqttUsername ? String(ui.mqttUsername).slice(0, 5) + '…' : '–'}), mqttPassword ${mask(ui.mqttPassword)}, Broker ${ui.mqttBroker || '–'}:${ui.mqttPort || '–'}`);
-    return { user: ui.mqttUsername || (id ? 'user_' + id : ''), pass: ui.mqttPassword || '', host: ui.mqttBroker || '', port: Number(ui.mqttPort) || 0 };
+    const user = pick('mqttUsername', 'mqtt_username', 'username', 'user', 'userName', 'client_id', 'clientId');
+    const pass = pick('mqttPassword', 'mqtt_password', 'password', 'pass', 'pwd', 'secret');
+    const host = pick('mqttBroker', 'mqtt_broker', 'broker', 'host', 'server', 'url');
+    const port = Number(pick('mqttPort', 'mqtt_port', 'port')) || 0;
+    lg(`Anmeldung ok · data: ${mk(d0)} · mqtt_credentials: ${mk(d0.mqtt_credentials || d0.mqttCredentials)} · _encryption: ${mk(d0._encryption)} · Benutzer ${mask(user)}${user ? ' (' + String(user).slice(0, 5) + '…)' : ''}, Passwort ${mask(pass)}, Broker ${host || '–'}:${port || '–'}`);
+    return { user: user || (id ? 'user_' + id : ''), pass: String(pass || ''), host: String(host || ''), port };
   }
   async function pickDevice() {
     let { status, j } = await req('GET', 'device/list');
