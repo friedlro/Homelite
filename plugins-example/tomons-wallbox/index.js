@@ -29,6 +29,29 @@ module.exports = (api) => {
     const j = await r.json().catch(() => ({}));
     return { status: r.status, j };
   }
+
+  // Entschlüsselung von mqtt_credentials (AES-256-CBC): der Schlüssel steckt in der App und ist nicht dokumentiert.
+  // Es werden nur naheliegende Ableitungen aus Werten der eigenen Anmeldung probiert; gelingt eine, wird sie gemerkt.
+  function tryDecrypt(raw, ctx) {
+    const buf = Buffer.from(raw, 'base64');
+    const sha = (x) => crypto.createHash('sha256').update(x).digest();
+    const md5 = (x) => crypto.createHash('md5').update(x).digest('hex');
+    const vals = {}; // Name -> Text
+    for (const [n, v] of Object.entries(ctx)) if (v !== undefined && v !== null && String(v) !== '') vals[n] = String(v);
+    const keys = [];
+    for (const [n, v] of Object.entries(vals)) { keys.push([`sha256(${n})`, sha(v)], [`md5hex(${n})`, Buffer.from(md5(v))], [`utf8(${n}) 32`, Buffer.from(v.padEnd(32, '\0').slice(0, 32))]); }
+    const names = Object.keys(vals);
+    for (const a of names) for (const b of names) if (a !== b) { keys.push([`sha256(${a}+${b})`, sha(vals[a] + vals[b])], [`sha256(${a}:${b})`, sha(vals[a] + ':' + vals[b])]); }
+    const ivs = [['IV=Anfang des Textes', buf.subarray(0, 16), buf.subarray(16)], ['IV=0', Buffer.alloc(16), buf]];
+    for (const [kn, k] of keys) for (const [iname, iv, ct] of ivs) {
+      if (k.length !== 32 || iv.length !== 16 || ct.length % 16 || !ct.length) continue;
+      try {
+        const d = crypto.createDecipheriv('aes-256-cbc', k, iv); const o = JSON.parse(Buffer.concat([d.update(ct), d.final()]).toString('utf8'));
+        if (o && typeof o === 'object') return { o, how: `${kn}, ${iname}` };
+      } catch { /* falsch */ }
+    }
+    return null;
+  }
   async function login() {
     const c = cfg(); if (!c.email || !c.password) throw new Error('E-Mail und Passwort fehlen');
     const md5 = /^[0-9a-f]{32}$/i.test(c.password) ? c.password.toLowerCase() : crypto.createHash('md5').update(c.password).digest('hex');
@@ -46,6 +69,10 @@ module.exports = (api) => {
       const raw = mc, tries = [['JSON', () => raw], ['Base64', () => Buffer.from(raw, 'base64').toString('utf8')], ['Hex', () => Buffer.from(raw, 'hex').toString('utf8')]];
       mc = {};
       for (const [n, f] of tries) { try { const o = JSON.parse(f()); if (o && typeof o === 'object') { mc = o; how = n; break; } } catch { /* nächster */ } }
+      if (!how && enc && /aes-256-cbc/i.test(String(enc.algorithm))) {
+        const r = tryDecrypt(raw, { timestamp: enc.timestamp, token, md5pw: md5, password: c.password, email: c.email, userid: u.id, userid_nodash: String(u.id || '').replace(/-/g, '') });
+        if (r) { mc = r.o; how = 'AES (' + r.how + ')'; }
+      }
       if (!how) lg(`mqtt_credentials ist verschlüsselt/unbekannt: ${raw.length} Zeichen, ${/^[A-Za-z0-9+/=]+$/.test(raw) ? 'Base64-artig' : /^[0-9a-f]+$/i.test(raw) ? 'Hex' : 'sonstiges Format'} · Verfahren laut Cloud: ${enc ? JSON.stringify({ algorithm: enc.algorithm, fields: enc.fields, timestamp: enc.timestamp }).slice(0, 200) : '–'}`);
       else lg('mqtt_credentials gelesen als ' + how);
     }
