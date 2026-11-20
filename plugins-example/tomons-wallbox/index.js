@@ -38,7 +38,18 @@ module.exports = (api) => {
     const u = (j.data && j.data.user) || {};
     // Die Cloud liefert die Broker-Zugangsdaten je nach Version unter mqtt_credentials oder userInfo
     const d0 = (j.data && typeof j.data === 'object') ? j.data : {};
-    const ui = { ...(d0.userInfo || {}), ...(d0.mqtt_credentials || d0.mqttCredentials || {}) };
+    // mqtt_credentials kann ein Text sein (JSON, Base64 oder Hex von JSON); sonst ist er verschlüsselt (siehe _encryption)
+    let mc = d0.mqtt_credentials || d0.mqttCredentials || {};
+    const enc = d0._encryption && typeof d0._encryption === 'object' ? d0._encryption : null;
+    let how = '';
+    if (typeof mc === 'string') {
+      const raw = mc, tries = [['JSON', () => raw], ['Base64', () => Buffer.from(raw, 'base64').toString('utf8')], ['Hex', () => Buffer.from(raw, 'hex').toString('utf8')]];
+      mc = {};
+      for (const [n, f] of tries) { try { const o = JSON.parse(f()); if (o && typeof o === 'object') { mc = o; how = n; break; } } catch { /* nächster */ } }
+      if (!how) lg(`mqtt_credentials ist verschlüsselt/unbekannt: ${raw.length} Zeichen, ${/^[A-Za-z0-9+/=]+$/.test(raw) ? 'Base64-artig' : /^[0-9a-f]+$/i.test(raw) ? 'Hex' : 'sonstiges Format'} · Verfahren laut Cloud: ${enc ? JSON.stringify({ algorithm: enc.algorithm, fields: enc.fields, timestamp: enc.timestamp }).slice(0, 200) : '–'}`);
+      else lg('mqtt_credentials gelesen als ' + how);
+    }
+    const ui = { ...(d0.userInfo || {}), ...mc };
     const pick = (...ks) => { for (const k of ks) if (ui[k] !== undefined && ui[k] !== null && ui[k] !== '') return ui[k]; return ''; };
     const id = String(u.id || '').replace(/-/g, '').slice(0, 25);
     const mk = (o) => (o && typeof o === 'object' ? Object.keys(o).join(',') : typeof o);
