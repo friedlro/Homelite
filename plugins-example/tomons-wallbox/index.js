@@ -38,7 +38,11 @@ module.exports = (api) => {
     const u = (j.data && j.data.user) || {};
     const ui = (j.data && j.data.userInfo) || {};
     const id = String(u.id || '').replace(/-/g, '').slice(0, 25);
-    return { user: ui.mqttUsername || (id ? 'user_' + id : ''), pass: ui.mqttPassword || '' };
+    // Diagnose ohne Geheimnisse: welche Felder liefert die Cloud?
+    const mk = (o) => (o && typeof o === 'object' ? Object.keys(o).join(',') : typeof o);
+    const mask = (v) => (v ? `${String(v).length} Zeichen` : 'leer');
+    lg(`Anmeldung ok · data: ${mk(j.data)} · userInfo: ${mk(ui)} · mqttUsername ${mask(ui.mqttUsername)} (${ui.mqttUsername ? String(ui.mqttUsername).slice(0, 5) + '…' : '–'}), mqttPassword ${mask(ui.mqttPassword)}, Broker ${ui.mqttBroker || '–'}:${ui.mqttPort || '–'}`);
+    return { user: ui.mqttUsername || (id ? 'user_' + id : ''), pass: ui.mqttPassword || '', host: ui.mqttBroker || '', port: Number(ui.mqttPort) || 0 };
   }
   async function pickDevice() {
     let { status, j } = await req('GET', 'device/list');
@@ -89,11 +93,13 @@ module.exports = (api) => {
     try {
       S.status = 'Melde an …'; S.err = ''; push();
       const m = await login();
-      const pass = m.pass || c.mqttPassword;
+      const pass = m.pass || c.mqttPassword; if (!m.pass) lg('Die Cloud hat kein MQTT-Passwort geliefert – benutze das Feld aus den Plugin-Einstellungen');
       if (!pass) throw new Error('MQTT-Passwort fehlt (Plugin-Einstellungen, siehe LIESMICH)');
       dev = await pickDevice(); S.device = dev; ensureDevices();
       if (mq) { try { mq.end(true); } catch { /* egal */ } }
-      mq = mqtt.connect(BROKER, { username: m.user, password: pass, clientId: 'homelite_' + crypto.randomBytes(4).toString('hex'), reconnectPeriod: 5000, keepalive: 60, connectTimeout: 15000 });
+      const url = m.host ? `mqtt://${m.host.replace(/^\w+:\/\//, '')}:${m.port || 1883}` : BROKER;
+      if (url !== BROKER) lg('Broker aus der Anmeldung: ' + url.replace(/^mqtt:\/\//, ''));
+      mq = mqtt.connect(url, { username: m.user, password: pass, clientId: 'homelite_' + crypto.randomBytes(4).toString('hex'), reconnectPeriod: 5000, keepalive: 60, connectTimeout: 15000 });
       mq.on('connect', () => { S.status = 'Verbunden'; S.err = ''; lg('Cloud verbunden'); mq.subscribe(`device/${dev.id}/#`); ask(); clearInterval(askT); askT = setInterval(ask, 30000); push(); });
       mq.on('close', () => { S.status = 'Getrennt'; push(); });
       mq.on('error', (e) => { S.err = clean(e.message); push(); });

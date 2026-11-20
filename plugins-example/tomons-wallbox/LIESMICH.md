@@ -6,7 +6,7 @@ Bindet die **Tomons / Inateck Mobile Wallbox** (11 kW, 22 kW; Tomons-App) in Hom
 
 ## Einrichtung
 1. Plugin installieren (Einstellungen → Erweiterungen → Plugins) und in den Einstellungen **E-Mail** und **Passwort** der Tomons-App eintragen (das Passwort geht nur als MD5-Hash an die Tomons-Cloud, wie in der App).
-2. **MQTT-Passwort:** Der Cloud-Broker verlangt ein gemeinsames App-Passwort. Liefert die Cloud es bei der Anmeldung nicht mit, trage es im Feld „MQTT-Passwort“ ein. Du findest es in der Dokumentation des Referenzprojekts (Abschnitt Cloud/MQTT).
+2. **MQTT-Passwort:** Die Cloud vergibt Benutzer und Passwort für den Broker bei jeder Anmeldung selbst. Das Feld „MQTT-Passwort“ normalerweise leer lassen (nur nötig, wenn das Protokoll „kein MQTT-Passwort geliefert“ meldet).
 3. „Höchster Ladestrom“ passend setzen (11 kW = 16 A, 22 kW = 32 A) und Plugin aktivieren.
 4. Seite **Wallbox**: Werte erscheinen, sobald die Wallbox Daten sendet (Abfrage alle 30 s; im Standby kann es etwas dauern).
 
