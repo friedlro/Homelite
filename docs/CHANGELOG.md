@@ -1,5 +1,13 @@
 # Änderungen
 
+## 1.30.1
+
+- Plugin-API: `api.devices.get(key)`; `ensure` trägt für Geräte ohne Raum den Raum nach.
+
+## Plugin „Zigbee direkt“ 1.4.1
+
+- Temperatur, Batterie, Helligkeit … übernehmen den Raum des zugeordneten alten Geräts; doppelte LQI-/Signal-Werte entfernt.
+
 ## Plugin „Zigbee direkt“ 1.3.0
 - **Echtzeit:** Die Zigbee-Seite aktualisiert Werte, Erreichbarkeit und Ereignisse live (höchstens etwa 1× pro Sekunde), vorher nur bei Geräteänderungen. Neu: „↻ Alle jetzt abfragen“ liest die aktuellen Werte netzbetriebener Geräte direkt aus (parallel, je Wert max. 15 s); Batteriegeräte schlafen und werden nur einzeln auf Wunsch versucht. Optional zyklische Abfrage (Einstellung „Minuten“, Standard aus) und MCP-Tool `zha_abfragen`. Mit Simulation geprüft, nicht mit echten Geräten.
 

@@ -154,7 +154,12 @@ module.exports = (api) => {
   }
 
   const disp = (d) => names()[d.ieee] || d.name || d.ieee;
-  const roomOf = (d) => rooms()[d.ieee] || cfg().room || '';
+  // Raum: manuell gesetzt > Raum eines schon zugeordneten (übernommenen) Werts desselben Geräts > Standardraum
+  const roomOf = (d) => {
+    if (rooms()[d.ieee]) return rooms()[d.ieee];
+    if (api.devices.get) for (const k of Object.keys(links())) { if (!k.startsWith(`zha:${d.ieee}:`)) continue; try { const g = api.devices.get(k); if (g && g.room) return g.room; } catch { /* weiter */ } }
+    return cfg().room || '';
+  };
 
   function setOnline(key, on) { try { api.devices.setState(key, { online: on }); } catch { /* noch nicht angelegt */ } }
   function availability(d) { for (const [k, sp] of specs) if (sp.ieee === d.ieee) setOnline(k, d.available !== false); }
@@ -267,7 +272,7 @@ module.exports = (api) => {
         case 'sensor': {
           const dc = e.device_class || '';
           if (dc === 'battery') { if (cfg().batteries === false) break; }
-          else if (dc === 'signal_strength' || /lqi|rssi/i.test(e.key + e.name)) { if (!cfg().linkquality) break; }
+          else if (dc === 'signal_strength' || /lqi|rssi/i.test(e.key + e.name)) break; // LQI liefert das Plugin selbst („Verbindung (LQI)“)
           else if (cat === 'diagnostic' && !cfg().diagnostics) break;
           else if (cat === 'config') break;
           const label = DC[dc] || e.name || e.key || 'Wert';
