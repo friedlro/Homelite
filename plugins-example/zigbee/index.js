@@ -154,10 +154,10 @@ module.exports = (api) => {
   }
 
   const disp = (d) => names()[d.ieee] || d.name || d.ieee;
-  // Raum: manuell gesetzt > Raum eines schon zugeordneten (übernommenen) Werts desselben Geräts > Standardraum
+  // Raum: manuell gesetzt > Raum eines anderen Werts desselben Geräts > Standardraum
   const roomOf = (d) => {
     if (rooms()[d.ieee]) return rooms()[d.ieee];
-    if (api.devices.get) for (const k of Object.keys(links())) { if (!k.startsWith(`zha:${d.ieee}:`)) continue; try { const g = api.devices.get(k); if (g && g.room) return g.room; } catch { /* weiter */ } }
+    if (api.devices.get) for (const k of new Set([...Object.keys(links()), ...specs.keys()])) { if (!k.startsWith(`zha:${d.ieee}:`)) continue; try { const g = api.devices.get(k); if (g && g.room) return g.room; } catch { /* weiter */ } }
     return cfg().room || '';
   };
 
