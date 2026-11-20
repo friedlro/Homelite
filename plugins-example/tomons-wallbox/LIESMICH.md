@@ -27,5 +27,8 @@ Die Cloud vergibt die MQTT-Zugangsdaten pro Anmeldung: Meldet sich die App mit d
 1. Zweites Konto in der Tomons-App registrieren (andere E-Mail).
 2. In deinem Hauptkonto: Gerät → „Teilen-Management“ → Freigabecode erzeugen (24 h gültig, ändert sich jedes Mal).
 3. In den Plugin-Einstellungen E-Mail/Passwort des **zweiten** Kontos eintragen, dann auf der Seite „Wallbox“ den Code unter „Freigabecode“ einlösen.
-4. Falls die Cloud den Code nicht annimmt (das Einlöse-Verfahren ist nicht öffentlich dokumentiert, Antworten stehen im Protokoll): einmal in der Tomons-App mit dem zweiten Konto anmelden, „Per Freigabecode hinzufügen“ wählen, danach in der App wieder mit dem Hauptkonto anmelden.
-Bei Anmeldefehlern versucht das Plugin nur noch alle 30 Minuten neu (jede Anmeldung kann sonst die App abmelden). **Nicht an echter Hardware getestet.**
+4. Das Plugin nutzt dieselbe Route wie die Tomons-App (`device/add-by-share-code`). Falls die Cloud den Code trotzdem ablehnt, steht die Antwort im Protokoll; alternativ einmal in der Tomons-App mit dem zweiten Konto anmelden, „Per Freigabecode hinzufügen“ wählen, danach in der App wieder mit dem Hauptkonto anmelden.
+Bei Anmeldefehlern versucht das Plugin nur noch alle 30 Minuten neu (jede Anmeldung kann sonst die App abmelden).
+
+## Offenes Problem: verschlüsselte MQTT-Zugangsdaten
+Die Cloud liefert die MQTT-Zugangsdaten inzwischen AES-256-CBC-verschlüsselt (Feld `mqtt_credentials`) statt im Klartext. Der Schlüssel dafür ist in der App nicht als lesbarer Text zu finden (vermutlich berechnet, nicht fest hinterlegt) und wurde hier nicht weiter rückentwickelt. Ohne ihn liefert das Plugin keine Messwerte. Falls jemand den Schlüssel kennt oder aus einem Netzwerk-Mitschnitt ableiten kann, bitte im Plugin (`tryDecrypt` in `index.js`) ergänzen. **Nicht an echter Hardware getestet.**

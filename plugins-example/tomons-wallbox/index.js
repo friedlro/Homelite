@@ -167,18 +167,17 @@ module.exports = (api) => {
   // ---------- Freigabecode einlösen (zweites Konto für HomeLite) ----------
   // Die Cloud-Schnittstelle zum Einlösen ist nicht öffentlich dokumentiert: es werden mögliche Pfade nacheinander versucht,
   // jede Antwort steht im Protokoll. Alternativ den Code in der Tomons-App mit dem HomeLite-Konto einlösen.
-  const SHARE_PATHS = ['device/share/accept', 'device/share/bind', 'device/share/add', 'device/shareCode/bind', 'device/bindByShareCode', 'device/share/code/bind'];
+  // Route und Feldname aus der Tomons-App (Version 1.1.5) entnommen: device/add-by-share-code mit share_code.
   async function redeem(code) {
     code = String(code || '').trim().toUpperCase();
-    if (!/^[A-Z0-9]{6,12}$/.test(code)) throw new Error('Freigabecode erwartet (6–12 Zeichen, Buchstaben/Ziffern)');
+    if (!/^[A-Z0-9]{6,10}$/.test(code)) throw new Error('Freigabecode erwartet (6–10 Zeichen, Buchstaben/Ziffern)');
     await login();
-    const paths = cfg().sharePath ? [String(cfg().sharePath).replace(/^\/+/, '')] : SHARE_PATHS;
-    for (const p of paths) for (const body of [{ share_code: code }, { code }, { shareCode: code }]) {
+    const paths = cfg().sharePath ? [String(cfg().sharePath).replace(/^\/+/, '')] : ['device/add-by-share-code'];
+    for (const p of paths) for (const body of [{ share_code: code }, { shareCode: code }, { code }]) {
       let r; try { r = await req('POST', p, body); } catch (e) { lg(`Freigabe ${p}: ${clean(e.message)}`); continue; }
       const ok = r.status === 200 && r.j && (r.j.code === 200 || r.j.success === true);
       lg(`Freigabe ${p} ${Object.keys(body)[0]} → HTTP ${r.status}${r.j && r.j.message ? ' ' + clean(String(r.j.message).slice(0, 80)) : ''}`);
       if (ok) { lg('Freigabecode eingelöst'); push(); start(); return { ok: true, path: p }; }
-      if (r.status === 404 || r.status === 405) break; // Pfad gibt es nicht – nächster
     }
     push();
     throw new Error('Die Cloud hat den Code nicht angenommen – Details im Protokoll. Löse den Code stattdessen in der Tomons-App mit dem HomeLite-Konto ein (siehe LIESMICH).');
