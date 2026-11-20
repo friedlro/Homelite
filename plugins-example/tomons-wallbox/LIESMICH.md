@@ -21,3 +21,11 @@ Leistung, Spannung, Strom, Gesamtenergie, Ladeenergie (Vorgang), Temperatur, Lad
 - Ohne Internet gibt es keine Werte und keine Steuerung (Cloud-Verbindung, kein lokaler Zugriff).
 - Die Wallbox erfasst Ladevorgänge erst ab 1 kWh in der App-Statistik.
 - Protokollierte Zugangsdaten werden aus Fehlermeldungen entfernt. Das Passwort steht nur in den Plugin-Einstellungen.
+
+## App und HomeLite gleichzeitig nutzen (Freigabecode)
+Die Cloud vergibt die MQTT-Zugangsdaten pro Anmeldung: Meldet sich die App mit demselben Konto an, verliert HomeLite die Verbindung (Fehler „Bad username or password“) und umgekehrt. Lösung: HomeLite bekommt ein **eigenes Tomons-Konto**.
+1. Zweites Konto in der Tomons-App registrieren (andere E-Mail).
+2. In deinem Hauptkonto: Gerät → „Teilen-Management“ → Freigabecode erzeugen (24 h gültig, ändert sich jedes Mal).
+3. In den Plugin-Einstellungen E-Mail/Passwort des **zweiten** Kontos eintragen, dann auf der Seite „Wallbox“ den Code unter „Freigabecode“ einlösen.
+4. Falls die Cloud den Code nicht annimmt (das Einlöse-Verfahren ist nicht öffentlich dokumentiert, Antworten stehen im Protokoll): einmal in der Tomons-App mit dem zweiten Konto anmelden, „Per Freigabecode hinzufügen“ wählen, danach in der App wieder mit dem Hauptkonto anmelden.
+Bei Anmeldefehlern versucht das Plugin nur noch alle 30 Minuten neu (jede Anmeldung kann sonst die App abmelden). **Nicht an echter Hardware getestet.**

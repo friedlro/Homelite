@@ -108,8 +108,30 @@ module.exports = (api) => {
       watchT = setInterval(() => { if (S.ts && Date.now() - S.ts > 150000 && S.t.online !== false) { S.t.online = false; setOnline(false); lg('Keine Daten seit 2,5 min – Wallbox offline/Standby?'); push(); } else if (S.ts && Date.now() - S.ts <= 150000) S.t.online = true; }, 20000);
     } catch (e) {
       S.status = 'Fehler'; S.err = clean(e.message); lg('Fehler: ' + S.err); push();
-      retryT = setTimeout(start, 120000);
+      // nicht alle 2 min neu anmelden: jede Anmeldung kann die App (gleiches Konto) abmelden
+      retryT = setTimeout(start, /Bad username|Anmeldung fehlgeschlagen/i.test(S.err) ? 30 * 60000 : 5 * 60000);
     }
+  }
+
+
+  // ---------- Freigabecode einlösen (zweites Konto für HomeLite) ----------
+  // Die Cloud-Schnittstelle zum Einlösen ist nicht öffentlich dokumentiert: es werden mögliche Pfade nacheinander versucht,
+  // jede Antwort steht im Protokoll. Alternativ den Code in der Tomons-App mit dem HomeLite-Konto einlösen.
+  const SHARE_PATHS = ['device/share/accept', 'device/share/bind', 'device/share/add', 'device/shareCode/bind', 'device/bindByShareCode', 'device/share/code/bind'];
+  async function redeem(code) {
+    code = String(code || '').trim().toUpperCase();
+    if (!/^[A-Z0-9]{6,12}$/.test(code)) throw new Error('Freigabecode erwartet (6–12 Zeichen, Buchstaben/Ziffern)');
+    await login();
+    const paths = cfg().sharePath ? [String(cfg().sharePath).replace(/^\/+/, '')] : SHARE_PATHS;
+    for (const p of paths) for (const body of [{ share_code: code }, { code }, { shareCode: code }]) {
+      let r; try { r = await req('POST', p, body); } catch (e) { lg(`Freigabe ${p}: ${clean(e.message)}`); continue; }
+      const ok = r.status === 200 && r.j && (r.j.code === 200 || r.j.success === true);
+      lg(`Freigabe ${p} ${Object.keys(body)[0]} → HTTP ${r.status}${r.j && r.j.message ? ' ' + clean(String(r.j.message).slice(0, 80)) : ''}`);
+      if (ok) { lg('Freigabecode eingelöst'); push(); start(); return { ok: true, path: p }; }
+      if (r.status === 404 || r.status === 405) break; // Pfad gibt es nicht – nächster
+    }
+    push();
+    throw new Error('Die Cloud hat den Code nicht angenommen – Details im Protokoll. Löse den Code stattdessen in der Tomons-App mit dem HomeLite-Konto ein (siehe LIESMICH).');
   }
 
   // ---------- Befehle ----------
@@ -134,6 +156,7 @@ module.exports = (api) => {
   api.route('GET', 'model', () => model());
   api.route('POST', 'limit', ({ body }) => setLimit(body.amps));
   api.route('POST', 'charge', ({ body }) => charge(!!body.on));
+  api.route('POST', 'redeem', ({ body }) => redeem(body.code));
   api.route('POST', 'refresh', () => { ask(); return { ok: true }; });
   api.route('POST', 'reconnect', () => { clearInterval(askT); if (mq) { try { mq.end(true); } catch { /* egal */ } mq = null; } start(); return { ok: true }; });
 
