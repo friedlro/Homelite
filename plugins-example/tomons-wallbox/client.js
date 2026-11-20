@@ -26,7 +26,7 @@
     const CABLE = ['Nicht verbunden', 'Verbunden (wartet)', 'Lädt', 'Verbunden (pausiert/fertig)', 'Fehler'];
     const tile = (l, v) => h('div', { class: 'card', style: 'padding:10px;min-width:130px' }, h('div', { class: 'hint' }, l), h('div', { style: 'font-size:1.3em;font-weight:600' }, v));
     fill(el,
-      h('div', {}, h('b', {}, M.device ? `${M.device.name} ${M.device.model || ''}` : 'Tomons Wallbox'), ' ', h('span', { class: 'pill ' + (M.status === 'Verbunden' ? 'ok' : M.status === 'Fehler' ? 'bad' : '') }, M.status)),
+      h('div', {}, h('b', {}, M.device ? `${M.device.name} ${M.device.model || ''}` : 'Tomons Wallbox'), ' ', h('span', { class: 'pill ' + (M.status === 'Verbunden' ? 'ok' : M.status === 'Fehler' ? 'bad' : M.status === 'Nur in der App' ? 'warn' : '') }, M.status)),
       M.err ? h('div', { class: 'hint', style: 'color:var(--bad,#d33)' }, M.err) : null,
       h('div', { class: 'hint', style: 'margin:6px 0' }, 'Inoffizielle Anbindung über die Tomons-Cloud (Reverse-Engineering). Ohne Internet keine Werte.'),
       h('div', { class: 'row', style: 'flex-wrap:wrap;gap:8px' },

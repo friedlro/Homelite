@@ -169,7 +169,14 @@ module.exports = (api) => {
         }
       }
       pass = pass || c.mqttPassword; if (!m.pass && !pass) lg('Die Cloud hat kein MQTT-Passwort geliefert – benutze das Feld aus den Plugin-Einstellungen');
-      if (!pass) throw new Error('MQTT-Passwort fehlt (Plugin-Einstellungen, siehe LIESMICH)');
+      if (!pass) {
+        // Anmeldung ok, aber die Cloud liefert die MQTT-Zugangsdaten nur verschlüsselt: keine Live-Werte möglich.
+        // Kein Dauerfehler und keine ständige Neuanmeldung – die Wallbox bleibt in der App nutzbar.
+        S.status = 'Nur in der App'; S.err = 'Live-Werte sind zurzeit nicht möglich: Die Tomons-Cloud verschlüsselt die MQTT-Zugangsdaten. Die Wallbox lässt sich weiter in der Tomons-App bedienen. Steuerung über HomeLite erst wieder, wenn der Schlüssel bekannt ist (siehe LIESMICH).';
+        setOnline(false); lg('Anmeldung erfolgreich, aber MQTT-Zugangsdaten verschlüsselt – nur in der App verfügbar'); push();
+        retryT = setTimeout(start, 6 * 3600000); // einmal alle 6 Stunden erneut prüfen (falls der Hersteller das Verfahren ändert)
+        return;
+      }
       if (mq) { try { mq.end(true); } catch { /* egal */ } }
       const url = host ? `mqtt://${host.replace(/^\w+:\/\//, '')}:${port || 1883}` : BROKER;
       if (url !== BROKER) lg('Broker aus der Anmeldung: ' + url.replace(/^mqtt:\/\//, ''));
