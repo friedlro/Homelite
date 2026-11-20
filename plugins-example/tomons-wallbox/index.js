@@ -183,6 +183,36 @@ module.exports = (api) => {
     throw new Error('Die Cloud hat den Code nicht angenommen – Details im Protokoll. Löse den Code stattdessen in der Tomons-App mit dem HomeLite-Konto ein (siehe LIESMICH).');
   }
 
+
+  // ---------- Freigabe-Verwaltung (Routen aus der Tomons-App 1.1.5 entnommen) ----------
+  // Eigene Geräte-Kennung (auth_id) wird als device_id übergeben, wie bei device/nfc-cards?device_id=…
+  async function shareInfo() {
+    if (!dev) throw new Error('Noch nicht mit der Wallbox verbunden');
+    await login();
+    const [mine, users] = await Promise.all([
+      req('GET', 'device/my-shared-devices').then((r) => (r.status === 200 && r.j && r.j.data) || []).catch((e) => { lg('my-shared-devices: ' + clean(e.message)); return []; }),
+      req('GET', `device/share-users/${dev.id}`).then((r) => (r.status === 200 && r.j && r.j.data) || []).catch((e) => { lg('share-users: ' + clean(e.message)); return []; }),
+    ]);
+    return { mine, users };
+  }
+  async function shareGenerate() {
+    if (!dev) throw new Error('Noch nicht mit der Wallbox verbunden');
+    await login();
+    const r = await req('POST', 'device/share-code/generate', { device_id: dev.id });
+    if (r.status !== 200 || !r.j || (r.j.code !== undefined && r.j.code !== 200)) throw new Error('Freigabecode erzeugen fehlgeschlagen' + (r.j && r.j.message ? ': ' + clean(r.j.message) : ` (HTTP ${r.status})`));
+    const code = (r.j.data && (r.j.data.share_code || r.j.data.code || r.j.data)) || '';
+    lg('Freigabecode erzeugt' + (code ? ': ' + code : ''));
+    return { ok: true, code: String(code) };
+  }
+  async function shareRevoke(userId) {
+    if (!dev) throw new Error('Noch nicht mit der Wallbox verbunden');
+    await login();
+    const r = await req('POST', 'device/delete-share', { device_id: dev.id, user_id: userId });
+    const ok = r.status === 200 && r.j && (r.j.code === 200 || r.j.success === true);
+    lg(`Freigabe entfernen (${userId}) → HTTP ${r.status}${r.j && r.j.message ? ' ' + clean(String(r.j.message).slice(0, 80)) : ''}`);
+    if (!ok) throw new Error('Entfernen fehlgeschlagen – Details im Protokoll');
+    return { ok: true };
+  }
   // ---------- Befehle ----------
   function setLimit(a) {
     a = Number(a); const max = Number(cfg().maxA) || 16;
@@ -206,6 +236,9 @@ module.exports = (api) => {
   api.route('POST', 'limit', ({ body }) => setLimit(body.amps));
   api.route('POST', 'charge', ({ body }) => charge(!!body.on));
   api.route('POST', 'redeem', ({ body }) => redeem(body.code));
+  api.route('GET', 'shareinfo', () => shareInfo());
+  api.route('POST', 'sharegenerate', () => shareGenerate());
+  api.route('POST', 'sharerevoke', ({ body }) => shareRevoke(body.userId));
   api.route('POST', 'refresh', () => { ask(); return { ok: true }; });
   api.route('POST', 'reconnect', () => { clearInterval(askT); if (mq) { try { mq.end(true); } catch { /* egal */ } mq = null; } start(); return { ok: true }; });
 

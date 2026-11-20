@@ -32,3 +32,13 @@ Bei Anmeldefehlern versucht das Plugin nur noch alle 30 Minuten neu (jede Anmeld
 
 ## Offenes Problem: verschlüsselte MQTT-Zugangsdaten
 Die Cloud liefert die MQTT-Zugangsdaten inzwischen AES-256-CBC-verschlüsselt (Feld `mqtt_credentials`) statt im Klartext. Der Schlüssel dafür ist in der App nicht als lesbarer Text zu finden (vermutlich berechnet, nicht fest hinterlegt) und wurde hier nicht weiter rückentwickelt. Ohne ihn liefert das Plugin keine Messwerte. Falls jemand den Schlüssel kennt oder aus einem Netzwerk-Mitschnitt ableiten kann, bitte im Plugin (`tryDecrypt` in `index.js`) ergänzen. **Nicht an echter Hardware getestet.**
+
+## Freigabe-Verwaltung (Plugin 1.2.0)
+Auf der Seite „Wallbox“ unter „Freigabe-Verwaltung“ (einklappbar):
+- **Mit anderen geteilt:** Nutzer, die deine Wallbox sehen können, mit Knopf zum Entfernen.
+- **Mit mir geteilt:** Wallboxen anderer Konten, die mit dem Plugin-Konto geteilt wurden.
+- **Freigabecode erzeugen:** Erstellt einen neuen Code für diese Wallbox (z. B. für ein weiteres Konto).
+Alle Routen stammen aus der Tomons-App 1.1.5 (`device/my-shared-devices`, `device/share-users/<id>`, `device/delete-share`, `device/share-code/generate`), nicht an echter Hardware getestet.
+
+## Was (noch) nicht geht: Lademodus-Zeitpläne, NFC-Karten, Start/Stopp
+Peak/Valley-Zeitpläne (Tarifzonen), NFC-Karten verwalten und der Start/Stopp-Befehl werden in der App als „Tags“ über dieselbe verschlüsselte Geräteverbindung gesendet wie die Messwerte (device/{id}/send, AES-256-CBC). Solange das Plugin die MQTT-Zugangsdaten der Cloud nicht entschlüsseln kann (siehe Abschnitt oben), lassen sich auch diese Funktionen nicht zuverlässig nachbauen. Start/Stopp ist im Plugin als experimenteller Versuch vorhanden, der Rest fehlt bewusst.

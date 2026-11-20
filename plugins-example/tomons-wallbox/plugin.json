@@ -1,8 +1,8 @@
 {
   "id": "tomons-wallbox",
   "name": "Tomons Wallbox",
-  "version": "1.1.5",
-  "description": "Tomons / Inateck Mobile Wallbox (11 kW, 22 kW) über die Tomons-Cloud: Ladeleistung, Spannung, Strom, Energie, Temperatur, Kabelstatus als Geräte; Ladestrom-Grenze einstellen. Inoffiziell (Reverse-Engineering), experimentell.",
+  "version": "1.2.0",
+  "description": "Tomons / Inateck Mobile Wallbox (11 kW, 22 kW) über die Tomons-Cloud: Ladeleistung, Spannung, Strom, Energie, Temperatur, Kabelstatus als Geräte; Ladestrom-Grenze einstellen, Freigabe-Verwaltung (Nutzer, geteilte Geräte, Code erzeugen). Inoffiziell (Reverse-Engineering), experimentell.",
   "author": "HomeLite",
   "icon": "🔌",
   "api": 1,
@@ -76,6 +76,7 @@
     "1.1.2": "MQTT-Zugangsdaten aus dem Feld mqtt_credentials der Cloud-Antwort lesen (bisher nur userInfo).",
     "1.1.3": "mqtt_credentials als Text lesen (JSON/Base64/Hex); bei Verschlüsselung Diagnose mit dem von der Cloud genannten Verfahren.",
     "1.1.4": "mqtt_credentials (AES-256-CBC): naheliegende Schlüssel-Ableitungen aus den eigenen Anmeldewerten probieren.",
-    "1.1.5": "Echte Route zum Einlösen des Freigabecodes aus der Tomons-App übernommen (device/add-by-share-code)."
+    "1.1.5": "Echte Route zum Einlösen des Freigabecodes aus der Tomons-App übernommen (device/add-by-share-code).",
+    "1.2.0": "Freigabe-Verwaltung: mit mir geteilte Wallboxen und Nutzer anzeigen, Freigabe entfernen, eigenen Freigabecode erzeugen (Routen aus der Tomons-App 1.1.5). Lademodus-Zeitpläne, NFC-Karten und Start/Stopp laufen über dieselbe verschlüsselte Geräteverbindung wie die Messwerte und bleiben daher vorerst außen vor (siehe LIESMICH)."
   }
 }
