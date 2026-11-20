@@ -1,7 +1,7 @@
 {
   "id": "zigbee",
   "name": "Zigbee (direkt, ZHA)",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "description": "Eigenständiges Zigbee ohne Zigbee2MQTT: der ZHA-Kern (zigpy, bellows, zha-quirks) steuert den Funk-Dongle direkt, z. B. Sonoff Dongle Max per USB oder Netzwerk. Geräte werden automatisch angelegt (Licht, Schalter, Sensoren, Rollos, Thermostate, Schlosser, Tasten). Mit Anlernen, Kanalwechsel, Backup und echtem Restore.",
   "author": "HomeLite",
   "icon": "📡",
@@ -146,6 +146,7 @@
     "1.1.0": "Altes HomeLite-Gerät (z. B. von Zigbee2MQTT) einem Zigbee-Eintrag zuordnen: ID, Name, Raum und Automationen bleiben erhalten (braucht Kern 1.29.9).",
     "1.2.0": "Farbe und Weißton für Lichter (Farbfelder, Farbwähler, Kelvin-Regler); braucht Kern 1.30.0.",
     "1.3.0": "Live-Anzeige (Werte und Signalqualität aktualisieren sich sofort), „Alle jetzt abfragen“, optionale zyklische Abfrage, MCP-Tool zha_abfragen.",
-    "1.3.1": "Einstellungen (Anschluss, Funkchip, Kanal, Abfrage, Backup …) jetzt direkt auf der Zigbee-Seite bearbeitbar."
+    "1.3.1": "Einstellungen (Anschluss, Funkchip, Kanal, Abfrage, Backup …) jetzt direkt auf der Zigbee-Seite bearbeitbar.",
+    "1.4.0": "Tuya-Radar TS0601 _TZE284_iadro9bf / _TZE204_iadro9bf (24-GHz-Präsenzmelder): mitgelieferter Quirk mit Präsenz, Helligkeit, Empfindlichkeiten und Haltezeit."
   }
 }

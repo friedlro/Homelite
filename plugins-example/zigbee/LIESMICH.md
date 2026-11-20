@@ -70,3 +70,7 @@ Auf der Seite beim Dongle: Kanal wählen, „Wechseln“. Es wird vorher ein Bac
 - Kein Gerät wird „automatisch erfunden“: ohne Standard-Cluster oder Treiber keine Entitäten.
 - Gruppen, Szenen, Bindings (Taster direkt mit Lampe koppeln) und OTA-Firmware-Updates der Geräte werden nicht über die Seite bedient (OTA läuft, wenn aktiviert, im Hintergrund über zigpy).
 - Beim ersten Start nach der Installation kann das Auslesen aller Geräte einige Minuten dauern; batteriebetriebene Geräte melden sich erst, wenn sie wach sind (Taste drücken).
+
+## Mitgelieferte Quirks (Ordner `quirks/`)
+Geräte, die ZHA noch nicht kennt, bekommen hier einen eigenen Quirk; er wird beim Verbinden in den Datenordner kopiert.
+- **Tuya Radar `_TZE284_iadro9bf` / `_TZE204_iadro9bf` (TS0601)**: Präsenz, Helligkeit, Auslöse-/Präsenz-Empfindlichkeit, Haltezeit. Die Präsenz-Logik (Datenpunkt 1: 0 = erkannt) stammt aus Community-Angaben und ist noch nicht am echten Gerät geprüft – falls invertiert, bitte melden.

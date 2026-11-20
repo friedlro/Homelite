@@ -107,6 +107,10 @@ module.exports = (api) => {
     let t;
     try { t = await target(); } catch (e) { st = { ...st, state: 'config', msg: e.message }; push(); return; }
     spawnBridge(); if (!proc) return;
+    try { // mitgelieferte Quirks (z. B. Tuya-Radar) in den Quirk-Ordner kopieren
+      const src = path.join(__dirname, 'quirks'), dst = path.join(ddir(), 'quirks'); fs.mkdirSync(dst, { recursive: true });
+      for (const f of fs.existsSync(src) ? fs.readdirSync(src) : []) if (f.endsWith('.py')) fs.copyFileSync(path.join(src, f), path.join(dst, f));
+    } catch (e) { api.log('warn', 'Quirks kopieren: ' + e.message); }
     const c = cfg();
     st = { ...st, state: 'starting', msg: `Verbinde mit ${t.path} …` }; push();
     try {
