@@ -18,6 +18,7 @@ const COND = {
   diff: { label: 'Differenz zweier Messwerte (A − B)', f: [['device', 'Messwert A', 'device'], ['device2', 'Messwert B', 'device'], ['min', 'Differenz mindestens', 'number'], ['max', 'Differenz höchstens', 'number']] },
   time: { label: 'Zeitfenster', f: [['after', 'ab', 'time'], ['before', 'bis', 'time']] },
   weekday: { label: 'Wochentag', f: [['days', 'Tage', 'days']] },
+  date: { label: 'Datum / Zeitraum', f: [['from', 'Ab Datum (leer = egal)', 'date'], ['to', 'Bis Datum (leer = egal)', 'date'], ['yearly', 'Jedes Jahr wiederholen (Jahr wird ignoriert)', 'bool']] },
   trigger: { label: 'Ausgelöst durch (Kennung des Auslösers)', f: [['ids', 'Kennung(en), durch Komma getrennt', 'text'], ['negate', 'Umkehren (NICHT durch diese ausgelöst)', 'bool']] },
   any: { label: 'ODER – mindestens eine davon trifft zu', f: [['conditions', 'Mindestens eine muss zutreffen.', 'conds']] },
   all: { label: 'UND – alle davon treffen zu', f: [['conditions', 'Alle müssen zutreffen.', 'conds']] },
@@ -49,6 +50,7 @@ function fieldEl(def, obj) {
     case 'text': input = h('input', { value: obj[key] ?? '', oninput: (e) => set(e.target.value) }); break;
     case 'number': input = h('input', { type: 'number', step: 'any', value: obj[key] ?? '', oninput: (e) => set(e.target.value === '' ? '' : Number(e.target.value)) }); break;
     case 'time': input = h('input', { type: 'time', value: obj[key] || '', oninput: (e) => set(e.target.value) }); break;
+    case 'date': input = h('input', { type: 'date', value: obj[key] || '', oninput: (e) => set(e.target.value) }); break;
     case 'bool': return chk(label, !!obj[key], set);
     case 'select':
       if (obj[key] === undefined) obj[key] = Object.keys(opt)[0];

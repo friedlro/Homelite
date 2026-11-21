@@ -1,5 +1,9 @@
 # Änderungen
 
+## 1.31.0
+
+- Automationen: neue Bedingung „Datum / Zeitraum“ – Regel nur ab/bis einem Datum ausführen, optional jedes Jahr wiederholen (Jahr wird ignoriert, Zeiträume über den Jahreswechsel möglich).
+
 ## 1.30.1
 
 - Plugin-API: `api.devices.get(key)`; `ensure` trägt für Geräte ohne Raum den Raum nach.

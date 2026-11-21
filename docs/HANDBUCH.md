@@ -53,7 +53,7 @@ WantedBy=multi-user.target
    - Typ *Rollo/Markise (cover)*: öffnen/schließen/stoppen/umschalten, bei Shelly im Rollo-Modus direkt per HTTP.
 3. **Automationen**
    - Auslöser: Gerät, Uhrzeit, Sonnenauf-/untergang (mit Versatz, aus der Heimposition berechnet), Intervall, Start, Webhook, Geofence.
-   - Bedingungen: Gerät (auch negiert), Zahlenvergleich, Differenz zweier Sensoren, Uhrzeit, Wochentag, Anwesenheit.
+   - Bedingungen: Gerät (auch negiert), Zahlenvergleich, Differenz zweier Sensoren, Uhrzeit, Wochentag, Datum/Zeitraum, Anwesenheit.
    - Aktionen: Gerät, Warten, *Voraussetzung*, *Wenn/Dann/Sonst* (verschachtelbar), Push, Heizung, Leapmotor (braucht das Plugin „Leapmotor“), MQTT, HTTP.
    - Modus: *einzeln* (neuer Lauf wird übersprungen), *neu starten* oder *Warteschlange*. „Still“ unterdrückt Log-Einträge.
    - Ohne Auslöser = Szene; mit Haken erscheint sie als Knopf im Dashboard.
