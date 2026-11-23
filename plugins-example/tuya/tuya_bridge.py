@@ -142,6 +142,10 @@ class LocalLink(threading.Thread):
                 continue
             it = (dev.local_strategy or {}).get(dp_id)
             if not it or _strategy is None:
+                # Datenpunkt ohne Tuya-Namen (z. B. Radar-Helligkeit): als dp_<Nr> durchreichen
+                if isinstance(v, (bool, int, float, str)):
+                    dev.status["dp_%d" % dp_id] = v
+                    codes.append("dp_%d" % dp_id)
                 continue
             try:
                 code, value = _strategy.convert(it["value_convert"], (it["status_code"], v), it["config_item"])
