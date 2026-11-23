@@ -1,0 +1,20 @@
+{
+  "id": "alexa",
+  "name": "Alexa (Hue-Emulation)",
+  "version": "1.0.0",
+  "description": "HomeLite gibt sich im Heimnetz als Philips-Hue-Bridge aus. Echo-Geräte finden die freigegebenen Lichter, Schalter und Steckdosen direkt – ohne Cloud, ohne Skill, ohne Amazon-Entwicklerkonto.",
+  "author": "HomeLite",
+  "icon": "🗣",
+  "api": 1,
+  "minCore": "1.30.1",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "Alexa", "icon": "🗣" },
+  "config": [
+    { "key": "port", "label": "HTTP-Port der Bridge", "type": "number", "default": 80, "help": "Echo-Geräte sprechen nur Port 80. Ändern nur, wenn 80 belegt ist und ein Portforward vorgeschaltet wird." },
+    { "key": "ip", "label": "IP-Adresse von HomeLite (optional)", "type": "text", "placeholder": "192.168.50.10", "help": "Leer lassen: wird automatisch aus dem Heimnetz-Anschluss ermittelt." }
+  ],
+  "changelog": {
+    "1.0.0": "Erste Version: Hue-Bridge-Emulation (SSDP + API v1) für Lichter, Dimmer und Schalter, Sprachnamen frei wählbar."
+  }
+}
