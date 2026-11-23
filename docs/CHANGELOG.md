@@ -1,5 +1,9 @@
 # Änderungen
 
+## 1.32.0
+
+- Energie: EV-Charger (Wallbox) wird im Energiefluss als eigener Verbraucher dargestellt, wie auf Venus OS – mit Ladeleistung und Status (lädt/bereit). Das Haus zeigt im Fluss die Last ohne Wallbox. Auch als Zeile auf der ⚡-Energie-Kachel, wenn geladen wird.
+
 ## 1.31.0
 
 - Automationen: neue Bedingung „Datum / Zeitraum“ – Regel nur ab/bis einem Datum ausführen, optional jedes Jahr wiederholen (Jahr wird ignoriert, Zeiträume über den Jahreswechsel möglich).

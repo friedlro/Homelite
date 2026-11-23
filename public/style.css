@@ -1,7 +1,7 @@
 /* HomeLite – modernes, ruhiges Design (dunkel/hell automatisch) */
 :root {
   --bg: #0e1218; --bg2: #121821; --panel: #171e29; --panel2: #1e2735; --line: #283244; --text: #eaeef5; --muted: #8e9ab0;
-  --e-pv: #c98400; --e-grid: #3b97f0; --e-bat: #27a870; --e-house: #9275f5;
+  --e-pv: #c98400; --e-grid: #3b97f0; --e-bat: #27a870; --e-house: #9275f5; --e-ev: #0fb5ad;
   --accent: #4aa8ff; --accent2: #7c8cff; --on: #ffbf3c; --ok: #3fcf8e; --bad: #ff6b6b; --radius: 18px; --radius-s: 11px;
   --shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 8px 24px rgba(0, 0, 0, .18);
   --glow: 0 0 0 1px color-mix(in srgb, var(--on) 45%, transparent), 0 8px 28px color-mix(in srgb, var(--on) 14%, transparent);
@@ -10,7 +10,7 @@
 @media (prefers-color-scheme: light) {
   :root {
     --bg: #f1f4f9; --bg2: #e9eef5; --panel: #ffffff; --panel2: #f3f6fa; --line: #dfe5ee; --text: #18212f; --muted: #66748b;
-    --e-pv: #c47400; --e-grid: #1273e6; --e-bat: #17a366; --e-house: #7c4dff;
+    --e-pv: #c47400; --e-grid: #1273e6; --e-bat: #17a366; --e-house: #7c4dff; --e-ev: #14c5bc;
     --accent: #1273e6; --accent2: #5b5bf0; --on: #e08a00; --ok: #17a366; --bad: #dc3a3a;
     --shadow: 0 1px 2px rgba(20, 30, 50, .06), 0 8px 24px rgba(20, 30, 50, .07);
   }

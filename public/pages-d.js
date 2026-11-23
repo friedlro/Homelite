@@ -20,7 +20,8 @@ function energyCard() {
       h('span', {}, '☀ Erzeugung'), h('span', {}, fmtW(n.pv)),
       h('span', {}, '🏠 Verbrauch'), h('span', {}, fmtW(n.house)),
       h('span', {}, '🔌 Netz'), h('span', {}, n.grid === null ? '–' : (n.grid >= 0 ? '↓ ' : '↑ ') + fmtW(Math.abs(n.grid))),
-      n.soc !== null || n.bat !== null ? [h('span', {}, '🔋 Batterie'), h('span', {}, `${n.soc === null ? '' : fmtNum(n.soc, 0) + ' % '}${n.bat === null ? '' : '(' + (n.bat >= 0 ? '+' : '−') + fmtW(Math.abs(n.bat)) + ')'}`)] : null),
+      n.soc !== null || n.bat !== null ? [h('span', {}, '🔋 Batterie'), h('span', {}, `${n.soc === null ? '' : fmtNum(n.soc, 0) + ' % '}${n.bat === null ? '' : '(' + (n.bat >= 0 ? '+' : '−') + fmtW(Math.abs(n.bat)) + ')'}`)] : null,
+      n.ev !== null && n.ev !== undefined && n.ev > 15 ? [h('span', {}, '🚗 EV-Charger'), h('span', {}, fmtW(n.ev))] : null),
     h('div', { class: 'sub' }, `Heute: ${fmtK(e.today.pv)} erzeugt · ${fmtK(e.today.house)} verbraucht`));
 }
 
@@ -31,16 +32,24 @@ function flowSvg(n) {
     return `<g><circle cx="${x}" cy="${y}" r="42" fill="var(--panel2)" stroke="${c}" stroke-width="3"/><text x="${x}" y="${y - 4}" text-anchor="middle" font-size="24">${icon}</text><text x="${x}" y="${y + 20}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">${val}</text><text x="${lx}" y="${ly}" text-anchor="${an}" font-size="13" font-weight="600" fill="var(--text)">${label}</text>${sub ? `<text x="${lx}" y="${side ? y + 16 : y + 62}" text-anchor="${an}" font-size="12" fill="var(--muted)">${sub}</text>` : ''}</g>`;
   };
   const line = (x1, y1, x2, y2, c, active, rev) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${active ? c : 'var(--line)'}" stroke-width="3" stroke-linecap="round" ${active ? `stroke-dasharray="3 9" class="flow ${rev ? 'rev' : ''}"` : ''}/>`;
+  const hasEv = n.ev !== null && n.ev !== undefined;
+  const evOn = hasEv && on(n.ev);
+  // Haus ohne Wallbox anzeigen (wie auf Venus OS: AC-Lasten und EV-Charger getrennt)
+  const houseDisp = hasEv && n.house !== null ? Math.max(0, n.house - n.ev) : n.house;
   const P = { x: 130, y: 90 }; const G = { x: 510, y: 90 }; const H = { x: 320, y: 170 }; const B = { x: 320, y: 295 };
+  const E = { x: 510, y: 295 };
   const pvOn = on(n.pv); const gOn = on(n.grid); const bOn = on(n.bat);
+  const evColor = 'var(--e-ev, #0fb5ad)';
   return `<svg viewBox="0 0 640 360" class="flow-svg" role="img" aria-label="Energiefluss">
     ${line(P.x + 30, P.y + 30, H.x - 30, H.y - 20, ENERGY_COLORS.pv, pvOn, false)}
     ${line(G.x - 30, G.y + 30, H.x + 30, H.y - 20, ENERGY_COLORS.grid, gOn, !(n.grid > 0))}
     ${line(H.x, H.y + 42, B.x, B.y - 42, ENERGY_COLORS.bat, bOn, !(n.bat > 0))}
+    ${hasEv ? line(H.x + 34, H.y + 14, E.x - 34, E.y - 20, evColor, evOn, false) : ''}
     ${node(P.x, P.y, ENERGY_COLORS.pv, '☀', 'Solar', fmtW(n.pv))}
     ${node(G.x, G.y, ENERGY_COLORS.grid, '⚡', 'Netz', fmtW(n.grid === null ? null : Math.abs(n.grid)), n.grid === null ? '' : on(n.grid) ? (n.grid > 0 ? 'Bezug' : 'Einspeisung') : '')}
-    ${node(H.x, H.y, ENERGY_COLORS.house, '🏠', 'Haus', fmtW(n.house), '', true)}
+    ${node(H.x, H.y, ENERGY_COLORS.house, '🏠', 'Haus', fmtW(houseDisp), '', true)}
     ${node(B.x, B.y, ENERGY_COLORS.bat, '🔋', 'Batterie', n.soc === null ? fmtW(n.bat === null ? null : Math.abs(n.bat)) : fmtNum(n.soc, 0) + ' %', n.bat === null ? '' : on(n.bat) ? `${n.bat > 0 ? 'lädt' : 'entlädt'} ${fmtW(Math.abs(n.bat))}` : 'inaktiv', true)}
+    ${hasEv ? node(E.x, E.y, evColor, '🚗', 'EV-Charger', fmtW(n.ev), evOn ? 'lädt' : 'bereit', true) : ''}
   </svg>`;
 }
 

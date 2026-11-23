@@ -57,7 +57,7 @@ WantedBy=multi-user.target
    - Aktionen: Gerät, Warten, *Voraussetzung*, *Wenn/Dann/Sonst* (verschachtelbar), Push, Heizung, Leapmotor (braucht das Plugin „Leapmotor“), MQTT, HTTP.
    - Modus: *einzeln* (neuer Lauf wird übersprungen), *neu starten* oder *Warteschlange*. „Still“ unterdrückt Log-Einträge.
    - Ohne Auslöser = Szene; mit Haken erscheint sie als Knopf im Dashboard.
-4. **Heizung**: pro Raum ein Thermostat (z. B. Zigbee-Heizkörperventil) **oder** ein Schalter plus Temperatursensor (Zweipunktregelung ±0,3 °C), Komfort-/Absenktemperatur und Zeitfenster. Bei „niemand zuhause“ wird automatisch abgesenkt. ± im Raum = 2 Std. Boost.
+4. **Heizung**: pro Raum ein Thermostat (z. B. Zigbee-Heizkörperventil) **oder** ein Schalter plus Temperatursensor (Zweipunktregelung ±0,3 °C), Komfort-/Absenktemperatur und Zeitfenster. Bei „niemand zuhause“ wird automatisch abgesenkt. Ein EV-Charger/Wallbox-Sensor erscheint im Energiefluss als eigener Verbraucher (wie auf Venus OS). ± im Raum = 2 Std. Boost.
 5. **Push-Nachrichten**: Aktion „Push-Nachricht“ nutzt [ntfy](https://ntfy.sh) (kostenlose iPhone-App, auch selbst hostbar) – Topic unter *Einstellungen* eintragen und in der App abonnieren.
 
 ## HA-Import
