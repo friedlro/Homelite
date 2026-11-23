@@ -109,7 +109,8 @@ module.exports = (api) => {
           const v = (status || {})[l.on];
           if (v === undefined) continue;
           // Binär aus Text/Enum (z. B. Radar: presence_state = "presence"/"none"): „an“, wenn der Wert dem gewählten An-Wert entspricht
-          if (l.onValue) patch.on = String(v).toLowerCase() === String(l.onValue).toLowerCase();
+          if (typeof v === 'string' && l.readonly) patch.on = !['none', '', 'off', 'false', '0', 'no', 'idle', 'clear', 'unoccupied', 'normal'].includes(v.toLowerCase());
+          else if (l.onValue) patch.on = String(v).toLowerCase() === String(l.onValue).toLowerCase();
           else patch.on = v === true || v === 'true' || v === 1 || v === 'presence' || v === 'motion';
           const b = (status || {})[l.brightness];
           if (l.type === 'light' && l.brightness && typeof b === 'number') patch.brightness = Math.round((b / (l.brightnessMax || 1000)) * 100);
@@ -236,7 +237,7 @@ module.exports = (api) => {
       l.on = code; l.readonly = true;
       if (!l.on) throw new Error('Kein Messwert gewählt');
       const sv = (t.status || {})[code];
-      if (typeof sv === 'string') l.onValue = String(body.onValue || (/presence|motion|occupi|detect/i.test(code) ? 'presence' : sv)).slice(0, 40);
+      if (typeof sv === 'string' && body.onValue) l.onValue = String(body.onValue).slice(0, 40); // sonst: alles außer „none“ = Anwesenheit
     }
     else {
       l.on = code || (t.guess && t.guess.on) || '';
