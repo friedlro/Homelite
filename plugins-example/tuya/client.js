@@ -17,7 +17,9 @@
     const status = t.status || {};
     const boolCodes = Object.keys(status).filter((k) => typeof status[k] === 'boolean');
     const numCodes = Object.keys(status).filter((k) => typeof status[k] === 'number');
-    const o = { type: t.guess && t.guess.brightness ? 'light' : boolCodes.length ? 'switch' : 'sensor', deviceId: '', code: (t.guess && t.guess.on) || boolCodes[0] || numCodes[0] || '' };
+    const strCodes = Object.keys(status).filter((k) => typeof status[k] === 'string'); // Text/Enum, z. B. Radar-Anwesenheit
+    const presenceCode = strCodes.find((k) => /presence|motion|occupi|detect|state/i.test(k));
+    const o = { type: t.guess && t.guess.brightness ? 'light' : boolCodes.length ? 'switch' : presenceCode ? 'binary' : 'sensor', deviceId: '', onValue: '', code: (t.guess && t.guess.on) || boolCodes[0] || presenceCode || numCodes[0] || strCodes[0] || '' };
     const holders = { '': '➕ Neues Gerät anlegen' };
     const ph = (M.placeholders || []);
     for (const d of ph) holders[d.id] = `Platzhalter: ${d.name}`;
@@ -28,18 +30,18 @@
     const room = h('input', { placeholder: 'Raum', value: sug ? sug.room || '' : '' });
     const codeBox = h('div');
     const drawCode = () => {
-      const codes = o.type === 'sensor' ? numCodes : boolCodes;
+      const codes = o.type === 'sensor' ? numCodes.concat(strCodes) : o.type === 'binary' ? strCodes.concat(boolCodes) : boolCodes;
       if (!codes.includes(o.code)) o.code = codes[0] || '';
-      fill(codeBox, fld(o.type === 'sensor' ? 'Messwert (Code)' : 'Schalt-Code', sel(codes.length ? codes : ['–'], o.code, (v) => { o.code = v; })));
+      fill(codeBox, fld(o.type === 'switch' || o.type === 'light' ? 'Schalt-Code' : 'Messwert (Code)', sel(codes.length ? codes : ['–'], o.code, (v) => { o.code = v; })));
     };
     drawCode();
-    const typeSel = sel({ light: 'Licht (dimmbar)', switch: 'Schalter', sensor: 'Sensor' }, o.type, (v) => { o.type = v; drawCode(); });
+    const typeSel = sel({ light: 'Licht (dimmbar)', switch: 'Schalter', sensor: 'Sensor', binary: 'Anwesenheit / Ja-Nein-Sensor' }, o.type, (v) => { o.type = v; drawCode(); });
     modal(`„${t.name}“ übernehmen`, h('div', { class: 'form' },
       fld('Als', sel(holders, o.deviceId, (v) => { o.deviceId = v; const d = ph.find((x) => x.id === v); if (d) { name.value = d.name; room.value = d.room || ''; } })),
       fld('Name', name), fld('Raum', room), fld('Typ', typeSel), codeBox,
       h('p', { class: 'hint' }, `Gerät: ${t.product || t.category} · ${t.online ? 'online' : 'offline'}. Mehrere Werte (z. B. Temperatur und Feuchte) übernimmst du einzeln als Sensor.`)),
     [{ label: 'Abbrechen' }, { label: 'Übernehmen', primary: true, onClick: async () => {
-      await call('POST', 'link', { tuyaId: t.id, deviceId: o.deviceId || undefined, name: name.value.trim(), room: room.value.trim(), type: o.type, code: o.code });
+      await call('POST', 'link', { tuyaId: t.id, deviceId: o.deviceId || undefined, name: name.value.trim(), room: room.value.trim(), type: o.type, code: o.code, onValue: o.onValue || undefined });
       toast('Übernommen'); await reload();
     } }]);
   }

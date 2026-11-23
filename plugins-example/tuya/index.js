@@ -108,7 +108,9 @@ module.exports = (api) => {
         } else {
           const v = (status || {})[l.on];
           if (v === undefined) continue;
-          patch.on = v === true || v === 'true' || v === 1;
+          // Binär aus Text/Enum (z. B. Radar: presence_state = "presence"/"none"): „an“, wenn der Wert dem gewählten An-Wert entspricht
+          if (l.onValue) patch.on = String(v).toLowerCase() === String(l.onValue).toLowerCase();
+          else patch.on = v === true || v === 'true' || v === 1 || v === 'presence' || v === 'motion';
           const b = (status || {})[l.brightness];
           if (l.type === 'light' && l.brightness && typeof b === 'number') patch.brightness = Math.round((b / (l.brightnessMax || 1000)) * 100);
         }
@@ -125,6 +127,7 @@ module.exports = (api) => {
   api.devices.onCommand(async (dev, action, value) => {
     const l = links().find((x) => x.key === dev.key);
     if (!l) throw new Error('Tuya-Verknüpfung fehlt');
+    if (l.readonly) throw new Error('Nur-Lese-Messwert (nicht schaltbar)');
     if (!connected) throw new Error('Tuya ist nicht verbunden' + (error ? ': ' + error : ''));
     const cur = (devices.find((d) => d.id === l.tuyaId) || {}).status || {};
     const isOn = cur[l.on] === true;
@@ -228,6 +231,13 @@ module.exports = (api) => {
     const r = (t.ranges && t.ranges[code]) || {};
     const l = { tuyaId: t.id, type, name: String(body.name || t.name).slice(0, 80), room: String(body.room || '').slice(0, 60), unit: r.unit || '' };
     if (type === 'sensor') { l.value = code; l.scale = r.scale || 0; if (!l.value) throw new Error('Kein Messwert gewählt'); }
+    else if (type === 'binary') {
+      // Nur-Lese-Binärsensor (z. B. Anwesenheit): Code plus „An-Wert“ für Text/Enum; bei Ja/Nein-Status kein An-Wert nötig
+      l.on = code; l.readonly = true;
+      if (!l.on) throw new Error('Kein Messwert gewählt');
+      const sv = (t.status || {})[code];
+      if (typeof sv === 'string') l.onValue = String(body.onValue || (/presence|motion|occupi|detect/i.test(code) ? 'presence' : sv)).slice(0, 40);
+    }
     else {
       l.on = code || (t.guess && t.guess.on) || '';
       if (!l.on) throw new Error('Kein Schaltcode für dieses Gerät gefunden');
