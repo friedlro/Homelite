@@ -329,12 +329,12 @@ function costHistoryCard() {
     fill(box,
       h('div', { class: 'chipbar', style: 'margin-bottom:8px' }, [['day', 'Täglich'], ['week', 'Wöchentlich'], ['month', 'Monatlich'], ['year', 'Jährlich']].map(([k, l]) => h('button', { class: 'fchip ' + (wbPeriod === k ? 'act' : ''), onclick: () => { wbPeriod = k; localStorage.setItem('hl_wbperiod', k); load(); } }, l))),
       h('div', { style: 'overflow-x:auto' }, h('table', { class: 'costtab', style: 'width:100%' },
-        h('thead', {}, h('tr', {}, h('th', {}, 'Zeitraum'), h('th', {}, ''), h('th', { style: 'text-align:right' }, '⬇ Netz gesamt kWh'), h('th', { style: 'text-align:right' }, 'Kosten'), h('th', { style: 'text-align:right' }, '− 🚗 Wallbox kWh'), h('th', { style: 'text-align:right' }, 'Kosten'), h('th', { style: 'text-align:right' }, '= 🏠 Haus kWh'), h('th', { style: 'text-align:right' }, 'Kosten'))),
+        h('thead', {}, h('tr', {}, h('th', {}, 'Zeitraum'), h('th', {}, ''), h('th', { style: 'text-align:right' }, '⬇ Netz gesamt kWh'), h('th', { style: 'text-align:right' }, 'Kosten'), h('th', { style: 'text-align:right' }, '− 🚗 EV-Charger kWh'), h('th', { style: 'text-align:right' }, 'Kosten'), h('th', { style: 'text-align:right' }, '= 🏠 Haus kWh'), h('th', { style: 'text-align:right' }, 'Kosten'))),
         h('tbody', {}, d.rows.map((r) => h('tr', {}, h('td', {}, r.label), h('td', { style: 'width:18%' }, h('span', { class: 'bar', style: 'display:block' }, h('i', { style: `width:${Math.round((r.gkwh / mx) * 100)}%` }))),
           R('', r.gkwh ? fmtNum(r.gkwh, 2) : '–'), R('', kc(r.gkwh, r.gcost)), R('', r.kwh ? fmtNum(r.kwh, 2) : '–'), R('', kc(r.kwh, r.cost)), R('font-weight:600', r.hkwh ? fmtNum(r.hkwh, 2) : '–'), R('font-weight:600', kc(r.hkwh, r.hcost))))),
         h('tfoot', {}, h('tr', {}, h('th', {}, 'Summe'), h('th', {}),
           ...[d.gridTotal, d.total, d.houseTotal].flatMap((t) => [h('th', { style: 'text-align:right' }, fmtNum(t.kwh, 2)), h('th', { style: 'text-align:right' }, t.cost === null ? '–' : eur(t.cost))]))))),
-      h('div', { class: 'hint', style: 'margin-top:6px' }, 'Der Netzbezug enthält den Wallbox-Strom. „Haus“ = Netz gesamt abzüglich Wallbox (je Tag, nie unter 0) – das ist der Stromverbrauch ohne Auto.'));
+      h('div', { class: 'hint', style: 'margin-top:6px' }, 'Der Netzbezug enthält den EV-Charger-Strom. „Haus“ = Netz gesamt abzüglich EV-Charger (je Tag, nie unter 0) – das ist der Stromverbrauch ohne Auto.'));
   };
   const load = async () => {
     if (wbHist[wbPeriod] && Date.now() - wbHist[wbPeriod].ts < 30000) { draw(wbHist[wbPeriod].d); return; }
@@ -352,8 +352,8 @@ function gridCostBlock() {
   const hs = g.house;
   return h('div', {},
     h('div', { class: 'row sb' }, h('h2', {}, '💶 Stromkosten'), h('button', { class: 'sm', onclick: tariffDialog }, '💶 Strompreis')),
-    h('div', { class: 'grid', style: 'margin-bottom:10px' }, tile('🏠 Haus heute (ohne Wallbox)', hs.today), tile('Dieser Monat', hs.month), tile('Dieses Jahr', hs.year)),
-    h('div', { class: 'hint', style: 'margin-bottom:8px' }, pr === null ? 'Noch kein Strompreis hinterlegt – „💶 Strompreis“ wählen, dann werden die Kosten angezeigt.' : `Strompreis aktuell ${eurKwh(pr)}. Haus = Netzbezug abzüglich Wallbox. Netz gesamt: heute ${fmtK(g.today.kwh)} / Monat ${fmtK(g.month.kwh)} / Jahr ${fmtK(g.year.kwh)}.`));
+    h('div', { class: 'grid', style: 'margin-bottom:10px' }, tile('🏠 Haus heute (ohne EV-Charger)', hs.today), tile('Dieser Monat', hs.month), tile('Dieses Jahr', hs.year)),
+    h('div', { class: 'hint', style: 'margin-bottom:8px' }, pr === null ? 'Noch kein Strompreis hinterlegt – „💶 Strompreis“ wählen, dann werden die Kosten angezeigt.' : `Strompreis aktuell ${eurKwh(pr)}. Haus = Netzbezug abzüglich EV-Charger. Netz gesamt: heute ${fmtK(g.today.kwh)} / Monat ${fmtK(g.month.kwh)} / Jahr ${fmtK(g.year.kwh)}.`));
 }
 
 // Wallbox: Verbrauch in kWh und Kosten
@@ -367,10 +367,10 @@ function wallboxCard(range, data) {
   const m = per(w.month); const y = per(w.year);
   const tile = (name, x) => statTile(name, fmtK(x.kwh), x.cost === null ? (pr === null ? 'Preis fehlt' : '') : eur(x.cost));
   return h('div', {},
-    h('div', { class: 'row sb' }, h('h2', {}, '🚗 Wallbox'), h('button', { class: 'sm', onclick: tariffDialog }, '💶 Strompreis')),
+    h('div', { class: 'row sb' }, h('h2', {}, '🚗 EV-Charger'), h('button', { class: 'sm', onclick: tariffDialog }, '💶 Strompreis')),
     h('div', { class: 'grid', style: 'margin-bottom:10px' }, tile(lab, a), range === 'today' || true ? tile('Dieser Monat', m) : null, tile('Dieses Jahr', y),
       statTile('Aktuell', w.w === null ? '–' : w.w > 5 ? `${fmtNum(w.w / 1000, 2)} kW` : 'bereit', w.meter !== null ? `Zählerstand ${fmtNum(w.meter, 1)} kWh` : '')),
-    h('div', { class: 'hint' }, pr === null ? 'Noch kein Strompreis hinterlegt – oben „💶 Strompreis“ wählen, dann werden die Kosten angezeigt.' : `Strompreis aktuell ${eurKwh(pr)}. kWh werden ab Aktivierung aus der Wallbox-Leistung mitgezählt.`));
+    h('div', { class: 'hint' }, pr === null ? 'Noch kein Strompreis hinterlegt – oben „💶 Strompreis“ wählen, dann werden die Kosten angezeigt.' : `Strompreis aktuell ${eurKwh(pr)}. kWh werden ab Aktivierung aus der EV-Charger-Leistung mitgezählt.`));
 }
 
 function energyConfigDialog() {
@@ -387,7 +387,7 @@ function energyConfigDialog() {
     multiPick('🔋 Batterie-Ladestand (%)', cand, sets.soc, true),
     multiPick('🏠 Hausverbrauch (optional)', cand, sets.house),
     multiPick('🔌 Einzelverbraucher (Shelly, Steckdosen …)', cand, sets.consumers),
-    multiPick('🚗 Wallbox-Leistung (leer = Tomons-Wallbox automatisch)', cand, sets.wallbox),
+    multiPick('🚗 EV-Charger-Leistung (leer = Tomons-Wallbox automatisch)', cand, sets.wallbox),
     h('div', { class: 'field' }, h('label', {}, '📈 Leistungsgrenze für Viertelstunden-Spitzen (kW, optional)'), limit,
       h('p', { class: 'hint' }, 'Wird im Diagramm als Linie eingezeichnet; Spitzen darüber werden rot markiert.')));
   modal('Energie-Quellen', body, [{ label: 'Abbrechen' }, {

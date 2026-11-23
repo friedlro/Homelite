@@ -1,5 +1,9 @@
 # Änderungen
 
+## 1.32.1
+
+- Energie-Kosten: Bezeichnung „Wallbox“ in der Verbrauchs- und Kostenansicht durchgängig „EV-Charger“ genannt (passend zum Energiefluss).
+
 ## 1.32.0
 
 - Energie: EV-Charger (Wallbox) wird im Energiefluss als eigener Verbraucher dargestellt, wie auf Venus OS – mit Ladeleistung und Status (lädt/bereit). Das Haus zeigt im Fluss die Last ohne Wallbox. Auch als Zeile auf der ⚡-Energie-Kachel, wenn geladen wird.
