@@ -1,5 +1,10 @@
 # Änderungen
 
+## 1.32.2
+
+- Energie: die Wallbox des neuen Plugins „Shelly TopAC Wallbox“ wird automatisch als EV-Charger erkannt (Leistung, Zählerstand, Kosten).
+- Neues Plugin „Shelly TopAC Wallbox“ 1.0.0 (lokal per HTTP): Laden starten/stoppen, Ladestrom 6–16 A, Leistung, Spannung, Sitzungs- und Gesamtenergie.
+
 ## 1.32.1
 
 - Energie-Kosten: Bezeichnung „Wallbox“ in der Verbrauchs- und Kostenansicht durchgängig „EV-Charger“ genannt (passend zum Energiefluss).

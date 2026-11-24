@@ -1,0 +1,21 @@
+{
+  "id": "shelly-topac",
+  "name": "Shelly TopAC Wallbox",
+  "version": "1.0.0",
+  "description": "Shelly TopAC Portable EV Charger (EVE01) lokal per HTTP: Laden starten/stoppen, Ladestrom 6–16 A, Leistung, Spannung, Sitzungs- und Gesamtenergie. Fließt automatisch in Energiefluss und Wallbox-Kosten ein.",
+  "author": "HomeLite",
+  "icon": "🚗",
+  "api": 1,
+  "minCore": "1.32.0",
+  "main": "index.js",
+  "client": "client.js",
+  "page": { "label": "EV-Charger", "icon": "🚗" },
+  "config": [
+    { "key": "host", "label": "IP-Adresse der Wallbox", "type": "text", "default": "192.168.50.138", "placeholder": "192.168.50.138", "help": "Im Router eine feste Adresse (DHCP-Reservierung) vergeben." },
+    { "key": "interval", "label": "Abfrage alle … Sekunden", "type": "number", "default": 5 },
+    { "key": "password", "label": "Passwort (nur falls in der Wallbox gesetzt)", "type": "password", "help": "Benutzer ist „admin“ (Digest-Anmeldung wird nicht unterstützt – Authentifizierung in der Shelly-Weboberfläche aus lassen)." }
+  ],
+  "changelog": {
+    "1.0.0": "Erste Version: Zustand, Laden Start/Stopp, Ladestrom, Leistung, Spannung, Energie; Anbindung an Energiefluss und Wallbox-Kosten."
+  }
+}

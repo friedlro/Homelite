@@ -387,7 +387,7 @@ function energyConfigDialog() {
     multiPick('🔋 Batterie-Ladestand (%)', cand, sets.soc, true),
     multiPick('🏠 Hausverbrauch (optional)', cand, sets.house),
     multiPick('🔌 Einzelverbraucher (Shelly, Steckdosen …)', cand, sets.consumers),
-    multiPick('🚗 EV-Charger-Leistung (leer = Tomons-Wallbox automatisch)', cand, sets.wallbox),
+    multiPick('🚗 EV-Charger-Leistung (leer = Tomons/Shelly-TopAC automatisch)', cand, sets.wallbox),
     h('div', { class: 'field' }, h('label', {}, '📈 Leistungsgrenze für Viertelstunden-Spitzen (kW, optional)'), limit,
       h('p', { class: 'hint' }, 'Wird im Diagramm als Linie eingezeichnet; Spitzen darüber werden rot markiert.')));
   modal('Energie-Quellen', body, [{ label: 'Abbrechen' }, {
