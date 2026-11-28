@@ -177,6 +177,7 @@ function cleanDevice(d, old = {}) {
     id: old.id || store.id(), name: str(d.name ?? old.name, 80) || 'Gerät', room: str(d.room ?? old.room, 60),
     fav: d.fav !== undefined ? !!d.fav : !!old.fav, type, driver, src: str(d.src ?? old.src, 200),
   };
+  if (old.added !== undefined) out.added = old.added;
   if (d.hide !== undefined ? d.hide : old.hide) out.hide = true;
   const note = str(d.note ?? old.note, 300);
   if (note) out.note = note;

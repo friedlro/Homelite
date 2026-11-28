@@ -1,5 +1,10 @@
 # Änderungen
 
+## 1.33.0
+
+- Geräte-Seite übersichtlicher: Gruppen-Reiter (Zigbee, Shelly, Tasmota, MQTT, Plugins …) alphabetisch, Geräte alphabetisch sortiert (umschaltbar auf „Neueste zuerst“).
+- Neue Spalte „Hinzugefügt“ mit Datum und Uhrzeit. Bereits vorhandene Geräte zeigen „–“ (Datum unbekannt), neue Geräte werden ab jetzt automatisch datiert.
+
 ## 1.32.2
 
 - Energie: die Wallbox des neuen Plugins „Shelly TopAC Wallbox“ wird automatisch als EV-Charger erkannt (Leistung, Zählerstand, Kosten).

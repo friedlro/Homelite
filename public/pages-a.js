@@ -455,6 +455,8 @@ PAGES.dev = {
   render(el) {
     let q = '';
     let filt = localStorage.getItem('hl_devfilter') || 'all';
+    let grp = localStorage.getItem('hl_devgroup') || 'all';
+    let sort = localStorage.getItem('hl_devsort') || 'az';
     const pend = S.devices.filter((d) => d.pending).length;
     const tableBox = h('div');
     const stateOf = (d, s) => {
@@ -468,14 +470,25 @@ PAGES.dev = {
     };
     const sourceOf = (d) => (d.driver === 'shelly' ? h('code', {}, d.ip ? `shelly ${d.ip}#${d.channel}` : 'shelly (IP fehlt)')
       : d.driver === 'http' ? h('code', {}, d.url ? 'http' : 'http (URL fehlt)') : d.driver === 'virtual' ? h('code', {}, 'virtuell') : d.driver === 'plugin' ? h('code', {}, 'plugin ' + d.plugin) : h('code', {}, (d.stateTopics || [])[0] || (d.tasmota ? `tasmota ${d.tasmota.mac}` : '–')));
+    const groupOf = (d) => {
+      if (d.tasmota || /^tasmota/i.test(d.src || '')) return 'Tasmota';
+      if (d.driver === 'mqtt') return /^z2m:/.test(d.src || '') || /zigbee/i.test((d.stateTopics || [])[0] || '') ? 'Zigbee' : 'MQTT';
+      if (d.driver === 'plugin') return (d.plugin || 'Plugin').replace(/^./, (c) => c.toUpperCase());
+      return ({ shelly: 'Shelly', http: 'HTTP', virtual: 'Virtuell', appletv: 'Apple TV', matter: 'Matter', ecowitt: 'Wetterstation', dew: 'Berechnet', victron: 'Victron', leapmotor: 'Leapmotor' })[d.driver] || d.driver || 'Sonstige';
+    };
+    const fmtAdded = (d) => (d.added ? new Date(d.added).toLocaleDateString('de-AT', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + new Date(d.added).toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' }) : '–');
+    const groups = [...new Set(S.devices.map(groupOf))].sort((x, y) => x.localeCompare(y, 'de'));
+    if (grp !== 'all' && !groups.includes(grp)) grp = 'all';
+    const byName = (x, y) => x.name.localeCompare(y.name, 'de', { numeric: true });
     function drawTable() {
-      const list = S.devices.filter((d) => (filt === 'pending' ? d.pending : true) && (!q || `${d.name} ${d.room} ${d.note || ''}`.toLowerCase().includes(q)));
+      const list = S.devices.filter((d) => (filt === 'pending' ? d.pending : true) && (grp === 'all' || groupOf(d) === grp) && (!q || `${d.name} ${d.room} ${d.note || ''}`.toLowerCase().includes(q)))
+        .sort(sort === 'new' ? (x, y) => (y.added || 0) - (x.added || 0) || byName(x, y) : byName);
       tableBox.replaceChildren(list.length ? h('div', { class: 'card', style: 'overflow-x:auto;padding:6px 14px' }, h('table', { class: 'stack' },
-        h('thead', {}, h('tr', {}, ['Name', 'Raum', 'Typ', 'Quelle', 'Zustand', ''].map((t) => h('th', {}, t)))),
+        h('thead', {}, h('tr', {}, ['Name', 'Raum', 'Typ', 'Quelle', 'Zustand', 'Hinzugefügt', ''].map((t) => h('th', {}, t)))),
         h('tbody', {}, list.map((d) => {
           const s = st(d.id);
           return h('tr', {}, h('td', { class: 'nm' }, (d.fav ? '★ ' : '') + d.name), h('td', { 'data-l': 'Raum' }, d.room || '–'), h('td', { 'data-l': 'Typ' }, TYPE_LABEL[d.type] || d.type),
-            h('td', { class: 'hide-s' }, sourceOf(d)), h('td', { 'data-l': 'Zustand' }, stateOf(d, s)), h('td', { class: 'act' }, h('div', { class: 'row', style: 'flex-wrap:nowrap' },
+            h('td', { class: 'hide-s' }, sourceOf(d)), h('td', { 'data-l': 'Zustand' }, stateOf(d, s)), h('td', { class: 'hide-s hint', 'data-l': 'Hinzugefügt' }, fmtAdded(d)), h('td', { class: 'act' }, h('div', { class: 'row', style: 'flex-wrap:nowrap' },
               h('button', { class: 'sm', onclick: () => deviceDialog(d) }, 'Bearbeiten'),
               h('button', { class: 'sm danger', onclick: () => { if (confirm(`„${d.name}“ löschen?`)) api('DELETE', `/api/devices/${d.id}`).then(reload).catch(fail); } }, 'Löschen'))));
         })))) : h('div', { class: 'empty' }, 'Keine Treffer.'));
@@ -488,6 +501,11 @@ PAGES.dev = {
       h('input', { class: 'search', placeholder: 'Suchen …', oninput: (e) => { q = e.target.value.toLowerCase(); drawTable(); } }),
       h('button', { class: 'fchip ' + (filt === 'all' ? 'act' : ''), onclick: () => { localStorage.setItem('hl_devfilter', 'all'); renderPage(); } }, 'Alle'),
       h('button', { class: 'fchip ' + (filt === 'pending' ? 'act' : ''), onclick: () => { localStorage.setItem('hl_devfilter', 'pending'); renderPage(); } }, `Nicht verbunden (${pend})`)));
+    el.append(h('div', { class: 'row', style: 'margin:0 0 12px;flex-wrap:wrap' },
+      h('button', { class: 'fchip ' + (grp === 'all' ? 'act' : ''), onclick: () => { localStorage.setItem('hl_devgroup', 'all'); renderPage(); } }, `Alle (${S.devices.length})`),
+      ...groups.map((g) => h('button', { class: 'fchip ' + (grp === g ? 'act' : ''), onclick: () => { localStorage.setItem('hl_devgroup', g); renderPage(); } }, `${g} (${S.devices.filter((d) => groupOf(d) === g).length})`)),
+      h('span', { style: 'flex:1' }),
+      h('button', { class: 'sm', title: 'Sortierung umschalten', onclick: () => { localStorage.setItem('hl_devsort', sort === 'az' ? 'new' : 'az'); renderPage(); } }, sort === 'az' ? 'A–Z ⇄ Neueste' : 'Neueste ⇄ A–Z')));
     el.append(tableBox);
     drawTable();
     coiotSection(el);
