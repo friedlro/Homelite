@@ -199,7 +199,7 @@ module.exports = (api) => {
     const multi = eps.size > 1;
     const cnt = {};
     for (const e of d.entities || []) {
-      if (e.enabled === false) continue;
+      if (e.enabled === false && !(e.platform === 'sensor' && e.device_class === 'illuminance')) continue; // Helligkeit immer anzeigen
       const k = `zha:${d.ieee}:${e.uid}`;
       const ep = multi && e.endpoint != null ? ` ${e.endpoint}` : '';
       const call = (method, args) => ask('call', { ieee: d.ieee, uid: e.uid, method, args: args || {} }, 30000).then((r) => r.state || {}).catch((er) => { throw new Error(er.message); });
@@ -273,7 +273,7 @@ module.exports = (api) => {
           const dc = e.device_class || '';
           if (dc === 'battery') { if (cfg().batteries === false) break; }
           else if (dc === 'signal_strength' || /lqi|rssi/i.test(e.key + e.name)) break; // LQI liefert das Plugin selbst („Verbindung (LQI)“)
-          else if (cat === 'diagnostic' && !cfg().diagnostics) break;
+          else if (cat === 'diagnostic' && !cfg().diagnostics && dc !== 'illuminance') break;
           else if (cat === 'config') break;
           const label = DC[dc] || e.name || e.key || 'Wert';
           const nm = `${base}${ep} ${label}`;
@@ -339,7 +339,7 @@ module.exports = (api) => {
     try {
       if (lux === null || lux === undefined) return;
       d.lux = lux;
-      if ((d.entities || []).some((e) => e.platform === 'sensor' && e.device_class === 'illuminance')) return;
+      if ((d.entities || []).some((e) => e.platform === 'sensor' && e.device_class === 'illuminance' && specs.has(`zha:${d.ieee}:${e.uid}`))) return;
       const key = `zha:${d.ieee}:lux`;
       if (!specs.has(key)) { specs.set(key, { ieee: d.ieee, uid: 'lux', pick: null }); api.devices.ensure({ key, name: `${disp(d)} Helligkeit`, room: roomOf(d), type: 'sensor', unit: 'lx' }); }
       api.devices.setState(key, { value: lux, online: d.available !== false });
