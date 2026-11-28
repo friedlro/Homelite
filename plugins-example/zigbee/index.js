@@ -322,6 +322,7 @@ module.exports = (api) => {
     }
     for (const [k, sp] of [...specs]) if (sp.ieee === d.ieee && !want.has(k)) { try { api.devices.remove(k); } catch { /* weg */ } specs.delete(k); }
     for (const e of d.entities || []) lastSt.set(d.ieee + '|' + e.uid, e.state || {});
+    for (const e of d.entities || []) rememberCfg(d.ieee, e, e.state);
     lqiState(d);
     luxState(d, d.lux);
   }
@@ -355,8 +356,27 @@ module.exports = (api) => {
     } catch { /* egal */ }
   }
 
+  // Einstellungswerte (Zahl/Auswahl) dauerhaft merken: nach Neustart zeigt die Seite sonst Standardwerte, wenn ZHA noch nichts liefert
+  const cfgKey = (ieee, uid) => ieee + '|' + uid;
+  const cfgField = (e) => (e.platform === 'number' ? 'native_value' : e.platform === 'select' ? 'current_option' : null);
+  let cfgTimer = null; const cfgPending = {};
+  function rememberCfg(ieee, e, st) {
+    const f = cfgField(e); if (!f || !st || st[f] == null) return;
+    const all = api.kv.get('cfgvals') || {}; const k = cfgKey(ieee, e.uid);
+    if (all[k] === st[f] || cfgPending[k] === st[f]) return;
+    cfgPending[k] = st[f];
+    if (!cfgTimer) cfgTimer = setTimeout(() => { cfgTimer = null; const a = api.kv.get('cfgvals') || {}; Object.assign(a, cfgPending); for (const x of Object.keys(cfgPending)) delete cfgPending[x]; api.kv.set('cfgvals', a); }, 3000);
+  }
+  function withCfg(ieee, e) {
+    const f = cfgField(e); if (!f) return e.state;
+    const st = e.state || {}; if (st[f] != null) return st;
+    const v = (api.kv.get('cfgvals') || {})[cfgKey(ieee, e.uid)];
+    return v == null ? st : { ...st, [f]: v, gespeichert: true };
+  }
+
   function onState(m) {
     lastSt.set(m.ieee + '|' + m.uid, m.state || {});
+    { const d0 = devs.get(m.ieee); const e0 = d0 && (d0.entities || []).find((x) => x.uid === m.uid); if (e0) rememberCfg(m.ieee, e0, m.state); }
     const d = devs.get(m.ieee); if (d) { const e = (d.entities || []).find((x) => x.uid === m.uid); if (e) e.state = m.state; }
     const key = `zha:${m.ieee}:${m.uid}`, sp = specs.get(key);
     if (!sp || !sp.pick) return;
@@ -399,7 +419,7 @@ module.exports = (api) => {
       ieee: d.ieee, nwk: d.nwk, name: disp(d), orig: d.name, room: roomOf(d), manufacturer: d.manufacturer, model: d.model, quirk: d.quirk, type: d.type, power: d.power, mains: d.mains,
       lqi: d.lqi, rssi: d.rssi, available: d.available !== false, last_seen: d.last_seen, sw: d.sw, endpoints: d.endpoints || [],
       battery: (() => { const e = (d.entities || []).find((x) => x.platform === 'sensor' && x.device_class === 'battery'); const v = e && e.state ? num(e.state.native_value) : null; return v; })(),
-      entities: (d.entities || []).map((e) => ({ uid: e.uid, platform: e.platform, name: e.name || e.key, device_class: e.device_class, category: e.category, unit: e.unit, options: e.options, min: e.min, max: e.max, step: e.step, state: e.state,
+      entities: (d.entities || []).map((e) => ({ uid: e.uid, platform: e.platform, name: e.name || e.key, device_class: e.device_class, category: e.category, unit: e.unit, options: e.options, min: e.min, max: e.max, step: e.step, state: withCfg(d.ieee, e),
         mapped: specs.has(`zha:${d.ieee}:${e.uid}`), htype: (specs.get(`zha:${d.ieee}:${e.uid}`) || {}).type || '', linked: !!links()[`zha:${d.ieee}:${e.uid}`] })),
     })).sort((a, b) => a.name.localeCompare(b.name, 'de'));
     return {

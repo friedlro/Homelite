@@ -1,7 +1,7 @@
 {
   "id": "zigbee",
   "name": "Zigbee (direkt, ZHA)",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Eigenständiges Zigbee ohne Zigbee2MQTT: der ZHA-Kern (zigpy, bellows, zha-quirks) steuert den Funk-Dongle direkt, z. B. Sonoff Dongle Max per USB oder Netzwerk. Geräte werden automatisch angelegt (Licht, Schalter, Sensoren, Rollos, Thermostate, Schlosser, Tasten). Mit Anlernen, Kanalwechsel, Backup und echtem Restore.",
   "author": "HomeLite",
   "icon": "📡",
@@ -150,6 +150,8 @@
     "1.4.0": "Tuya-Radar TS0601 _TZE284_iadro9bf / _TZE204_iadro9bf (24-GHz-Präsenzmelder): mitgelieferter Quirk mit Präsenz, Helligkeit, Empfindlichkeiten und Haltezeit.",
     "1.4.1": "Alle Werte eines Geräts (Temperatur, Batterie, Helligkeit …) übernehmen den Raum des zugeordneten alten Geräts; doppelte LQI-/Signal-Werte entfernt.",
     "1.4.2": "Werte ohne Raum (z. B. Helligkeit/Lux, Batterie, Temperatur) erben den Raum eines anderen Werts desselben Geräts, auch wenn dieser nicht zugeordnet wurde.",
-    "1.5.0": "Quirk für Haozee 24G mmWave Radar (_TZE204_kyhbrfyl): Präsenz, Bewegungsart, Haltezeit, Reichweite, Empfindlichkeiten, Zielabstand, Helligkeit."
+    "1.5.0": "Quirk für Haozee 24G mmWave Radar (_TZE204_kyhbrfyl): Präsenz, Bewegungsart, Haltezeit, Reichweite, Empfindlichkeiten, Zielabstand, Helligkeit.",
+    "1.5.1": "Quirk für HOBEIAN ZG-204ZK (Haltezeit, Abstand, Empfindlichkeiten, LED, Störunterdrückung); Einstellungswerte (Zahl/Auswahl) werden dauerhaft gemerkt und nach dem Neustart weiter angezeigt.",
+    "1.5.2": "Helligkeit direkt aus dem Sensor-Cluster, wenn ZHA keine Entität dafür anlegt (z. B. Hue-Bewegungsmelder SML003)."
   }
 }
