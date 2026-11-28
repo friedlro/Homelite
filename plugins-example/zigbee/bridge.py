@@ -352,6 +352,25 @@ class Bridge:
         self.reconnecting = False
 
     # periodische Auffrischung von LQI/Erreichbarkeit
+    @staticmethod
+    def raw_lux(d):
+        """Helligkeit direkt aus dem Cluster 0x0400 (falls ZHA keine Entität dafür anlegt). Wert in Lux oder None."""
+        try:
+            for ep_id, ep in d.device.endpoints.items():
+                if ep_id == 0:
+                    continue
+                cl = ep.in_clusters.get(0x0400)
+                if cl is None:
+                    continue
+                raw = cl.get(0x0000)
+                if raw is None:
+                    raw = getattr(cl, "_attr_cache", {}).get(0x0000)
+                if isinstance(raw, int) and 0 < raw < 0xFFFF:
+                    return round(10 ** ((raw - 1) / 10000), 1)
+        except Exception:  # noqa: BLE001
+            pass
+        return None
+
     async def ticker(self):
         while True:
             await asyncio.sleep(60)
@@ -359,7 +378,7 @@ class Bridge:
                 continue
             try:
                 emit({"event": "health", "devices": [
-                    {"ieee": str(d.ieee), "lqi": d.lqi, "rssi": d.rssi, "available": bool(d.available), "last_seen": d.last_seen}
+                    {"ieee": str(d.ieee), "lqi": d.lqi, "rssi": d.rssi, "available": bool(d.available), "last_seen": d.last_seen, "lux": self.raw_lux(d)}
                     for d in self.gw.devices.values() if not getattr(d, "is_active_coordinator", False)]})
             except Exception as e:  # noqa: BLE001
                 LOG.debug("health: %s", e)

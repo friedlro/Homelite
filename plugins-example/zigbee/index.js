@@ -147,7 +147,7 @@ module.exports = (api) => {
       case 'state': onState(m); break;
       case 'button': onButton(m.ieee, m.uid, m.type, m.attrs); break;
       case 'zha_event': onZhaEvent(m.ieee, m.data || {}); break;
-      case 'health': for (const h of m.devices || []) { const d = devs.get(h.ieee); if (!d) continue; const was = d.available; Object.assign(d, { lqi: h.lqi, rssi: h.rssi, available: h.available, last_seen: h.last_seen }); if (was !== h.available) availability(d); lqiState(d); } break;
+      case 'health': for (const h of m.devices || []) { const d = devs.get(h.ieee); if (!d) continue; const was = d.available; Object.assign(d, { lqi: h.lqi, rssi: h.rssi, available: h.available, last_seen: h.last_seen }); if (was !== h.available) availability(d); lqiState(d); luxState(d, h.lux); } break;
       default: break;
     }
     if (m.event !== 'state') push(); else pushSoon();
@@ -323,6 +323,7 @@ module.exports = (api) => {
     for (const [k, sp] of [...specs]) if (sp.ieee === d.ieee && !want.has(k)) { try { api.devices.remove(k); } catch { /* weg */ } specs.delete(k); }
     for (const e of d.entities || []) lastSt.set(d.ieee + '|' + e.uid, e.state || {});
     lqiState(d);
+    luxState(d, d.lux);
   }
 
   function setDev(d, isNew) {
@@ -330,6 +331,18 @@ module.exports = (api) => {
     devs.set(d.ieee, { ...(old || {}), ...d });
     if (isNew) pushEv(`Neues Gerät: ${disp(d)} (${d.manufacturer || '?'} ${d.model || '?'})`);
     sync(devs.get(d.ieee));
+  }
+
+  // Helligkeit direkt aus dem Cluster 0x0400, wenn ZHA dafür keine eigene Entität anlegt (z. B. Hue-Bewegungsmelder)
+  function luxState(d, lux) {
+    try {
+      if (lux === null || lux === undefined) return;
+      d.lux = lux;
+      if ((d.entities || []).some((e) => e.platform === 'sensor' && e.device_class === 'illuminance')) return;
+      const key = `zha:${d.ieee}:lux`;
+      if (!specs.has(key)) { specs.set(key, { ieee: d.ieee, uid: 'lux', pick: null }); api.devices.ensure({ key, name: `${disp(d)} Helligkeit`, room: roomOf(d), type: 'sensor', unit: 'lx' }); }
+      api.devices.setState(key, { value: lux, online: d.available !== false });
+    } catch { /* egal */ }
   }
 
   function lqiState(d) {
